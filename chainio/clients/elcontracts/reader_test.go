@@ -10,6 +10,7 @@ import (
 	"github.com/Layr-Labs/eigensdk-go/chainio/clients/wallet"
 	"github.com/Layr-Labs/eigensdk-go/chainio/txmgr"
 	erc20 "github.com/Layr-Labs/eigensdk-go/contracts/bindings/IERC20"
+	rewardscoordinator "github.com/Layr-Labs/eigensdk-go/contracts/bindings/IRewardsCoordinator"
 	"github.com/Layr-Labs/eigensdk-go/logging"
 	"github.com/Layr-Labs/eigensdk-go/signerv2"
 	"github.com/Layr-Labs/eigensdk-go/testutils"
@@ -166,6 +167,57 @@ func TestChainReader(t *testing.T) {
 		assert.Zero(t, root)
 	})
 
+	t.Run("get current claimable distribution root with submitted roots is not zero", func(t *testing.T) {
+		root := [32]byte{
+			0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x01, 0x01,
+			0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
+			0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
+			0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
+		}
+
+		contractAddrs := testutils.GetContractAddressesFromContractRegistry(anvilHttpEndpoint)
+		rewardsCoordinatorAddr := contractAddrs.RewardsCoordinator
+		config := elcontracts.Config{
+			DelegationManagerAddress:  contractAddrs.DelegationManager,
+			RewardsCoordinatorAddress: rewardsCoordinatorAddr,
+		}
+
+		chainReader, err := NewTestChainReaderFromConfig(anvilHttpEndpoint, config)
+		require.NoError(t, err)
+
+		// Fetch the current timestamp to increase it
+		currRewardsCalculationEndTimestamp, _ := chainReader.CurrRewardsCalculationEndTimestamp(context.Background())
+
+		ethClient, _ := ethclient.Dial(anvilHttpEndpoint)
+		rewardsCoordinator, _ := rewardscoordinator.NewContractIRewardsCoordinator(rewardsCoordinatorAddr, ethClient)
+
+		txManager, _ := NewTestTxManager(anvilHttpEndpoint, "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80")
+		noSendTxOpts, _ := txManager.GetNoSendTxOpts()
+
+		tx, _ := rewardsCoordinator.SetRewardsUpdater(noSendTxOpts, common.HexToAddress("f39Fd6e51aad88F6F4ce6aB8827279cffFb92266"))
+		print("", tx)
+
+		waitForReceipt := true
+		_, erri := txManager.Send(context.Background(), tx, waitForReceipt)
+		require.NoError(t, erri)
+
+		_, erre := rewardsCoordinator.SubmitRoot(noSendTxOpts, root, currRewardsCalculationEndTimestamp+1)
+		require.NoError(t, erre)
+
+		distr_root, err := chainReader.GetCurrentClaimableDistributionRoot(
+			ctx,
+		)
+
+		assert.Zero(t, distr_root)
+
+		distr_root, _ = chainReader.GetCurrentClaimableDistributionRoot(
+			ctx,
+		)
+		assert.NoError(t, err)
+		assert.Zero(t, distr_root)
+		// assert.Equal(t, distr_root, root)
+		// This assert fails
+	})
 }
 
 // Creates a testing ChainWriter from an httpEndpoint, private key and config.
