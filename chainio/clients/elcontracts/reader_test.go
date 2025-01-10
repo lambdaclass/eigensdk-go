@@ -3,15 +3,25 @@ package elcontracts_test
 import (
 	"context"
 	"math/big"
+	"os"
 	"testing"
 
+	"github.com/Layr-Labs/eigensdk-go/chainio/clients/elcontracts"
+	"github.com/Layr-Labs/eigensdk-go/chainio/clients/wallet"
+	"github.com/Layr-Labs/eigensdk-go/chainio/txmgr"
 	erc20 "github.com/Layr-Labs/eigensdk-go/contracts/bindings/IERC20"
+	"github.com/Layr-Labs/eigensdk-go/logging"
+	"github.com/Layr-Labs/eigensdk-go/signerv2"
 	"github.com/Layr-Labs/eigensdk-go/testutils"
 	"github.com/Layr-Labs/eigensdk-go/testutils/testclients"
 	"github.com/Layr-Labs/eigensdk-go/types"
+	"github.com/Layr-Labs/eigensdk-go/utils"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestChainReader(t *testing.T) {
@@ -111,4 +121,105 @@ func TestChainReader(t *testing.T) {
 		assert.NoError(t, err)
 		assert.NotEmpty(t, digest)
 	})
+
+	t.Run("staker shares test (GetStakerShares)", func(t *testing.T) {
+		strategies, shares, err := clients.ElChainReader.GetStakerShares(
+			ctx,
+			common.HexToAddress(operator.Address),
+		)
+		assert.NotZero(t, len(strategies))            // Strategies has at least one element
+		assert.NotZero(t, len(shares))                // Shares has at least one element
+		assert.Equal(t, len(strategies), len(shares)) // Strategies has the same ammount of elements as
+		assert.NoError(t, err)
+	})
+
+	t.Run("get delegated operator", func(t *testing.T) {
+		// The delegated operator of an operator is the operator itself
+		val := big.NewInt(0)
+		address, err := clients.ElChainReader.GetDelegatedOperator(
+			ctx,
+			common.HexToAddress(operator.Address),
+			val,
+		)
+
+		assert.NoError(t, err)
+		assert.Equal(t, address.String(), operator.Address)
+	})
+
+	t.Run("get current claimable distribution root without submitted roots is zero", func(t *testing.T) {
+		contractAddrs := testutils.GetContractAddressesFromContractRegistry(anvilHttpEndpoint)
+
+		rewardsCoordinatorAddr := contractAddrs.RewardsCoordinator
+		config := elcontracts.Config{
+			DelegationManagerAddress:  contractAddrs.DelegationManager,
+			RewardsCoordinatorAddress: rewardsCoordinatorAddr,
+		}
+
+		chainReader, err := NewTestChainReaderFromConfig(anvilHttpEndpoint, config)
+		require.NoError(t, err)
+
+		root, err := chainReader.GetCurrentClaimableDistributionRoot(
+			ctx,
+		)
+
+		assert.NoError(t, err)
+		assert.Zero(t, root)
+	})
+
+}
+
+// Creates a testing ChainWriter from an httpEndpoint, private key and config.
+// This is needed because the existing testclients.BuildTestClients returns a
+// ChainReader with a null rewardsCoordinator, which is required for some of the tests.
+func NewTestChainReaderFromConfig(
+	httpEndpoint string,
+	config elcontracts.Config,
+) (*elcontracts.ChainReader, error) {
+	testConfig := testutils.GetDefaultTestConfig()
+	logger := logging.NewTextSLogger(os.Stdout, &logging.SLoggerOptions{Level: testConfig.LogLevel})
+	ethHttpClient, err := ethclient.Dial(httpEndpoint)
+	if err != nil {
+		return nil, utils.WrapError("Failed to create eth client", err)
+	}
+
+	testReader, err := elcontracts.NewReaderFromConfig(
+		config,
+		ethHttpClient,
+		logger,
+	)
+	if err != nil {
+		return nil, utils.WrapError("Failed to create chain reader from config", err)
+	}
+	return testReader, nil
+}
+
+func NewTestTxManager(httpEndpoint string, privateKeyHex string) (*txmgr.SimpleTxManager, error) {
+	testConfig := testutils.GetDefaultTestConfig()
+	ethHttpClient, err := ethclient.Dial(httpEndpoint)
+	if err != nil {
+		return nil, utils.WrapError("Failed to create eth client", err)
+	}
+
+	chainid, err := ethHttpClient.ChainID(context.Background())
+	if err != nil {
+		return nil, utils.WrapError("Failed to retrieve chain id", err)
+	}
+	privateKey, err := crypto.HexToECDSA(privateKeyHex)
+	if err != nil {
+		return nil, utils.WrapError("Failed to convert hex string to private key", err)
+	}
+	signerV2, addr, err := signerv2.SignerFromConfig(signerv2.Config{PrivateKey: privateKey}, chainid)
+	if err != nil {
+		return nil, utils.WrapError("Failed to create signer", err)
+	}
+
+	logger := logging.NewTextSLogger(os.Stdout, &logging.SLoggerOptions{Level: testConfig.LogLevel})
+
+	pkWallet, err := wallet.NewPrivateKeyWallet(ethHttpClient, signerV2, addr, logger)
+	if err != nil {
+		return nil, utils.WrapError("Failed to create wallet", err)
+	}
+
+	txManager := txmgr.NewSimpleTxManager(pkWallet, ethHttpClient, logger, addr)
+	return txManager, nil
 }
