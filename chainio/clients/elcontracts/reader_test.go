@@ -188,21 +188,28 @@ func TestChainReader(t *testing.T) {
 		// Fetch the current timestamp to increase it
 		currRewardsCalculationEndTimestamp, _ := chainReader.CurrRewardsCalculationEndTimestamp(context.Background())
 
-		ethClient, _ := ethclient.Dial(anvilHttpEndpoint)
-		rewardsCoordinator, _ := rewardscoordinator.NewContractIRewardsCoordinator(rewardsCoordinatorAddr, ethClient)
+		ethClient, err := ethclient.Dial(anvilHttpEndpoint)
+		require.NoError(t, err)
+		rewardsCoordinator, err := rewardscoordinator.NewContractIRewardsCoordinator(rewardsCoordinatorAddr, ethClient)
+		require.NoError(t, err)
 
-		txManager, _ := NewTestTxManager(anvilHttpEndpoint, "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80")
-		noSendTxOpts, _ := txManager.GetNoSendTxOpts()
+		txManager, err := NewTestTxManager(anvilHttpEndpoint, "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80")
+		require.NoError(t, err)
+		noSendTxOpts, err := txManager.GetNoSendTxOpts()
+		require.NoError(t, err)
 
-		tx, _ := rewardsCoordinator.SetRewardsUpdater(noSendTxOpts, common.HexToAddress("f39Fd6e51aad88F6F4ce6aB8827279cffFb92266"))
-		print("", tx)
+		tx, err := rewardsCoordinator.SetRewardsUpdater(noSendTxOpts, common.HexToAddress("f39Fd6e51aad88F6F4ce6aB8827279cffFb92266"))
+		require.NoError(t, err)
 
 		waitForReceipt := true
-		_, erri := txManager.Send(context.Background(), tx, waitForReceipt)
-		require.NoError(t, erri)
+		_, err = txManager.Send(context.Background(), tx, waitForReceipt)
+		require.NoError(t, err)
 
-		_, erre := rewardsCoordinator.SubmitRoot(noSendTxOpts, root, currRewardsCalculationEndTimestamp+1)
-		require.NoError(t, erre)
+		_, err = rewardsCoordinator.SubmitRoot(noSendTxOpts, root, currRewardsCalculationEndTimestamp+1)
+		require.NoError(t, err)
+
+		_, err = txManager.Send(context.Background(), tx, waitForReceipt)
+		require.NoError(t, err)
 
 		distr_root, err := chainReader.GetCurrentClaimableDistributionRoot(
 			ctx,
