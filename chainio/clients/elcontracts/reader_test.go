@@ -3,16 +3,30 @@ package elcontracts_test
 import (
 	"context"
 	"math/big"
+	"os"
 	"testing"
 
+	"github.com/Layr-Labs/eigensdk-go/chainio/clients/elcontracts"
+	"github.com/Layr-Labs/eigensdk-go/chainio/clients/wallet"
+	"github.com/Layr-Labs/eigensdk-go/chainio/txmgr"
 	erc20 "github.com/Layr-Labs/eigensdk-go/contracts/bindings/IERC20"
+	"github.com/Layr-Labs/eigensdk-go/logging"
+	"github.com/Layr-Labs/eigensdk-go/metrics"
+	"github.com/Layr-Labs/eigensdk-go/signerv2"
 	"github.com/Layr-Labs/eigensdk-go/testutils"
 	"github.com/Layr-Labs/eigensdk-go/testutils/testclients"
 	"github.com/Layr-Labs/eigensdk-go/types"
+	"github.com/Layr-Labs/eigensdk-go/utils"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/assert"
 )
+
+const ANVIL_FIRST_ADDRESS = "f39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
+const ANVIL_FIRST_PRIVATE_KEY = "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
 
 func TestChainReader(t *testing.T) {
 	clients, anvilHttpEndpoint := testclients.BuildTestClients(t)
@@ -111,4 +125,77 @@ func TestChainReader(t *testing.T) {
 		assert.NoError(t, err)
 		assert.NotEmpty(t, digest)
 	})
+}
+
+
+// Creates a testing ChainWriter from an httpEndpoint, private key and config.
+// This is needed because the existing testclients.BuildTestClients returns a
+// ChainReader with a null rewardsCoordinator, which is required for some of the tests.
+func NewTestChainReaderFromConfig(
+	httpEndpoint string,
+	config elcontracts.Config,
+) (*elcontracts.ChainReader, error) {
+	testConfig := testutils.GetDefaultTestConfig()
+	logger := logging.NewTextSLogger(os.Stdout, &logging.SLoggerOptions{Level: testConfig.LogLevel})
+	ethHttpClient, err := ethclient.Dial(httpEndpoint)
+	if err != nil {
+		return nil, utils.WrapError("Failed to create eth client", err)
+	}
+
+	testReader, err := elcontracts.NewReaderFromConfig(
+		config,
+		ethHttpClient,
+		logger,
+	)
+	if err != nil {
+		return nil, utils.WrapError("Failed to create chain reader from config", err)
+	}
+	return testReader, nil
+}
+
+// Creates a testing ChainWriter from an httpEndpoint, private key and config.
+// This is needed because the existing testclients.BuildTestClients returns a
+// ChainWriter with a null rewardsCoordinator, which is required for some of the tests.
+func NewTestChainWriterFromConfig(
+	httpEndpoint string,
+	privateKeyHex string,
+	config elcontracts.Config,
+) (*elcontracts.ChainWriter, error) {
+	privateKey, err := crypto.HexToECDSA(privateKeyHex)
+	if err != nil {
+		return nil, utils.WrapError("Failed convert hex string to ecdsa private key", err)
+	}
+	testConfig := testutils.GetDefaultTestConfig()
+	logger := logging.NewTextSLogger(os.Stdout, &logging.SLoggerOptions{Level: testConfig.LogLevel})
+	ethHttpClient, err := ethclient.Dial(httpEndpoint)
+	if err != nil {
+		return nil, utils.WrapError("Failed to create eth client", err)
+	}
+	chainid, err := ethHttpClient.ChainID(context.Background())
+	if err != nil {
+		return nil, utils.WrapError("Failed to get chain id", err)
+	}
+	promReg := prometheus.NewRegistry()
+	eigenMetrics := metrics.NewEigenMetrics("", "", promReg, logger)
+	signerV2, addr, err := signerv2.SignerFromConfig(signerv2.Config{PrivateKey: privateKey}, chainid)
+	if err != nil {
+		return nil, utils.WrapError("Failed to create the signer from the given config", err)
+	}
+
+	pkWallet, err := wallet.NewPrivateKeyWallet(ethHttpClient, signerV2, addr, logger)
+	if err != nil {
+		return nil, utils.WrapError("Failed to create wallet", err)
+	}
+	txManager := txmgr.NewSimpleTxManager(pkWallet, ethHttpClient, logger, addr)
+	testWriter, err := elcontracts.NewWriterFromConfig(
+		config,
+		ethHttpClient,
+		logger,
+		eigenMetrics,
+		txManager,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return testWriter, nil
 }
