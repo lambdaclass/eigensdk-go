@@ -381,9 +381,55 @@ func TestChainReader(t *testing.T) {
 		require.NoError(t, err)
 		require.True(t, receipt.Status == uint64(1))
 
+		// This tests that with a claim result is cumulativeEarnings
 		claimed, err = chainReader.GetCumulativeClaimed(ctx, common.HexToAddress("f39Fd6e51aad88F6F4ce6aB8827279cffFb92266"), underlyingTokenAddr)
 		assert.Equal(t, claimed, big.NewInt(cumulativeEarnings))
 		assert.NoError(t, err)
+	})
+
+	t.Run("Check claim", func(t *testing.T) {
+		rewardsCoordinatorAddr := contractAddrs.RewardsCoordinator
+		config := elcontracts.Config{
+			DelegationManagerAddress:  contractAddrs.DelegationManager,
+			RewardsCoordinatorAddress: rewardsCoordinatorAddr,
+		}
+		privateKeyHex := ANVIL_FIRST_PRIVATE_KEY
+
+		// Create ChainWriter and chain reader
+		chainWriter, err := NewTestChainWriterFromConfig(anvilHttpEndpoint, privateKeyHex, config)
+		require.NoError(t, err)
+
+		chainReader, err := NewTestChainReaderFromConfig(anvilHttpEndpoint, config)
+		require.NoError(t, err)
+
+		activationDelay := uint32(0)
+		// Set activation delay to zero so that the earnings can be claimed right after submitting the root
+		receipt, err := setTestRewardsCoordinatorActivationDelay(anvilHttpEndpoint, privateKeyHex, activationDelay)
+		require.NoError(t, err)
+		require.True(t, receipt.Status == uint64(1))
+
+		cumulativeEarnings := int64(45)
+		claim, err := newTestClaim(chainReader, anvilHttpEndpoint, cumulativeEarnings, privateKeyHex)
+		require.NoError(t, err)
+
+		earner := common.HexToAddress("0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6")
+		receipt, err = chainWriter.ProcessClaim(context.Background(), *claim, earner, true)
+		require.NoError(t, err)
+		require.True(t, receipt.Status == uint64(1))
+
+		strategyAddr := contractAddrs.Erc20MockStrategy
+		strategy, contractUnderlyingToken, underlyingTokenAddr, err := clients.ElChainReader.GetStrategyAndUnderlyingERC20Token(
+			ctx,
+			strategyAddr,
+		)
+		assert.NoError(t, err)
+		assert.NotNil(t, strategy)
+		assert.NotEqual(t, common.Address{}, underlyingTokenAddr)
+		assert.NotNil(t, contractUnderlyingToken)
+
+		checked, err := chainReader.CheckClaim(ctx, *claim)
+		require.NoError(t, err)
+		assert.True(t, checked)
 	})
 }
 
