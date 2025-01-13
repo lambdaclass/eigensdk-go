@@ -150,6 +150,9 @@ func TestAdminFunctions(t *testing.T) {
 	assert.NoError(t, err)
 
 	pendingAdminAddr := common.HexToAddress("14dC79964da2C08b23698B3D3cc7Ca32193d9955")
+	pendingAdminPrivateKeyHex := "4bbbf85ce3377467afe5d46f804f221813b2bb87f24d81f60f1fcdbf7cbf4356"
+	adminChainWriter, err := NewTestChainWriterFromConfig(anvilHttpEndpoint, pendingAdminPrivateKeyHex, config)
+	assert.NoError(t, err)
 
 	chainReader, err := NewTestChainReaderFromConfig(anvilHttpEndpoint, config)
 	assert.NoError(t, err)
@@ -182,6 +185,27 @@ func TestAdminFunctions(t *testing.T) {
 		listAdmins, err := chainReader.ListAdmins(context.Background(), operatorAddr)
 		assert.NoError(t, err)
 		assert.Len(t, listAdmins, 1)
+	})
+	
+	t.Run("non-existent admin", func(t *testing.T) {
+		isAdmin, err := chainReader.IsAdmin(context.Background(), operatorAddr, pendingAdminAddr)
+		assert.NoError(t, err)
+		assert.False(t, isAdmin)
+	})
+
+	t.Run("existing admin", func(t *testing.T) {
+		acceptAdminRequest := elcontracts.AcceptAdminRequest{
+			AccountAddress: operatorAddr,
+			WaitForReceipt: true,
+		}
+
+		receipt, err := adminChainWriter.AcceptAdmin(context.Background(), acceptAdminRequest)
+		assert.NoError(t, err)
+		assert.True(t, receipt.Status == 1)
+
+		isAdmin, err := chainReader.IsAdmin(context.Background(), operatorAddr, pendingAdminAddr)
+		assert.NoError(t, err)
+		assert.True(t, isAdmin)
 	})
 }
 
