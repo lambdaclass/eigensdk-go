@@ -229,7 +229,6 @@ func TestAdminFunctions(t *testing.T) {
 	})
 }
 
-
 // Creates a testing ChainWriter from an httpEndpoint, private key and config.
 // This is needed because the existing testclients.BuildTestClients returns a
 // ChainReader with a null rewardsCoordinator, which is required for some of the tests.
