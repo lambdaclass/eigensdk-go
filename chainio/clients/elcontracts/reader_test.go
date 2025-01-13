@@ -19,6 +19,7 @@ import (
 	"github.com/Layr-Labs/eigensdk-go/utils"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/prometheus/client_golang/prometheus"
@@ -186,7 +187,7 @@ func TestAdminFunctions(t *testing.T) {
 
 		receipt, err := accountChainWriter.AddPendingAdmin(context.Background(), request)
 		assert.NoError(t, err)
-		assert.Equal(t, receipt.Status, uint64(1))
+		assert.Equal(t, receipt.Status, ethtypes.ReceiptStatusSuccessful)
 
 		isPendingAdmin, err = chainReader.IsPendingAdmin(context.Background(), operatorAddr, pendingAdminAddr)
 		assert.NoError(t, err)
@@ -212,7 +213,7 @@ func TestAdminFunctions(t *testing.T) {
 
 		receipt, err := adminChainWriter.AcceptAdmin(context.Background(), acceptAdminRequest)
 		assert.NoError(t, err)
-		assert.Equal(t, receipt.Status, uint64(1))
+		assert.Equal(t, receipt.Status, ethtypes.ReceiptStatusSuccessful)
 
 		isAdmin, err := chainReader.IsAdmin(context.Background(), operatorAddr, pendingAdminAddr)
 		assert.NoError(t, err)
@@ -274,7 +275,7 @@ func TestAppointeesFunctions(t *testing.T) {
 
 		receipt, err := chainWriter.SetPermission(context.Background(), setPermissionRequest)
 		require.NoError(t, err)
-		require.Equal(t, receipt.Status, uint64(1))
+		require.Equal(t, receipt.Status, ethtypes.ReceiptStatusSuccessful)
 
 		canCall, err := chainReader.CanCall(context.Background(), accountAddress, appointeeAddress, target, selector)
 		require.NoError(t, err)
