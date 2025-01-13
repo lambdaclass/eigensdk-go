@@ -152,26 +152,6 @@ func TestChainReader(t *testing.T) {
 		assert.Equal(t, address.String(), operator.Address)
 	})
 
-	t.Run("get current claimable distribution root without submitted roots is zero", func(t *testing.T) {
-		contractAddrs := testutils.GetContractAddressesFromContractRegistry(anvilHttpEndpoint)
-
-		rewardsCoordinatorAddr := contractAddrs.RewardsCoordinator
-		config := elcontracts.Config{
-			DelegationManagerAddress:  contractAddrs.DelegationManager,
-			RewardsCoordinatorAddress: rewardsCoordinatorAddr,
-		}
-
-		chainReader, err := NewTestChainReaderFromConfig(anvilHttpEndpoint, config)
-		require.NoError(t, err)
-
-		root, err := chainReader.GetCurrentClaimableDistributionRoot(
-			ctx,
-		)
-
-		assert.NoError(t, err)
-		assert.Zero(t, root)
-	})
-
 	t.Run("get current claimable distribution root with and without submitted roots", func(t *testing.T) {
 		// Verifies GetCurrentClaimableDistributionRoot returns 0 if no root and the root if there's one
 		root := [32]byte{
