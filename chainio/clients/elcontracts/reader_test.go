@@ -236,7 +236,6 @@ func TestAdminFunctions(t *testing.T) {
 }
 
 func TestAppointeesFunctions(t *testing.T) {
-	// Configuración inicial similar a TestAdminFunctions
 	testConfig := testutils.GetDefaultTestConfig()
 	anvilC, err := testutils.StartAnvilContainer(testConfig.AnvilStateFileName)
 	assert.NoError(t, err)
