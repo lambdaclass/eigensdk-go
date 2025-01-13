@@ -127,6 +127,64 @@ func TestChainReader(t *testing.T) {
 	})
 }
 
+func TestAdminFunctions(t *testing.T) {
+	testConfig := testutils.GetDefaultTestConfig()
+	anvilC, err := testutils.StartAnvilContainer(testConfig.AnvilStateFileName)
+	assert.NoError(t, err)
+
+	anvilHttpEndpoint, err := anvilC.Endpoint(context.Background(), "http")
+	assert.NoError(t, err)
+
+	contractAddrs := testutils.GetContractAddressesFromContractRegistry(anvilHttpEndpoint)
+
+	permissionControllerAddr := common.HexToAddress("0x610178dA211FEF7D417bC0e6FeD39F05609AD788")
+
+	operatorAddr := common.HexToAddress(ANVIL_FIRST_ADDRESS)
+	privateKeyHex := ANVIL_FIRST_PRIVATE_KEY
+	config := elcontracts.Config{
+		DelegationManagerAddress:     contractAddrs.DelegationManager,
+		PermissionsControllerAddress: permissionControllerAddr,
+	}
+
+	accountChainWriter, err := NewTestChainWriterFromConfig(anvilHttpEndpoint, privateKeyHex, config)
+	assert.NoError(t, err)
+
+	pendingAdminAddr := common.HexToAddress("14dC79964da2C08b23698B3D3cc7Ca32193d9955")
+
+	chainReader, err := NewTestChainReaderFromConfig(anvilHttpEndpoint, config)
+	assert.NoError(t, err)
+
+	
+	t.Run("list pending admins when empty", func(t *testing.T) {
+		listPendingAdmins, err := chainReader.ListPendingAdmins(context.Background(), operatorAddr)
+		assert.NoError(t, err)
+		assert.Empty(t, listPendingAdmins)
+	})
+
+	t.Run("add pending admin and list", func(t *testing.T) {
+		request := elcontracts.AddPendingAdminRequest{
+			AccountAddress: operatorAddr,
+			AdminAddress:   pendingAdminAddr,
+			WaitForReceipt: true,
+		}
+		
+		receipt, err := accountChainWriter.AddPendingAdmin(context.Background(), request)
+		assert.NoError(t, err)
+		assert.True(t, receipt.Status == 1)
+
+		listPendingAdmins, err := chainReader.ListPendingAdmins(context.Background(), operatorAddr)
+		assert.NoError(t, err)
+		assert.NotEmpty(t, listPendingAdmins)
+		assert.Len(t, listPendingAdmins, 1)
+	})
+
+	t.Run("list admins", func(t *testing.T) {
+		listAdmins, err := chainReader.ListAdmins(context.Background(), operatorAddr)
+		assert.NoError(t, err)
+		assert.Len(t, listAdmins, 1)
+	})
+}
+
 
 // Creates a testing ChainWriter from an httpEndpoint, private key and config.
 // This is needed because the existing testclients.BuildTestClients returns a
