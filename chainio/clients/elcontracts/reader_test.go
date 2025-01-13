@@ -152,170 +152,6 @@ func TestChainReader(t *testing.T) {
 		assert.Equal(t, address.String(), operator.Address)
 	})
 
-	t.Run("get current claimable distribution root with and without submitted roots", func(t *testing.T) {
-		// Verifies GetCurrentClaimableDistributionRoot returns 0 if no root and the root if there's one
-		root := [32]byte{
-			0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x01, 0x01,
-			0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
-			0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
-			0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
-		}
-
-		rewardsCoordinatorAddr := contractAddrs.RewardsCoordinator
-		config := elcontracts.Config{
-			DelegationManagerAddress:  contractAddrs.DelegationManager,
-			RewardsCoordinatorAddress: rewardsCoordinatorAddr,
-		}
-
-		chainReader, err := NewTestChainReaderFromConfig(anvilHttpEndpoint, config)
-		require.NoError(t, err)
-
-		// Create and configure rewards coordinator
-		ethClient, err := ethclient.Dial(anvilHttpEndpoint)
-		require.NoError(t, err)
-		rewardsCoordinator, err := rewardscoordinator.NewContractIRewardsCoordinator(rewardsCoordinatorAddr, ethClient)
-		require.NoError(t, err)
-
-		// Set delay to zero to inmediatly operate with coordinator
-		receipt, err := setTestRewardsCoordinatorActivationDelay(anvilHttpEndpoint, "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80", uint32(0))
-		require.NoError(t, err)
-		require.Equal(t, receipt.Status, uint64(1))
-
-		// Create txManager to send transactions to the Ethereum node
-		txManager, err := NewTestTxManager(anvilHttpEndpoint, "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80")
-		require.NoError(t, err)
-		noSendTxOpts, err := txManager.GetNoSendTxOpts()
-		require.NoError(t, err)
-
-		rewardsUpdater := common.HexToAddress("f39Fd6e51aad88F6F4ce6aB8827279cffFb92266")
-
-		// Change the rewards updater to be able to submit the new root
-		tx, err := rewardsCoordinator.SetRewardsUpdater(noSendTxOpts, rewardsUpdater)
-		require.NoError(t, err)
-
-		waitForReceipt := true
-		_, err = txManager.Send(context.Background(), tx, waitForReceipt)
-		require.NoError(t, err)
-
-		// Check that if there is no root submitted the result is zero
-		distr_root, err := chainReader.GetCurrentClaimableDistributionRoot(
-			ctx,
-		)
-		assert.NoError(t, err)
-		assert.Zero(t, distr_root.Root)
-
-		currRewardsCalculationEndTimestamp, err := chainReader.CurrRewardsCalculationEndTimestamp(context.Background())
-		require.NoError(t, err)
-
-		tx, err = rewardsCoordinator.SubmitRoot(noSendTxOpts, root, currRewardsCalculationEndTimestamp+1)
-		require.NoError(t, err)
-
-		_, err = txManager.Send(context.Background(), tx, waitForReceipt)
-		require.NoError(t, err)
-
-		// Check that if there is a root submitted the result is that root
-		distr_root, err = chainReader.GetCurrentClaimableDistributionRoot(
-			ctx,
-		)
-		assert.NoError(t, err)
-		assert.Equal(t, distr_root.Root, root)
-	})
-
-	t.Run("get root index from root hash with and without submitted roots", func(t *testing.T) {
-		rewardsCoordinatorAddr := contractAddrs.RewardsCoordinator
-		config := elcontracts.Config{
-			DelegationManagerAddress:  contractAddrs.DelegationManager,
-			RewardsCoordinatorAddress: rewardsCoordinatorAddr,
-		}
-
-		chainReader, err := NewTestChainReaderFromConfig(anvilHttpEndpoint, config)
-		require.NoError(t, err)
-
-		// Create and configure rewards coordinator
-		ethClient, err := ethclient.Dial(anvilHttpEndpoint)
-		require.NoError(t, err)
-		rewardsCoordinator, err := rewardscoordinator.NewContractIRewardsCoordinator(rewardsCoordinatorAddr, ethClient)
-		require.NoError(t, err)
-
-		// Set delay to zero to inmediatly operate with coordinator
-		receipt, err := setTestRewardsCoordinatorActivationDelay(anvilHttpEndpoint, "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80", uint32(0))
-		require.NoError(t, err)
-		require.Equal(t, receipt.Status, uint64(1))
-
-		// Create txManager to send transactions to the Ethereum node
-		txManager, err := NewTestTxManager(anvilHttpEndpoint, "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80")
-		require.NoError(t, err)
-		noSendTxOpts, err := txManager.GetNoSendTxOpts()
-		require.NoError(t, err)
-
-		rewardsUpdater := common.HexToAddress("f39Fd6e51aad88F6F4ce6aB8827279cffFb92266")
-
-		// Change the rewards updater to be able to submit the new root
-		tx, err := rewardsCoordinator.SetRewardsUpdater(noSendTxOpts, rewardsUpdater)
-		require.NoError(t, err)
-
-		waitForReceipt := true
-		_, err = txManager.Send(context.Background(), tx, waitForReceipt)
-		require.NoError(t, err)
-
-		root := [32]byte{
-			0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x01, 0x01,
-			0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
-			0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
-			0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
-		}
-
-		// Check that if there is no root submitted the result is an InvalidRoot error
-		root_index, err := chainReader.GetRootIndexFromHash(
-			ctx,
-			root,
-		)
-		assert.Error(t, err)
-		assert.Equal(t, err.Error(), "execution reverted: custom error 0x504570e3")
-		assert.Zero(t, root_index)
-
-		currRewardsCalculationEndTimestamp, err := chainReader.CurrRewardsCalculationEndTimestamp(context.Background())
-		require.NoError(t, err)
-
-		tx, err = rewardsCoordinator.SubmitRoot(noSendTxOpts, root, currRewardsCalculationEndTimestamp+1)
-		require.NoError(t, err)
-
-		_, err = txManager.Send(context.Background(), tx, waitForReceipt)
-		require.NoError(t, err)
-
-		root2 := [32]byte{
-			0x00, 0x00, 0x00, 0x00, 0x01, 0x01, 0x01, 0x01,
-			0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
-			0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
-			0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
-		}
-
-		currRewardsCalculationEndTimestamp2, err := chainReader.CurrRewardsCalculationEndTimestamp(context.Background())
-		require.NoError(t, err)
-
-		tx, err = rewardsCoordinator.SubmitRoot(noSendTxOpts, root2, currRewardsCalculationEndTimestamp2+1)
-		require.NoError(t, err)
-
-		_, err = txManager.Send(context.Background(), tx, waitForReceipt)
-		require.NoError(t, err)
-
-		// Check that the first root inserted is the first indexed (zero)
-		root_index, err = chainReader.GetRootIndexFromHash(
-			ctx,
-			root,
-		)
-		assert.NoError(t, err)
-		assert.Equal(t, root_index, uint32(0))
-
-		// Check that the second root inserted is the second indexed (zero)
-		root_index, err = chainReader.GetRootIndexFromHash(
-			ctx,
-			root2,
-		)
-		assert.NoError(t, err)
-		assert.Equal(t, root_index, uint32(1))
-	})
-
 	t.Run("get cumulative claimed rewards", func(t *testing.T) {
 		rewardsCoordinatorAddr := contractAddrs.RewardsCoordinator
 		config := elcontracts.Config{
@@ -366,51 +202,230 @@ func TestChainReader(t *testing.T) {
 		assert.Equal(t, claimed, big.NewInt(cumulativeEarnings))
 		assert.NoError(t, err)
 	})
+}
 
-	t.Run("Check claim", func(t *testing.T) {
-		rewardsCoordinatorAddr := contractAddrs.RewardsCoordinator
-		config := elcontracts.Config{
-			DelegationManagerAddress:  contractAddrs.DelegationManager,
-			RewardsCoordinatorAddress: rewardsCoordinatorAddr,
-		}
-		privateKeyHex := ANVIL_FIRST_PRIVATE_KEY
+func TestGetCurrentClaimableDistributionRoot(t *testing.T) {
+	// Verifies GetCurrentClaimableDistributionRoot returns 0 if no root and the root if there's one
+	_, anvilHttpEndpoint := testclients.BuildTestClients(t)
+	ctx := context.Background()
 
-		// Create ChainWriter and chain reader
-		chainWriter, err := NewTestChainWriterFromConfig(anvilHttpEndpoint, privateKeyHex, config)
-		require.NoError(t, err)
+	contractAddrs := testutils.GetContractAddressesFromContractRegistry(anvilHttpEndpoint)
 
-		chainReader, err := NewTestChainReaderFromConfig(anvilHttpEndpoint, config)
-		require.NoError(t, err)
+	root := [32]byte{
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x01, 0x01,
+		0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
+		0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
+		0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
+	}
 
-		activationDelay := uint32(0)
-		// Set activation delay to zero so that the earnings can be claimed right after submitting the root
-		receipt, err := setTestRewardsCoordinatorActivationDelay(anvilHttpEndpoint, privateKeyHex, activationDelay)
-		require.NoError(t, err)
-		require.True(t, receipt.Status == uint64(1))
+	rewardsCoordinatorAddr := contractAddrs.RewardsCoordinator
+	config := elcontracts.Config{
+		DelegationManagerAddress:  contractAddrs.DelegationManager,
+		RewardsCoordinatorAddress: rewardsCoordinatorAddr,
+	}
 
-		cumulativeEarnings := int64(45)
-		claim, err := newTestClaim(chainReader, anvilHttpEndpoint, cumulativeEarnings, privateKeyHex)
-		require.NoError(t, err)
+	chainReader, err := NewTestChainReaderFromConfig(anvilHttpEndpoint, config)
+	require.NoError(t, err)
 
-		earner := common.HexToAddress("0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6")
-		receipt, err = chainWriter.ProcessClaim(context.Background(), *claim, earner, true)
-		require.NoError(t, err)
-		require.True(t, receipt.Status == uint64(1))
+	// Create and configure rewards coordinator
+	ethClient, err := ethclient.Dial(anvilHttpEndpoint)
+	require.NoError(t, err)
+	rewardsCoordinator, err := rewardscoordinator.NewContractIRewardsCoordinator(rewardsCoordinatorAddr, ethClient)
+	require.NoError(t, err)
 
-		strategyAddr := contractAddrs.Erc20MockStrategy
-		strategy, contractUnderlyingToken, underlyingTokenAddr, err := clients.ElChainReader.GetStrategyAndUnderlyingERC20Token(
-			ctx,
-			strategyAddr,
-		)
-		assert.NoError(t, err)
-		assert.NotNil(t, strategy)
-		assert.NotEqual(t, common.Address{}, underlyingTokenAddr)
-		assert.NotNil(t, contractUnderlyingToken)
+	// Set delay to zero to inmediatly operate with coordinator
+	receipt, err := setTestRewardsCoordinatorActivationDelay(anvilHttpEndpoint, "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80", uint32(0))
+	require.NoError(t, err)
+	require.Equal(t, receipt.Status, uint64(1))
 
-		checked, err := chainReader.CheckClaim(ctx, *claim)
-		require.NoError(t, err)
-		assert.True(t, checked)
-	})
+	// Create txManager to send transactions to the Ethereum node
+	txManager, err := NewTestTxManager(anvilHttpEndpoint, "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80")
+	require.NoError(t, err)
+	noSendTxOpts, err := txManager.GetNoSendTxOpts()
+	require.NoError(t, err)
+
+	rewardsUpdater := common.HexToAddress("f39Fd6e51aad88F6F4ce6aB8827279cffFb92266")
+
+	// Change the rewards updater to be able to submit the new root
+	tx, err := rewardsCoordinator.SetRewardsUpdater(noSendTxOpts, rewardsUpdater)
+	require.NoError(t, err)
+
+	waitForReceipt := true
+	_, err = txManager.Send(context.Background(), tx, waitForReceipt)
+	require.NoError(t, err)
+
+	// Check that if there is no root submitted the result is zero
+	distr_root, err := chainReader.GetCurrentClaimableDistributionRoot(
+		ctx,
+	)
+	assert.NoError(t, err)
+	assert.Zero(t, distr_root.Root)
+
+	currRewardsCalculationEndTimestamp, err := chainReader.CurrRewardsCalculationEndTimestamp(context.Background())
+	require.NoError(t, err)
+
+	tx, err = rewardsCoordinator.SubmitRoot(noSendTxOpts, root, currRewardsCalculationEndTimestamp+1)
+	require.NoError(t, err)
+
+	_, err = txManager.Send(context.Background(), tx, waitForReceipt)
+	require.NoError(t, err)
+
+	// Check that if there is a root submitted the result is that root
+	distr_root, err = chainReader.GetCurrentClaimableDistributionRoot(
+		ctx,
+	)
+	assert.NoError(t, err)
+	assert.Equal(t, distr_root.Root, root)
+}
+
+func TestGetRootIndexFromRootHash(t *testing.T) {
+	_, anvilHttpEndpoint := testclients.BuildTestClients(t)
+	ctx := context.Background()
+
+	contractAddrs := testutils.GetContractAddressesFromContractRegistry(anvilHttpEndpoint)
+
+	rewardsCoordinatorAddr := contractAddrs.RewardsCoordinator
+	config := elcontracts.Config{
+		DelegationManagerAddress:  contractAddrs.DelegationManager,
+		RewardsCoordinatorAddress: rewardsCoordinatorAddr,
+	}
+
+	chainReader, err := NewTestChainReaderFromConfig(anvilHttpEndpoint, config)
+	require.NoError(t, err)
+
+	// Create and configure rewards coordinator
+	ethClient, err := ethclient.Dial(anvilHttpEndpoint)
+	require.NoError(t, err)
+	rewardsCoordinator, err := rewardscoordinator.NewContractIRewardsCoordinator(rewardsCoordinatorAddr, ethClient)
+	require.NoError(t, err)
+
+	// Set delay to zero to inmediatly operate with coordinator
+	receipt, err := setTestRewardsCoordinatorActivationDelay(anvilHttpEndpoint, "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80", uint32(0))
+	require.NoError(t, err)
+	require.Equal(t, receipt.Status, uint64(1))
+
+	// Create txManager to send transactions to the Ethereum node
+	txManager, err := NewTestTxManager(anvilHttpEndpoint, "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80")
+	require.NoError(t, err)
+	noSendTxOpts, err := txManager.GetNoSendTxOpts()
+	require.NoError(t, err)
+
+	rewardsUpdater := common.HexToAddress("f39Fd6e51aad88F6F4ce6aB8827279cffFb92266")
+
+	// Change the rewards updater to be able to submit the new root
+	tx, err := rewardsCoordinator.SetRewardsUpdater(noSendTxOpts, rewardsUpdater)
+	require.NoError(t, err)
+
+	waitForReceipt := true
+	_, err = txManager.Send(context.Background(), tx, waitForReceipt)
+	require.NoError(t, err)
+
+	root := [32]byte{
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x01, 0x01,
+		0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
+		0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
+		0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
+	}
+
+	// Check that if there is no root submitted the result is an InvalidRoot error
+	root_index, err := chainReader.GetRootIndexFromHash(
+		ctx,
+		root,
+	)
+	assert.Error(t, err)
+	assert.Equal(t, err.Error(), "execution reverted: custom error 0x504570e3")
+	assert.Zero(t, root_index)
+
+	currRewardsCalculationEndTimestamp, err := chainReader.CurrRewardsCalculationEndTimestamp(context.Background())
+	require.NoError(t, err)
+
+	tx, err = rewardsCoordinator.SubmitRoot(noSendTxOpts, root, currRewardsCalculationEndTimestamp+1)
+	require.NoError(t, err)
+
+	_, err = txManager.Send(context.Background(), tx, waitForReceipt)
+	require.NoError(t, err)
+
+	root2 := [32]byte{
+		0x00, 0x00, 0x00, 0x00, 0x01, 0x01, 0x01, 0x01,
+		0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
+		0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
+		0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
+	}
+
+	currRewardsCalculationEndTimestamp2, err := chainReader.CurrRewardsCalculationEndTimestamp(context.Background())
+	require.NoError(t, err)
+
+	tx, err = rewardsCoordinator.SubmitRoot(noSendTxOpts, root2, currRewardsCalculationEndTimestamp2+1)
+	require.NoError(t, err)
+
+	_, err = txManager.Send(context.Background(), tx, waitForReceipt)
+	require.NoError(t, err)
+
+	// Check that the first root inserted is the first indexed (zero)
+	root_index, err = chainReader.GetRootIndexFromHash(
+		ctx,
+		root,
+	)
+	assert.NoError(t, err)
+	assert.Equal(t, root_index, uint32(0))
+
+	// Check that the second root inserted is the second indexed (zero)
+	root_index, err = chainReader.GetRootIndexFromHash(
+		ctx,
+		root2,
+	)
+	assert.NoError(t, err)
+	assert.Equal(t, root_index, uint32(1))
+}
+
+func TestCheckClaim(t *testing.T) {
+	clients, anvilHttpEndpoint := testclients.BuildTestClients(t)
+	ctx := context.Background()
+
+	contractAddrs := testutils.GetContractAddressesFromContractRegistry(anvilHttpEndpoint)
+
+	rewardsCoordinatorAddr := contractAddrs.RewardsCoordinator
+	config := elcontracts.Config{
+		DelegationManagerAddress:  contractAddrs.DelegationManager,
+		RewardsCoordinatorAddress: rewardsCoordinatorAddr,
+	}
+	privateKeyHex := ANVIL_FIRST_PRIVATE_KEY
+
+	// Create ChainWriter and chain reader
+	chainWriter, err := NewTestChainWriterFromConfig(anvilHttpEndpoint, privateKeyHex, config)
+	require.NoError(t, err)
+
+	chainReader, err := NewTestChainReaderFromConfig(anvilHttpEndpoint, config)
+	require.NoError(t, err)
+
+	activationDelay := uint32(0)
+	// Set activation delay to zero so that the earnings can be claimed right after submitting the root
+	receipt, err := setTestRewardsCoordinatorActivationDelay(anvilHttpEndpoint, privateKeyHex, activationDelay)
+	require.NoError(t, err)
+	require.True(t, receipt.Status == uint64(1))
+
+	cumulativeEarnings := int64(45)
+	claim, err := newTestClaim(chainReader, anvilHttpEndpoint, cumulativeEarnings, privateKeyHex)
+	require.NoError(t, err)
+
+	earner := common.HexToAddress("0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6")
+	receipt, err = chainWriter.ProcessClaim(context.Background(), *claim, earner, true)
+	require.NoError(t, err)
+	require.True(t, receipt.Status == uint64(1))
+
+	strategyAddr := contractAddrs.Erc20MockStrategy
+	strategy, contractUnderlyingToken, underlyingTokenAddr, err := clients.ElChainReader.GetStrategyAndUnderlyingERC20Token(
+		ctx,
+		strategyAddr,
+	)
+	assert.NoError(t, err)
+	assert.NotNil(t, strategy)
+	assert.NotEqual(t, common.Address{}, underlyingTokenAddr)
+	assert.NotNil(t, contractUnderlyingToken)
+
+	checked, err := chainReader.CheckClaim(ctx, *claim)
+	require.NoError(t, err)
+	assert.True(t, checked)
 }
 
 // The functions below will be replaced for those placed in testutils/testclients/testclients.go
