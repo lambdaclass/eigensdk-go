@@ -333,6 +333,63 @@ func TestChainReader(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, root_index, uint32(1))
 	})
+
+	t.Run("get cumulative claimed rewards", func(t *testing.T) {
+		rewardsCoordinatorAddr := contractAddrs.RewardsCoordinator
+		config := elcontracts.Config{
+			DelegationManagerAddress:  contractAddrs.DelegationManager,
+			RewardsCoordinatorAddress: rewardsCoordinatorAddr,
+		}
+
+		//chainWriter, err := NewTestChainWriterFromConfig(anvilHttpEndpoint, "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80", config)
+		//require.NoError(t, err)
+		chainReader, err := NewTestChainReaderFromConfig(anvilHttpEndpoint, config)
+		require.NoError(t, err)
+
+		// Create and configure rewards coordinator
+		ethClient, err := ethclient.Dial(anvilHttpEndpoint)
+		require.NoError(t, err)
+		rewardsCoordinator, err := rewardscoordinator.NewContractIRewardsCoordinator(rewardsCoordinatorAddr, ethClient)
+		require.NoError(t, err)
+
+		// Set delay to zero to inmediatly operate with coordinator
+		receipt, err := setTestRewardsCoordinatorActivationDelay(anvilHttpEndpoint, "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80", uint32(0))
+		require.NoError(t, err)
+		require.Equal(t, receipt.Status, uint64(1))
+
+		// Create txManager to send transactions to the Ethereum node
+		txManager, err := NewTestTxManager(anvilHttpEndpoint, "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80")
+		require.NoError(t, err)
+		noSendTxOpts, err := txManager.GetNoSendTxOpts()
+		require.NoError(t, err)
+
+		rewardsUpdater := common.HexToAddress("f39Fd6e51aad88F6F4ce6aB8827279cffFb92266")
+
+		// Change the rewards updater to be able to submit the new root
+		tx, err := rewardsCoordinator.SetRewardsUpdater(noSendTxOpts, rewardsUpdater)
+		require.NoError(t, err)
+
+		waitForReceipt := true
+		_, err = txManager.Send(context.Background(), tx, waitForReceipt)
+		require.NoError(t, err)
+
+		strategyAddr := contractAddrs.Erc20MockStrategy
+		strategy, contractUnderlyingToken, underlyingTokenAddr, err := clients.ElChainReader.GetStrategyAndUnderlyingERC20Token(
+			ctx,
+			strategyAddr,
+		)
+		assert.NoError(t, err)
+		assert.NotNil(t, strategy)
+		assert.NotEqual(t, common.Address{}, underlyingTokenAddr)
+		assert.NotNil(t, contractUnderlyingToken)
+
+		claimed, err := chainReader.GetCumulativeClaimed(ctx, common.HexToAddress("f39Fd6e51aad88F6F4ce6aB8827279cffFb92266"), underlyingTokenAddr)
+		assert.True(t, claimed.Cmp(big.NewInt(0)) == 0)
+		assert.NoError(t, err)
+
+		// This tests that without claims result is zero, should add claims and test that the cumulative increases
+	})
+
 }
 
 // The functions below will be replaced for those placed in testutils/testclients/testclients.go
