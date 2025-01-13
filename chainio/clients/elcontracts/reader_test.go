@@ -155,8 +155,17 @@ func TestAdminFunctions(t *testing.T) {
 	chainReader, err := NewTestChainReaderFromConfig(anvilHttpEndpoint, config)
 	assert.NoError(t, err)
 
-	
+	t.Run("non-existent pending admin", func(t *testing.T) {
+		isPendingAdmin, err := chainReader.IsPendingAdmin(context.Background(), operatorAddr, pendingAdminAddr)
+		assert.NoError(t, err)
+		assert.False(t, isPendingAdmin)
+	})
+
 	t.Run("list pending admins when empty", func(t *testing.T) {
+		isPendingAdmin, err := chainReader.IsPendingAdmin(context.Background(), operatorAddr, pendingAdminAddr)
+		assert.NoError(t, err)
+		assert.False(t, isPendingAdmin)
+
 		listPendingAdmins, err := chainReader.ListPendingAdmins(context.Background(), operatorAddr)
 		assert.NoError(t, err)
 		assert.Empty(t, listPendingAdmins)
@@ -187,17 +196,6 @@ func TestAdminFunctions(t *testing.T) {
 		assert.Len(t, listPendingAdmins, 1)
 	})
 
-	t.Run("list admins", func(t *testing.T) {
-		listAdmins, err := chainReader.ListAdmins(context.Background(), operatorAddr)
-		assert.NoError(t, err)
-		assert.Len(t, listAdmins, 1)
-
-		admin := listAdmins[0]
-		isAdmin, err := chainReader.IsAdmin(context.Background(), operatorAddr, admin)
-		assert.NoError(t, err)
-		assert.True(t, isAdmin)
-	})
-	
 	t.Run("non-existent admin", func(t *testing.T) {
 		isAdmin, err := chainReader.IsAdmin(context.Background(), operatorAddr, pendingAdminAddr)
 		assert.NoError(t, err)
@@ -215,6 +213,17 @@ func TestAdminFunctions(t *testing.T) {
 		assert.True(t, receipt.Status == 1)
 
 		isAdmin, err := chainReader.IsAdmin(context.Background(), operatorAddr, pendingAdminAddr)
+		assert.NoError(t, err)
+		assert.True(t, isAdmin)
+	})
+
+	t.Run("list admins", func(t *testing.T) {
+		listAdmins, err := chainReader.ListAdmins(context.Background(), operatorAddr)
+		assert.NoError(t, err)
+		assert.Len(t, listAdmins, 1)
+
+		admin := listAdmins[0]
+		isAdmin, err := chainReader.IsAdmin(context.Background(), operatorAddr, admin)
 		assert.NoError(t, err)
 		assert.True(t, isAdmin)
 	})
