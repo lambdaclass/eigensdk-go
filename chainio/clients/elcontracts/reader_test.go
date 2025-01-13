@@ -31,6 +31,9 @@ const (
 	ANVIL_FIRST_ADDRESS           = "f39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
 	ANVIL_FIRST_PRIVATE_KEY       = "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
 	PERMISSION_CONTROLLER_ADDRESS = "610178dA211FEF7D417bC0e6FeD39F05609AD788"
+	KNOWN_ADDRESS                 = "14dC79964da2C08b23698B3D3cc7Ca32193d9955"
+	ADMIN_PRIVATE_KEY             = "4bbbf85ce3377467afe5d46f804f221813b2bb87f24d81f60f1fcdbf7cbf4356"
+	APPOINTED_ADDRESS             = "15d34aaf54267db7d7c367839aaf71a00a2c6a65"
 )
 
 func TestChainReader(t *testing.T) {
@@ -150,8 +153,8 @@ func TestAdminFunctions(t *testing.T) {
 	accountChainWriter, err := NewTestChainWriterFromConfig(anvilHttpEndpoint, privateKeyHex, config)
 	assert.NoError(t, err)
 
-	pendingAdminAddr := common.HexToAddress("14dC79964da2C08b23698B3D3cc7Ca32193d9955")
-	pendingAdminPrivateKeyHex := "4bbbf85ce3377467afe5d46f804f221813b2bb87f24d81f60f1fcdbf7cbf4356"
+	pendingAdminAddr := common.HexToAddress(KNOWN_ADDRESS)
+	pendingAdminPrivateKeyHex := ADMIN_PRIVATE_KEY
 	adminChainWriter, err := NewTestChainWriterFromConfig(anvilHttpEndpoint, pendingAdminPrivateKeyHex, config)
 	assert.NoError(t, err)
 
@@ -254,8 +257,9 @@ func TestAppointeesFunctions(t *testing.T) {
 	assert.NoError(t, err)
 
 	accountAddress := common.HexToAddress(ANVIL_FIRST_ADDRESS)
-	appointeeAddress := common.HexToAddress("009440d62dc85c73dbf889b7ad1f4da8b231d2ef")
-	target := common.HexToAddress("14dC79964da2C08b23698B3D3cc7Ca32193d9955")
+
+	appointeeAddress := common.HexToAddress(KNOWN_ADDRESS)
+	target := common.HexToAddress(APPOINTED_ADDRESS)
 	selector := [4]byte{0, 1, 2, 3}
 
 	t.Run("list appointees when empty", func(t *testing.T) {
