@@ -26,8 +26,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const ANVIL_FIRST_ADDRESS = "f39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
-const ANVIL_FIRST_PRIVATE_KEY = "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
+const (
+	ANVIL_FIRST_ADDRESS           = "f39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
+	ANVIL_FIRST_PRIVATE_KEY       = "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
+	PERMISSION_CONTROLLER_ADDRESS = "610178dA211FEF7D417bC0e6FeD39F05609AD788"
+)
 
 func TestChainReader(t *testing.T) {
 	clients, anvilHttpEndpoint := testclients.BuildTestClients(t)
@@ -136,10 +139,8 @@ func TestAdminFunctions(t *testing.T) {
 	anvilHttpEndpoint, err := anvilC.Endpoint(context.Background(), "http")
 	assert.NoError(t, err)
 
-	contractAddrs := testutils.GetContractAddressesFromContractRegistry(anvilHttpEndpoint)
-	permissionControllerAddr := common.HexToAddress("0x610178dA211FEF7D417bC0e6FeD39F05609AD788")
+	permissionControllerAddr := common.HexToAddress(PERMISSION_CONTROLLER_ADDRESS)
 	config := elcontracts.Config{
-		DelegationManagerAddress:     contractAddrs.DelegationManager,
 		PermissionsControllerAddress: permissionControllerAddr,
 	}
 
@@ -182,10 +183,10 @@ func TestAdminFunctions(t *testing.T) {
 		isPendingAdmin, err := chainReader.IsPendingAdmin(context.Background(), operatorAddr, pendingAdminAddr)
 		assert.NoError(t, err)
 		assert.False(t, isPendingAdmin)
-		
+
 		receipt, err := accountChainWriter.AddPendingAdmin(context.Background(), request)
 		assert.NoError(t, err)
-		assert.True(t, receipt.Status == 1)
+		assert.Equal(t, receipt.Status, uint64(1))
 
 		isPendingAdmin, err = chainReader.IsPendingAdmin(context.Background(), operatorAddr, pendingAdminAddr)
 		assert.NoError(t, err)
@@ -211,7 +212,7 @@ func TestAdminFunctions(t *testing.T) {
 
 		receipt, err := adminChainWriter.AcceptAdmin(context.Background(), acceptAdminRequest)
 		assert.NoError(t, err)
-		assert.True(t, receipt.Status == 1)
+		assert.Equal(t, receipt.Status, uint64(1))
 
 		isAdmin, err := chainReader.IsAdmin(context.Background(), operatorAddr, pendingAdminAddr)
 		assert.NoError(t, err)
@@ -239,11 +240,9 @@ func TestAppointeesFunctions(t *testing.T) {
 	anvilHttpEndpoint, err := anvilC.Endpoint(context.Background(), "http")
 	assert.NoError(t, err)
 
-	contractAddrs := testutils.GetContractAddressesFromContractRegistry(anvilHttpEndpoint)
-	permissionControllerAddr := common.HexToAddress("0x610178dA211FEF7D417bC0e6FeD39F05609AD788")
+	permissionControllerAddr := common.HexToAddress(PERMISSION_CONTROLLER_ADDRESS)
 	config := elcontracts.Config{
-			DelegationManagerAddress:     contractAddrs.DelegationManager,
-			PermissionsControllerAddress: permissionControllerAddr,
+		PermissionsControllerAddress: permissionControllerAddr,
 	}
 
 	chainReader, err := NewTestChainReaderFromConfig(anvilHttpEndpoint, config)
@@ -257,11 +256,11 @@ func TestAppointeesFunctions(t *testing.T) {
 	appointeeAddress := common.HexToAddress("009440d62dc85c73dbf889b7ad1f4da8b231d2ef")
 	target := common.HexToAddress("14dC79964da2C08b23698B3D3cc7Ca32193d9955")
 	selector := [4]byte{0, 1, 2, 3}
-	
+
 	t.Run("list appointees when empty", func(t *testing.T) {
-			appointees, err := chainReader.ListAppointees(context.Background(), accountAddress, target, selector)
-			assert.NoError(t, err)
-			assert.Empty(t, appointees)
+		appointees, err := chainReader.ListAppointees(context.Background(), accountAddress, target, selector)
+		assert.NoError(t, err)
+		assert.Empty(t, appointees)
 	})
 
 	t.Run("list appointees", func(t *testing.T) {
@@ -275,8 +274,8 @@ func TestAppointeesFunctions(t *testing.T) {
 
 		receipt, err := chainWriter.SetPermission(context.Background(), setPermissionRequest)
 		require.NoError(t, err)
-		require.True(t, receipt.Status == 1)
-	
+		require.Equal(t, receipt.Status, uint64(1))
+
 		canCall, err := chainReader.CanCall(context.Background(), accountAddress, appointeeAddress, target, selector)
 		require.NoError(t, err)
 		require.True(t, canCall)
@@ -287,7 +286,7 @@ func TestAppointeesFunctions(t *testing.T) {
 	})
 
 	t.Run("list appointees permissions", func(t *testing.T) {
-		appointeesPermission, _ ,err := chainReader.ListAppointeePermissions(context.Background(), accountAddress, appointeeAddress)
+		appointeesPermission, _, err := chainReader.ListAppointeePermissions(context.Background(), accountAddress, appointeeAddress)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, appointeesPermission)
 	})
