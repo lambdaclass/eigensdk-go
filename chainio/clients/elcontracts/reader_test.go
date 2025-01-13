@@ -23,6 +23,7 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 const ANVIL_FIRST_ADDRESS = "f39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
@@ -181,7 +182,7 @@ func TestAdminFunctions(t *testing.T) {
 		isPendingAdmin, err := chainReader.IsPendingAdmin(context.Background(), operatorAddr, pendingAdminAddr)
 		assert.NoError(t, err)
 		assert.False(t, isPendingAdmin)
-		
+
 		receipt, err := accountChainWriter.AddPendingAdmin(context.Background(), request)
 		assert.NoError(t, err)
 		assert.True(t, receipt.Status == 1)
@@ -226,6 +227,69 @@ func TestAdminFunctions(t *testing.T) {
 		isAdmin, err := chainReader.IsAdmin(context.Background(), operatorAddr, admin)
 		assert.NoError(t, err)
 		assert.True(t, isAdmin)
+	})
+}
+
+func TestAppointeesFunctions(t *testing.T) {
+	// Configuración inicial similar a TestAdminFunctions
+	testConfig := testutils.GetDefaultTestConfig()
+	anvilC, err := testutils.StartAnvilContainer(testConfig.AnvilStateFileName)
+	assert.NoError(t, err)
+
+	anvilHttpEndpoint, err := anvilC.Endpoint(context.Background(), "http")
+	assert.NoError(t, err)
+
+	contractAddrs := testutils.GetContractAddressesFromContractRegistry(anvilHttpEndpoint)
+	permissionControllerAddr := common.HexToAddress("0x610178dA211FEF7D417bC0e6FeD39F05609AD788")
+	config := elcontracts.Config{
+		DelegationManagerAddress:     contractAddrs.DelegationManager,
+		PermissionsControllerAddress: permissionControllerAddr,
+	}
+
+	chainReader, err := NewTestChainReaderFromConfig(anvilHttpEndpoint, config)
+	assert.NoError(t, err)
+
+	privateKey := ANVIL_FIRST_PRIVATE_KEY
+	chainWriter, err := NewTestChainWriterFromConfig(anvilHttpEndpoint, privateKey, config)
+	assert.NoError(t, err)
+
+	accountAddress := common.HexToAddress(ANVIL_FIRST_ADDRESS)
+	appointeeAddress := common.HexToAddress("009440d62dc85c73dbf889b7ad1f4da8b231d2ef")
+	target := common.HexToAddress("14dC79964da2C08b23698B3D3cc7Ca32193d9955")
+	selector := [4]byte{0, 1, 2, 3}
+
+	t.Run("list appointees when empty", func(t *testing.T) {
+		appointees, err := chainReader.ListAppointees(context.Background(), accountAddress, target, selector)
+		assert.NoError(t, err)
+		assert.Empty(t, appointees)
+	})
+
+	t.Run("list appointees", func(t *testing.T) {
+		setPermissionRequest := elcontracts.SetPermissionRequest{
+			AccountAddress:   accountAddress,
+			AppointeeAddress: appointeeAddress,
+			Target:           target,
+			Selector:         selector,
+			WaitForReceipt:   true,
+		}
+
+		receipt, err := chainWriter.SetPermission(context.Background(), setPermissionRequest)
+		require.NoError(t, err)
+		require.True(t, receipt.Status == 1)
+
+		canCall, err := chainReader.CanCall(context.Background(), accountAddress, appointeeAddress, target, selector)
+		require.NoError(t, err)
+		require.True(t, canCall)
+
+		appointees, err := chainReader.ListAppointees(context.Background(), accountAddress, target, selector)
+		assert.NoError(t, err)
+		assert.NotEmpty(t, appointees)
+	})
+
+	t.Run("list appointees permissions", func(t *testing.T) {
+		appointeesPermission, _, err := chainReader.ListAppointeePermissions(context.Background(), accountAddress, appointeeAddress)
+		assert.NoError(t, err)
+		assert.NotEmpty(t, appointeesPermission)
 	})
 }
 
