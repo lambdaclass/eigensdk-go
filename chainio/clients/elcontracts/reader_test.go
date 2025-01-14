@@ -168,10 +168,6 @@ func TestAdminFunctions(t *testing.T) {
 	})
 
 	t.Run("list pending admins when empty", func(t *testing.T) {
-		isPendingAdmin, err := chainReader.IsPendingAdmin(context.Background(), operatorAddr, pendingAdminAddr)
-		assert.NoError(t, err)
-		assert.False(t, isPendingAdmin)
-
 		listPendingAdmins, err := chainReader.ListPendingAdmins(context.Background(), operatorAddr)
 		assert.NoError(t, err)
 		assert.Empty(t, listPendingAdmins)
@@ -184,15 +180,11 @@ func TestAdminFunctions(t *testing.T) {
 			WaitForReceipt: true,
 		}
 
-		isPendingAdmin, err := chainReader.IsPendingAdmin(context.Background(), operatorAddr, pendingAdminAddr)
-		assert.NoError(t, err)
-		assert.False(t, isPendingAdmin)
-
 		receipt, err := accountChainWriter.AddPendingAdmin(context.Background(), request)
 		assert.NoError(t, err)
 		assert.Equal(t, receipt.Status, ethtypes.ReceiptStatusSuccessful)
 
-		isPendingAdmin, err = chainReader.IsPendingAdmin(context.Background(), operatorAddr, pendingAdminAddr)
+		isPendingAdmin, err := chainReader.IsPendingAdmin(context.Background(), operatorAddr, pendingAdminAddr)
 		assert.NoError(t, err)
 		assert.True(t, isPendingAdmin)
 
