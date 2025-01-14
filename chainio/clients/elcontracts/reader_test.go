@@ -15,6 +15,7 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestChainReader(t *testing.T) {
@@ -113,6 +114,48 @@ func TestChainReader(t *testing.T) {
 		)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, digest)
+	})
+}
+
+func TestSlashableSharesFunctions(t *testing.T) {
+	eigenClients, anvilHttpEndpoint := testclients.BuildTestClients(t)
+	contractAddrs := testutils.GetContractAddressesFromContractRegistry(anvilHttpEndpoint)
+
+	avsAddress := common.HexToAddress("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266")
+	operatorAddress := common.HexToAddress("0x70997970C51812dc3A010C7d01b50e0d17dc79C8")
+	erc20MockStrategyAddr := contractAddrs.Erc20MockStrategy
+	operatorsSets := []uint32{1, 2}
+
+	t.Run("Create First OperatorSet", func(t *testing.T) {
+		err := createOperatorSet(eigenClients, avsAddress, operatorsSets[0], erc20MockStrategyAddr)
+		require.NoError(t, err)
+		t.Log("First OperatorSet Created")
+	})
+
+	t.Run("Create Second OperatorSet", func(t *testing.T) {
+		err := createOperatorSet(eigenClients, avsAddress, operatorsSets[1], erc20MockStrategyAddr)
+		require.NoError(t, err)
+		t.Log("Second OperatorSet Created")
+	})
+
+	t.Run("Get Slashable Shares for operatorSet1", func(t *testing.T) {
+		operatorSet := allocationmanager.OperatorSet{
+			Avs: avsAddress,
+			Id:  operatorsSets[0],
+		}
+		strategies := []common.Address{erc20MockStrategyAddr}
+
+		shares, err := eigenClients.ElChainReader.GetSlashableShares(
+			context.Background(),
+			operatorAddress,
+			operatorSet,
+			strategies,
+		)
+		require.NoError(t, err)
+		require.NotEmpty(t, shares)
+		for strat, share := range shares {
+			t.Logf("Strategy: %s, Slashable Share: %s", strat.Hex(), share.String())
+		}
 	})
 }
 
