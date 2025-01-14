@@ -19,7 +19,7 @@ mocks: ## generates mocks
 
 .PHONY: tests
 tests: ## runs all tests
-	go test -race ./... -timeout=1m
+	go test -race ./... -timeout=3m
 
 .PHONY: tests-cover
 tests-cover: ## run all tests with test coverge

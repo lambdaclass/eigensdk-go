@@ -19,6 +19,13 @@ import (
 	contractreg "github.com/Layr-Labs/eigensdk-go/contracts/bindings/ContractsRegistry"
 )
 
+const ANVIL_FIRST_ADDRESS = "f39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
+const ANVIL_FIRST_PRIVATE_KEY = "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
+
+// This address is hardcoded because it is required by the elcontracts tests but is not
+// registered in the ContractRegistry in the contracts-deployed-anvil-state.json anvil state.
+const PERMISSION_CONTROLLER_ADDRESS = "610178dA211FEF7D417bC0e6FeD39F05609AD788"
+
 func StartAnvilContainer(anvilStateFileName string) (testcontainers.Container, error) {
 
 	ctx := context.Background()
@@ -65,6 +72,7 @@ type ContractAddresses struct {
 	OperatorStateRetriever common.Address
 	DelegationManager      common.Address
 	Erc20MockStrategy      common.Address
+	RewardsCoordinator     common.Address
 }
 
 func GetContractAddressesFromContractRegistry(ethHttpUrl string) (mockAvsContracts ContractAddresses) {
@@ -121,12 +129,20 @@ func GetContractAddressesFromContractRegistry(ethHttpUrl string) (mockAvsContrac
 	if erc20MockStrategyAddr == (common.Address{}) {
 		panic("erc20MockStrategyAddr is empty")
 	}
+	rewardsCoordinatorAddr, err := contractsRegistry.Contracts(&bind.CallOpts{}, "rewardsCoordinator")
+	if err != nil {
+		panic(err)
+	}
+	if rewardsCoordinatorAddr == (common.Address{}) {
+		panic("rewardsCoordinatorAddr is empty")
+	}
 	mockAvsContracts = ContractAddresses{
 		ServiceManager:         mockAvsServiceManagerAddr,
 		RegistryCoordinator:    mockAvsRegistryCoordinatorAddr,
 		OperatorStateRetriever: mockAvsOperatorStateRetrieverAddr,
 		DelegationManager:      delegationManagerAddr,
 		Erc20MockStrategy:      erc20MockStrategyAddr,
+		RewardsCoordinator:     rewardsCoordinatorAddr,
 	}
 	return mockAvsContracts
 }
