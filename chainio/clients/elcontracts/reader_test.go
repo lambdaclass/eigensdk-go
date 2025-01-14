@@ -3,17 +3,22 @@ package elcontracts_test
 import (
 	"context"
 	"math/big"
+	"os"
 	"testing"
 
 	"github.com/Layr-Labs/eigensdk-go/chainio/clients"
+	"github.com/Layr-Labs/eigensdk-go/chainio/clients/elcontracts"
 	allocationmanager "github.com/Layr-Labs/eigensdk-go/contracts/bindings/AllocationManager"
 	erc20 "github.com/Layr-Labs/eigensdk-go/contracts/bindings/IERC20"
 	regcoord "github.com/Layr-Labs/eigensdk-go/contracts/bindings/RegistryCoordinator"
+	"github.com/Layr-Labs/eigensdk-go/crypto/bls"
+	"github.com/Layr-Labs/eigensdk-go/logging"
 	"github.com/Layr-Labs/eigensdk-go/testutils"
 	"github.com/Layr-Labs/eigensdk-go/testutils/testclients"
 	"github.com/Layr-Labs/eigensdk-go/types"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -123,25 +128,48 @@ func TestSlashableSharesFunctions(t *testing.T) {
 
 	avsAddress := common.HexToAddress("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266")
 	operatorAddress := common.HexToAddress("0x70997970C51812dc3A010C7d01b50e0d17dc79C8")
-	erc20MockStrategyAddr := contractAddrs.Erc20MockStrategy
-	operatorsSets := []uint32{1, 2}
 
-	t.Run("Create First OperatorSet", func(t *testing.T) {
-		err := createOperatorSet(eigenClients, avsAddress, operatorsSets[0], erc20MockStrategyAddr)
+	operatorPrivateKeyHex := "59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d"
+	operatorClients, err := newTestClients(anvilHttpEndpoint, operatorPrivateKeyHex)
+	require.NoError(t, err)
+
+	erc20MockStrategyAddr := contractAddrs.Erc20MockStrategy
+	operatorSetId := uint32(1)
+
+	t.Run("create First OperatorSet", func(t *testing.T) {
+		err := createOperatorSet(eigenClients, avsAddress, operatorSetId, erc20MockStrategyAddr)
 		require.NoError(t, err)
 		t.Log("First OperatorSet Created")
 	})
 
-	t.Run("Create Second OperatorSet", func(t *testing.T) {
-		err := createOperatorSet(eigenClients, avsAddress, operatorsSets[1], erc20MockStrategyAddr)
+	t.Run("Register Operator to OperatorSets", func(t *testing.T) {
+		keypair, err := bls.NewKeyPairFromString("0x01")
 		require.NoError(t, err)
-		t.Log("Second OperatorSet Created")
+
+		request := elcontracts.RegistrationRequest{
+			OperatorAddress: operatorAddress,
+			AVSAddress:      avsAddress,
+			OperatorSetIds:  []uint32{operatorSetId},
+			WaitForReceipt:  true,
+			Socket:          "socket",
+			BlsKeyPair:      keypair,
+		}
+
+		registryCoordinatorAddress := contractAddrs.RegistryCoordinator
+		receipt, err := operatorClients.ElChainWriter.RegisterForOperatorSets(
+			context.Background(),
+			registryCoordinatorAddress,
+			request,
+		)
+		require.NoError(t, err)
+		require.Equal(t, uint64(1), receipt.Status)
+		t.Log("Operator Registered to OperatorSets")
 	})
 
-	t.Run("Get Slashable Shares for operatorSet1", func(t *testing.T) {
+	t.Run("get Slashable Shares for operatorSet1", func(t *testing.T) {
 		operatorSet := allocationmanager.OperatorSet{
 			Avs: avsAddress,
-			Id:  operatorsSets[0],
+			Id:  operatorSetId,
 		}
 		strategies := []common.Address{erc20MockStrategyAddr}
 
@@ -156,6 +184,21 @@ func TestSlashableSharesFunctions(t *testing.T) {
 		for strat, share := range shares {
 			t.Logf("Strategy: %s, Slashable Share: %s", strat.Hex(), share.String())
 		}
+	})
+
+	t.Run("get Slashable Shares for Multiple OperatorSets", func(t *testing.T) {
+		operatorSets := []allocationmanager.OperatorSet{
+			{Avs: avsAddress, Id: operatorSetId},
+		}
+
+		shares, err := eigenClients.ElChainReader.GetSlashableSharesForOperatorSets(
+			context.Background(),
+			operatorSets,
+		)
+		require.NoError(t, err)
+		require.NotEmpty(t, shares)
+		require.Len(t, shares, 1)
+		t.Log("Slashable Shares: ", shares)
 	})
 }
 
@@ -251,4 +294,32 @@ func createOperatorSet(
 
 	_, err = client.TxManager.Send(context.Background(), tx, waitForReceipt)
 	return err
+}
+
+func newTestClients(httpEndpoint string, privateKeyHex string) (*clients.Clients, error) {
+	contractAddrs := testutils.GetContractAddressesFromContractRegistry(httpEndpoint)
+	chainioConfig := clients.BuildAllConfig{
+		EthHttpUrl:                 httpEndpoint,
+		EthWsUrl:                   httpEndpoint,
+		RegistryCoordinatorAddr:    contractAddrs.RegistryCoordinator.String(),
+		OperatorStateRetrieverAddr: contractAddrs.OperatorStateRetriever.String(),
+		AvsName:                    "exampleAvs",
+		PromMetricsIpPortAddress:   ":9090",
+	}
+	privateKey, err := crypto.HexToECDSA(privateKeyHex)
+	if err != nil {
+		return nil, err
+	}
+	testConfig := testutils.GetDefaultTestConfig()
+	logger := logging.NewTextSLogger(os.Stdout, &logging.SLoggerOptions{Level: testConfig.LogLevel})
+
+	testClients, err := clients.BuildAll(
+		chainioConfig,
+		privateKey,
+		logger,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return testClients, nil
 }
