@@ -152,6 +152,29 @@ func TestChainReader(t *testing.T) {
 		assert.Equal(t, address.String(), operator.Address)
 	})
 
+	t.Run("get Allocatable Magnitude", func(t *testing.T) {
+		// Without changes, Allocable magnitude is max magnitude
+
+		rewardsCoordinatorAddr := contractAddrs.RewardsCoordinator
+		config := elcontracts.Config{
+			DelegationManagerAddress:  contractAddrs.DelegationManager,
+			RewardsCoordinatorAddress: rewardsCoordinatorAddr,
+		}
+
+		chainReader, err := NewTestChainReaderFromConfig(anvilHttpEndpoint, config)
+		require.NoError(t, err)
+
+		strategyAddr := contractAddrs.Erc20MockStrategy
+
+		strategies := []common.Address{strategyAddr}
+		maxmagnitude, err := chainReader.GetMaxMagnitudes(ctx, common.HexToAddress(ANVIL_FIRST_ADDRESS), strategies)
+		assert.NoError(t, err)
+
+		allocable, err := chainReader.GetAllocatableMagnitude(ctx, common.HexToAddress(ANVIL_FIRST_ADDRESS), strategyAddr)
+		assert.NoError(t, err)
+
+		assert.Equal(t, maxmagnitude[0], allocable)
+	})
 }
 
 func TestGetCurrentClaimableDistributionRoot(t *testing.T) {
