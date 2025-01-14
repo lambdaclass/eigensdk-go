@@ -203,6 +203,15 @@ func TestChainReader(t *testing.T) {
 		assert.NotZero(t, shares)
 	})
 
+	t.Run("GetOperatorSetsForOperator", func(t *testing.T) {
+		// GetOperatorSetsForOperator with an operator without sets returns an empty list
+		operatorSet, err := clients.ElChainReader.GetOperatorSetsForOperator(
+			ctx,
+			common.HexToAddress(operator.Address),
+		)
+		assert.NoError(t, err)
+		assert.Empty(t, operatorSet)
+	})
 }
 
 func TestGetCurrentClaimableDistributionRoot(t *testing.T) {
