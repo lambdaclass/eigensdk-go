@@ -135,7 +135,7 @@ func TestChainReader(t *testing.T) {
 		)
 		assert.NotZero(t, len(strategies))            // Strategies has at least one element
 		assert.NotZero(t, len(shares))                // Shares has at least one element
-		assert.Equal(t, len(strategies), len(shares)) // Strategies has the same ammount of elements as
+		assert.Equal(t, len(strategies), len(shares)) // Strategies has the same ammount of elements as shares
 		assert.NoError(t, err)
 	})
 
@@ -152,56 +152,6 @@ func TestChainReader(t *testing.T) {
 		assert.Equal(t, address.String(), operator.Address)
 	})
 
-	t.Run("get cumulative claimed rewards", func(t *testing.T) {
-		rewardsCoordinatorAddr := contractAddrs.RewardsCoordinator
-		config := elcontracts.Config{
-			DelegationManagerAddress:  contractAddrs.DelegationManager,
-			RewardsCoordinatorAddress: rewardsCoordinatorAddr,
-		}
-		privateKeyHex := ANVIL_FIRST_PRIVATE_KEY
-
-		// Create ChainWriter
-		chainWriter, err := NewTestChainWriterFromConfig(anvilHttpEndpoint, privateKeyHex, config)
-		require.NoError(t, err)
-
-		chainReader, err := NewTestChainReaderFromConfig(anvilHttpEndpoint, config)
-		require.NoError(t, err)
-
-		activationDelay := uint32(0)
-		// Set activation delay to zero so that the earnings can be claimed right after submitting the root
-		receipt, err := setTestRewardsCoordinatorActivationDelay(anvilHttpEndpoint, privateKeyHex, activationDelay)
-		require.NoError(t, err)
-		require.True(t, receipt.Status == uint64(1))
-
-		strategyAddr := contractAddrs.Erc20MockStrategy
-		strategy, contractUnderlyingToken, underlyingTokenAddr, err := clients.ElChainReader.GetStrategyAndUnderlyingERC20Token(
-			ctx,
-			strategyAddr,
-		)
-		assert.NoError(t, err)
-		assert.NotNil(t, strategy)
-		assert.NotEqual(t, common.Address{}, underlyingTokenAddr)
-		assert.NotNil(t, contractUnderlyingToken)
-
-		// This tests that without claims result is zero
-		claimed, err := chainReader.GetCumulativeClaimed(ctx, common.HexToAddress("f39Fd6e51aad88F6F4ce6aB8827279cffFb92266"), underlyingTokenAddr)
-		assert.True(t, claimed.Cmp(big.NewInt(0)) == 0)
-		assert.NoError(t, err)
-
-		cumulativeEarnings := int64(45)
-		claim, err := newTestClaim(chainReader, anvilHttpEndpoint, cumulativeEarnings, privateKeyHex)
-		require.NoError(t, err)
-
-		earner := common.HexToAddress("0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6")
-		receipt, err = chainWriter.ProcessClaim(context.Background(), *claim, earner, true)
-		require.NoError(t, err)
-		require.True(t, receipt.Status == uint64(1))
-
-		// This tests that with a claim result is cumulativeEarnings
-		claimed, err = chainReader.GetCumulativeClaimed(ctx, common.HexToAddress("f39Fd6e51aad88F6F4ce6aB8827279cffFb92266"), underlyingTokenAddr)
-		assert.Equal(t, claimed, big.NewInt(cumulativeEarnings))
-		assert.NoError(t, err)
-	})
 }
 
 func TestGetCurrentClaimableDistributionRoot(t *testing.T) {
@@ -376,6 +326,62 @@ func TestGetRootIndexFromRootHash(t *testing.T) {
 	)
 	assert.NoError(t, err)
 	assert.Equal(t, root_index, uint32(1))
+}
+
+func TestGetCumulativeClaimedRewards(t *testing.T) {
+	clients, anvilHttpEndpoint := testclients.BuildTestClients(t)
+	ctx := context.Background()
+
+	contractAddrs := testutils.GetContractAddressesFromContractRegistry(anvilHttpEndpoint)
+
+	rewardsCoordinatorAddr := contractAddrs.RewardsCoordinator
+	config := elcontracts.Config{
+		DelegationManagerAddress:  contractAddrs.DelegationManager,
+		RewardsCoordinatorAddress: rewardsCoordinatorAddr,
+	}
+	privateKeyHex := ANVIL_FIRST_PRIVATE_KEY
+
+	// Create ChainWriter
+	chainWriter, err := NewTestChainWriterFromConfig(anvilHttpEndpoint, privateKeyHex, config)
+	require.NoError(t, err)
+
+	chainReader, err := NewTestChainReaderFromConfig(anvilHttpEndpoint, config)
+	require.NoError(t, err)
+
+	activationDelay := uint32(0)
+	// Set activation delay to zero so that the earnings can be claimed right after submitting the root
+	receipt, err := setTestRewardsCoordinatorActivationDelay(anvilHttpEndpoint, privateKeyHex, activationDelay)
+	require.NoError(t, err)
+	require.True(t, receipt.Status == uint64(1))
+
+	strategyAddr := contractAddrs.Erc20MockStrategy
+	strategy, contractUnderlyingToken, underlyingTokenAddr, err := clients.ElChainReader.GetStrategyAndUnderlyingERC20Token(
+		ctx,
+		strategyAddr,
+	)
+	assert.NoError(t, err)
+	assert.NotNil(t, strategy)
+	assert.NotEqual(t, common.Address{}, underlyingTokenAddr)
+	assert.NotNil(t, contractUnderlyingToken)
+
+	// This tests that without claims result is zero
+	claimed, err := chainReader.GetCumulativeClaimed(ctx, common.HexToAddress("f39Fd6e51aad88F6F4ce6aB8827279cffFb92266"), underlyingTokenAddr)
+	assert.True(t, claimed.Cmp(big.NewInt(0)) == 0)
+	assert.NoError(t, err)
+
+	cumulativeEarnings := int64(45)
+	claim, err := newTestClaim(chainReader, anvilHttpEndpoint, cumulativeEarnings, privateKeyHex)
+	require.NoError(t, err)
+
+	earner := common.HexToAddress("0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6")
+	receipt, err = chainWriter.ProcessClaim(context.Background(), *claim, earner, true)
+	require.NoError(t, err)
+	require.True(t, receipt.Status == uint64(1))
+
+	// This tests that with a claim result is cumulativeEarnings
+	claimed, err = chainReader.GetCumulativeClaimed(ctx, common.HexToAddress("f39Fd6e51aad88F6F4ce6aB8827279cffFb92266"), underlyingTokenAddr)
+	assert.Equal(t, claimed, big.NewInt(cumulativeEarnings))
+	assert.NoError(t, err)
 }
 
 func TestCheckClaim(t *testing.T) {
