@@ -175,6 +175,20 @@ func TestChainReader(t *testing.T) {
 
 		assert.Equal(t, maxmagnitude[0], allocable)
 	})
+
+	t.Run("GetOperatorShares", func(t *testing.T) {
+		// Maybe could add more strategies
+		strategyAddr := contractAddrs.Erc20MockStrategy
+		strategies := []common.Address{strategyAddr}
+		shares, err := clients.ElChainReader.GetOperatorShares(
+			ctx,
+			common.HexToAddress(operator.Address),
+			strategies,
+		)
+		assert.NoError(t, err)
+		assert.NotZero(t, shares)
+	})
+
 }
 
 func TestGetCurrentClaimableDistributionRoot(t *testing.T) {
