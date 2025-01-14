@@ -27,6 +27,8 @@ const (
 	ANVIL_FIRST_ADDRESS      = "f39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
 	ANVIL_SECOND_ADDRESS     = "70997970C51812dc3A010C7d01b50e0d17dc79C8"
 	ANVIL_SECOND_PRIVATE_KEY = "59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d"
+	ANVIL_THIRD_ADDRESS      = "3C44CdDdB6a900fa2b585dd299e03d12FA4293BC"
+	ANVIL_THIRD_PRIVATE_KEY  = "5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a"
 )
 
 func TestChainReader(t *testing.T) {
@@ -128,26 +130,33 @@ func TestChainReader(t *testing.T) {
 	})
 }
 
-func TestSlashableSharesFunctions(t *testing.T) {
-	eigenClients, anvilHttpEndpoint := testclients.BuildTestClients(t)
+func TestOperatorSetsAndSlashableShares(t *testing.T) {
+	client, anvilHttpEndpoint := testclients.BuildTestClients(t)
 	contractAddrs := testutils.GetContractAddressesFromContractRegistry(anvilHttpEndpoint)
 
 	avsAddress := common.HexToAddress(ANVIL_FIRST_ADDRESS)
 
 	operatorAddress := common.HexToAddress(ANVIL_SECOND_ADDRESS)
 	operatorPrivateKeyHex := ANVIL_SECOND_PRIVATE_KEY
-	operatorClients, err := newTestClients(anvilHttpEndpoint, operatorPrivateKeyHex)
+	operatorClient, err := newTestClients(anvilHttpEndpoint, operatorPrivateKeyHex)
 	require.NoError(t, err)
 
 	erc20MockStrategyAddr := contractAddrs.Erc20MockStrategy
 	operatorSetId := uint32(1)
 
-	t.Run("create First OperatorSet", func(t *testing.T) {
-		err := createOperatorSet(eigenClients, avsAddress, operatorSetId, erc20MockStrategyAddr)
-		require.NoError(t, err)
-	})
+	operatorSet := allocationmanager.OperatorSet{
+		Avs: avsAddress,
+		Id:  operatorSetId,
+	}
 
-	t.Run("Register Operator to OperatorSets", func(t *testing.T) {
+	operatorSets := []allocationmanager.OperatorSet{
+		{Avs: avsAddress, Id: operatorSetId},
+	}
+
+	err = createOperatorSet(client, avsAddress, operatorSetId, erc20MockStrategyAddr)
+	require.NoError(t, err)
+
+	t.Run("register operator to operatorsets", func(t *testing.T) {
 		keypair, err := bls.NewKeyPairFromString("0x01")
 		require.NoError(t, err)
 
@@ -161,7 +170,7 @@ func TestSlashableSharesFunctions(t *testing.T) {
 		}
 
 		registryCoordinatorAddress := contractAddrs.RegistryCoordinator
-		receipt, err := operatorClients.ElChainWriter.RegisterForOperatorSets(
+		receipt, err := operatorClient.ElChainWriter.RegisterForOperatorSets(
 			context.Background(),
 			registryCoordinatorAddress,
 			request,
@@ -170,14 +179,38 @@ func TestSlashableSharesFunctions(t *testing.T) {
 		require.Equal(t, uint64(1), receipt.Status)
 	})
 
-	t.Run("get Slashable Shares for operatorSet1", func(t *testing.T) {
+	t.Run("validate operator registration", func(t *testing.T) {
+		operators, err := client.ElChainReader.GetOperatorsForOperatorSet(
+			context.Background(),
+			allocationmanager.OperatorSet{Avs: avsAddress, Id: operatorSetId},
+		)
+		t.Log(operators)
+		require.NoError(t, err)
+		require.Len(t, operators, 1)
+	})
+
+	t.Run("get number of operator sets for an operator", func(t *testing.T) {
+		numOperatorSets, err := client.ElChainReader.GetNumOperatorsForOperatorSet(context.Background(), operatorSet)
+		require.NoError(t, err)
+		require.Equal(t, big.NewInt(1), numOperatorSets)
+	})
+
+	t.Run("validate strategies for OperatorSet", func(t *testing.T) {
+
+		strategies, err := client.ElChainReader.GetStrategiesForOperatorSet(context.Background(), operatorSet)
+		require.NoError(t, err)
+		require.Len(t, strategies, 1)
+		require.Equal(t, strategies[0].Hex(), erc20MockStrategyAddr.Hex())
+	})
+
+	t.Run("get slashable shares for a single operator", func(t *testing.T) {
 		operatorSet := allocationmanager.OperatorSet{
 			Avs: avsAddress,
 			Id:  operatorSetId,
 		}
 		strategies := []common.Address{erc20MockStrategyAddr}
 
-		shares, err := eigenClients.ElChainReader.GetSlashableShares(
+		shares, err := client.ElChainReader.GetSlashableShares(
 			context.Background(),
 			operatorAddress,
 			operatorSet,
@@ -187,15 +220,25 @@ func TestSlashableSharesFunctions(t *testing.T) {
 		require.NotEmpty(t, shares)
 	})
 
-	t.Run("get Slashable Shares for Multiple OperatorSets", func(t *testing.T) {
-		operatorSets := []allocationmanager.OperatorSet{
-			{Avs: avsAddress, Id: operatorSetId},
-		}
-
-		shares, err := eigenClients.ElChainReader.GetSlashableSharesForOperatorSets(
+	t.Run("get slashable shares for multiple operator sets", func(t *testing.T) {
+		shares, err := client.ElChainReader.GetSlashableSharesForOperatorSets(
 			context.Background(),
 			operatorSets,
 		)
+		require.NoError(t, err)
+		require.NotEmpty(t, shares)
+		require.Len(t, shares, 1)
+	})
+
+	t.Run("get register operator sets for an operator", func(t *testing.T) {
+		sets, err := client.ElChainReader.GetRegisteredSets(context.Background(), operatorAddress)
+		require.NoError(t, err)
+		require.NotEmpty(t, sets)
+		require.Len(t, sets, 1)
+	})
+
+	t.Run("get slashable shares before a specific block height", func(t *testing.T) {
+		shares, err := client.ElChainReader.GetSlashableSharesForOperatorSetsBefore(context.Background(), operatorSets, 0)
 		require.NoError(t, err)
 		require.NotEmpty(t, shares)
 		require.Len(t, shares, 1)
