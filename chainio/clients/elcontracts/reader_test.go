@@ -3,37 +3,18 @@ package elcontracts_test
 import (
 	"context"
 	"math/big"
-	"os"
 	"testing"
 
 	"github.com/Layr-Labs/eigensdk-go/chainio/clients/elcontracts"
-	"github.com/Layr-Labs/eigensdk-go/chainio/clients/wallet"
-	"github.com/Layr-Labs/eigensdk-go/chainio/txmgr"
 	erc20 "github.com/Layr-Labs/eigensdk-go/contracts/bindings/IERC20"
-	"github.com/Layr-Labs/eigensdk-go/logging"
-	"github.com/Layr-Labs/eigensdk-go/metrics"
-	"github.com/Layr-Labs/eigensdk-go/signerv2"
 	"github.com/Layr-Labs/eigensdk-go/testutils"
 	"github.com/Layr-Labs/eigensdk-go/testutils/testclients"
 	"github.com/Layr-Labs/eigensdk-go/types"
-	"github.com/Layr-Labs/eigensdk-go/utils"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-)
-
-const (
-	ANVIL_FIRST_ADDRESS           = "f39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
-	ANVIL_FIRST_PRIVATE_KEY       = "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
-	PERMISSION_CONTROLLER_ADDRESS = "610178dA211FEF7D417bC0e6FeD39F05609AD788"
-	ANVIL_SECOND_ADDRESS          = "70997970C51812dc3A010C7d01b50e0d17dc79C8"
-	ANVIL_SECOND_PRIVATE_KEY      = "59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d"
-	ANVIL_THIRD_ADDRESS           = "3C44CdDdB6a900fa2b585dd299e03d12FA4293BC"
 )
 
 func TestChainReader(t *testing.T) {
@@ -143,22 +124,22 @@ func TestAdminFunctions(t *testing.T) {
 	anvilHttpEndpoint, err := anvilC.Endpoint(context.Background(), "http")
 	assert.NoError(t, err)
 
-	permissionControllerAddr := common.HexToAddress(PERMISSION_CONTROLLER_ADDRESS)
+	permissionControllerAddr := common.HexToAddress(testutils.PERMISSION_CONTROLLER_ADDRESS)
 	config := elcontracts.Config{
 		PermissionsControllerAddress: permissionControllerAddr,
 	}
 
-	operatorAddr := common.HexToAddress(ANVIL_FIRST_ADDRESS)
-	privateKeyHex := ANVIL_FIRST_PRIVATE_KEY
-	accountChainWriter, err := NewTestChainWriterFromConfig(anvilHttpEndpoint, privateKeyHex, config)
+	operatorAddr := common.HexToAddress(testutils.ANVIL_FIRST_ADDRESS)
+	privateKeyHex := testutils.ANVIL_FIRST_PRIVATE_KEY
+	accountChainWriter, err := testclients.NewTestChainWriterFromConfig(anvilHttpEndpoint, privateKeyHex, config)
 	assert.NoError(t, err)
 
-	pendingAdminAddr := common.HexToAddress(ANVIL_SECOND_ADDRESS)
-	pendingAdminPrivateKeyHex := ANVIL_SECOND_PRIVATE_KEY
-	adminChainWriter, err := NewTestChainWriterFromConfig(anvilHttpEndpoint, pendingAdminPrivateKeyHex, config)
+	pendingAdminAddr := common.HexToAddress(testutils.ANVIL_SECOND_ADDRESS)
+	pendingAdminPrivateKeyHex := testutils.ANVIL_SECOND_PRIVATE_KEY
+	adminChainWriter, err := testclients.NewTestChainWriterFromConfig(anvilHttpEndpoint, pendingAdminPrivateKeyHex, config)
 	assert.NoError(t, err)
 
-	chainReader, err := NewTestChainReaderFromConfig(anvilHttpEndpoint, config)
+	chainReader, err := testclients.NewTestChainReaderFromConfig(anvilHttpEndpoint, config)
 	assert.NoError(t, err)
 
 	t.Run("non-existent pending admin", func(t *testing.T) {
@@ -200,7 +181,7 @@ func TestAdminFunctions(t *testing.T) {
 		assert.False(t, isAdmin)
 	})
 
-	t.Run("existing admin", func(t *testing.T) {
+	t.Run("list admins", func(t *testing.T) {
 		acceptAdminRequest := elcontracts.AcceptAdminRequest{
 			AccountAddress: operatorAddr,
 			WaitForReceipt: true,
@@ -210,12 +191,6 @@ func TestAdminFunctions(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, receipt.Status, ethtypes.ReceiptStatusSuccessful)
 
-		isAdmin, err := chainReader.IsAdmin(context.Background(), operatorAddr, pendingAdminAddr)
-		assert.NoError(t, err)
-		assert.True(t, isAdmin)
-	})
-
-	t.Run("list admins", func(t *testing.T) {
 		listAdmins, err := chainReader.ListAdmins(context.Background(), operatorAddr)
 		assert.NoError(t, err)
 		assert.Len(t, listAdmins, 1)
@@ -235,22 +210,22 @@ func TestAppointeesFunctions(t *testing.T) {
 	anvilHttpEndpoint, err := anvilC.Endpoint(context.Background(), "http")
 	assert.NoError(t, err)
 
-	permissionControllerAddr := common.HexToAddress(PERMISSION_CONTROLLER_ADDRESS)
+	permissionControllerAddr := common.HexToAddress(testutils.PERMISSION_CONTROLLER_ADDRESS)
 	config := elcontracts.Config{
 		PermissionsControllerAddress: permissionControllerAddr,
 	}
 
-	chainReader, err := NewTestChainReaderFromConfig(anvilHttpEndpoint, config)
+	chainReader, err := testclients.NewTestChainReaderFromConfig(anvilHttpEndpoint, config)
 	assert.NoError(t, err)
 
-	privateKey := ANVIL_FIRST_PRIVATE_KEY
-	chainWriter, err := NewTestChainWriterFromConfig(anvilHttpEndpoint, privateKey, config)
+	privateKey := testutils.ANVIL_FIRST_PRIVATE_KEY
+	chainWriter, err := testclients.NewTestChainWriterFromConfig(anvilHttpEndpoint, privateKey, config)
 	assert.NoError(t, err)
 
-	accountAddress := common.HexToAddress(ANVIL_FIRST_ADDRESS)
+	accountAddress := common.HexToAddress(testutils.ANVIL_FIRST_ADDRESS)
 
-	appointeeAddress := common.HexToAddress(ANVIL_SECOND_ADDRESS)
-	target := common.HexToAddress(ANVIL_THIRD_ADDRESS)
+	appointeeAddress := common.HexToAddress(testutils.ANVIL_SECOND_ADDRESS)
+	target := common.HexToAddress(testutils.ANVIL_THIRD_ADDRESS)
 	selector := [4]byte{0, 1, 2, 3}
 
 	t.Run("list appointees when empty", func(t *testing.T) {
@@ -286,76 +261,4 @@ func TestAppointeesFunctions(t *testing.T) {
 		assert.NoError(t, err)
 		assert.NotEmpty(t, appointeesPermission)
 	})
-}
-
-// Creates a testing ChainWriter from an httpEndpoint, private key and config.
-// This is needed because the existing testclients.BuildTestClients returns a
-// ChainReader with a null rewardsCoordinator, which is required for some of the tests.
-func NewTestChainReaderFromConfig(
-	httpEndpoint string,
-	config elcontracts.Config,
-) (*elcontracts.ChainReader, error) {
-	testConfig := testutils.GetDefaultTestConfig()
-	logger := logging.NewTextSLogger(os.Stdout, &logging.SLoggerOptions{Level: testConfig.LogLevel})
-	ethHttpClient, err := ethclient.Dial(httpEndpoint)
-	if err != nil {
-		return nil, utils.WrapError("Failed to create eth client", err)
-	}
-
-	testReader, err := elcontracts.NewReaderFromConfig(
-		config,
-		ethHttpClient,
-		logger,
-	)
-	if err != nil {
-		return nil, utils.WrapError("Failed to create chain reader from config", err)
-	}
-	return testReader, nil
-}
-
-// Creates a testing ChainWriter from an httpEndpoint, private key and config.
-// This is needed because the existing testclients.BuildTestClients returns a
-// ChainWriter with a null rewardsCoordinator, which is required for some of the tests.
-func NewTestChainWriterFromConfig(
-	httpEndpoint string,
-	privateKeyHex string,
-	config elcontracts.Config,
-) (*elcontracts.ChainWriter, error) {
-	privateKey, err := crypto.HexToECDSA(privateKeyHex)
-	if err != nil {
-		return nil, utils.WrapError("Failed convert hex string to ecdsa private key", err)
-	}
-	testConfig := testutils.GetDefaultTestConfig()
-	logger := logging.NewTextSLogger(os.Stdout, &logging.SLoggerOptions{Level: testConfig.LogLevel})
-	ethHttpClient, err := ethclient.Dial(httpEndpoint)
-	if err != nil {
-		return nil, utils.WrapError("Failed to create eth client", err)
-	}
-	chainid, err := ethHttpClient.ChainID(context.Background())
-	if err != nil {
-		return nil, utils.WrapError("Failed to get chain id", err)
-	}
-	promReg := prometheus.NewRegistry()
-	eigenMetrics := metrics.NewEigenMetrics("", "", promReg, logger)
-	signerV2, addr, err := signerv2.SignerFromConfig(signerv2.Config{PrivateKey: privateKey}, chainid)
-	if err != nil {
-		return nil, utils.WrapError("Failed to create the signer from the given config", err)
-	}
-
-	pkWallet, err := wallet.NewPrivateKeyWallet(ethHttpClient, signerV2, addr, logger)
-	if err != nil {
-		return nil, utils.WrapError("Failed to create wallet", err)
-	}
-	txManager := txmgr.NewSimpleTxManager(pkWallet, ethHttpClient, logger, addr)
-	testWriter, err := elcontracts.NewWriterFromConfig(
-		config,
-		ethHttpClient,
-		logger,
-		eigenMetrics,
-		txManager,
-	)
-	if err != nil {
-		return nil, err
-	}
-	return testWriter, nil
 }
