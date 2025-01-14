@@ -238,7 +238,11 @@ func TestOperatorSetsAndSlashableShares(t *testing.T) {
 	})
 
 	t.Run("get slashable shares before a specific block height", func(t *testing.T) {
-		shares, err := client.ElChainReader.GetSlashableSharesForOperatorSetsBefore(context.Background(), operatorSets, 0)
+		shares, err := client.ElChainReader.GetSlashableSharesForOperatorSetsBefore(
+			context.Background(),
+			operatorSets,
+			0,
+		)
 		require.NoError(t, err)
 		require.NotEmpty(t, shares)
 		require.Len(t, shares, 1)
