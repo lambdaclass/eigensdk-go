@@ -754,6 +754,8 @@ func TestProcessClaims(t *testing.T) {
 
 // Returns a (test) claim for the given cumulativeEarnings, whose earner is
 // the account given by the testutils.ANVIL_FIRST_ADDRESS address.
+// This was taken from the eigensdk-rs
+// https://github.com/Layr-Labs/eigensdk-rs/blob/d79b3672584b92f3c5fb204fde6bea394fbf0f12/crates/chainio/clients/elcontracts/src/lib.rs#L146
 func newTestClaim(
 	chainReader *elcontracts.ChainReader,
 	httpEndpoint string,
