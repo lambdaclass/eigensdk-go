@@ -145,7 +145,6 @@ func TestSlashableSharesFunctions(t *testing.T) {
 	t.Run("create First OperatorSet", func(t *testing.T) {
 		err := createOperatorSet(eigenClients, avsAddress, operatorSetId, erc20MockStrategyAddr)
 		require.NoError(t, err)
-		t.Log("First OperatorSet Created")
 	})
 
 	t.Run("Register Operator to OperatorSets", func(t *testing.T) {
@@ -169,7 +168,6 @@ func TestSlashableSharesFunctions(t *testing.T) {
 		)
 		require.NoError(t, err)
 		require.Equal(t, uint64(1), receipt.Status)
-		t.Log("Operator Registered to OperatorSets")
 	})
 
 	t.Run("get Slashable Shares for operatorSet1", func(t *testing.T) {
@@ -187,9 +185,6 @@ func TestSlashableSharesFunctions(t *testing.T) {
 		)
 		require.NoError(t, err)
 		require.NotEmpty(t, shares)
-		for strat, share := range shares {
-			t.Logf("Strategy: %s, Slashable Share: %s", strat.Hex(), share.String())
-		}
 	})
 
 	t.Run("get Slashable Shares for Multiple OperatorSets", func(t *testing.T) {
@@ -204,7 +199,6 @@ func TestSlashableSharesFunctions(t *testing.T) {
 		require.NoError(t, err)
 		require.NotEmpty(t, shares)
 		require.Len(t, shares, 1)
-		t.Log("Slashable Shares: ", shares)
 	})
 }
 
