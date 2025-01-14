@@ -136,7 +136,11 @@ func TestAdminFunctions(t *testing.T) {
 
 	pendingAdminAddr := common.HexToAddress(testutils.ANVIL_SECOND_ADDRESS)
 	pendingAdminPrivateKeyHex := testutils.ANVIL_SECOND_PRIVATE_KEY
-	adminChainWriter, err := testclients.NewTestChainWriterFromConfig(anvilHttpEndpoint, pendingAdminPrivateKeyHex, config)
+	adminChainWriter, err := testclients.NewTestChainWriterFromConfig(
+		anvilHttpEndpoint,
+		pendingAdminPrivateKeyHex,
+		config,
+	)
 	assert.NoError(t, err)
 
 	chainReader, err := testclients.NewTestChainReaderFromConfig(anvilHttpEndpoint, config)
@@ -257,7 +261,11 @@ func TestAppointeesFunctions(t *testing.T) {
 	})
 
 	t.Run("list appointees permissions", func(t *testing.T) {
-		appointeesPermission, _, err := chainReader.ListAppointeePermissions(context.Background(), accountAddress, appointeeAddress)
+		appointeesPermission, _, err := chainReader.ListAppointeePermissions(
+			context.Background(),
+			accountAddress,
+			appointeeAddress,
+		)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, appointeesPermission)
 	})
