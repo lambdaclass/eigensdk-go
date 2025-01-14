@@ -5,7 +5,10 @@ import (
 	"math/big"
 	"testing"
 
+	"github.com/Layr-Labs/eigensdk-go/chainio/clients"
+	allocationmanager "github.com/Layr-Labs/eigensdk-go/contracts/bindings/AllocationManager"
 	erc20 "github.com/Layr-Labs/eigensdk-go/contracts/bindings/IERC20"
+	regcoord "github.com/Layr-Labs/eigensdk-go/contracts/bindings/RegistryCoordinator"
 	"github.com/Layr-Labs/eigensdk-go/testutils"
 	"github.com/Layr-Labs/eigensdk-go/testutils/testclients"
 	"github.com/Layr-Labs/eigensdk-go/types"
@@ -111,4 +114,98 @@ func TestChainReader(t *testing.T) {
 		assert.NoError(t, err)
 		assert.NotEmpty(t, digest)
 	})
+}
+
+func createOperatorSet(
+	client *clients.Clients,
+	avsAddress common.Address,
+	operatorSetId uint32,
+	erc20MockStrategyAddr common.Address,
+) error {
+	allocationManagerAddress := client.EigenlayerContractBindings.AllocationManagerAddr
+	allocationManager, err := allocationmanager.NewContractAllocationManager(
+		allocationManagerAddress,
+		client.EthHttpClient,
+	)
+	if err != nil {
+		return err
+	}
+	registryCoordinatorAddress := client.AvsRegistryContractBindings.RegistryCoordinatorAddr
+	registryCoordinator, err := regcoord.NewContractRegistryCoordinator(
+		registryCoordinatorAddress,
+		client.EthHttpClient,
+	)
+	if err != nil {
+		return err
+	}
+
+	noSendTxOpts, err := client.TxManager.GetNoSendTxOpts()
+	if err != nil {
+		return err
+	}
+
+	tx, err := allocationManager.SetAVSRegistrar(noSendTxOpts, avsAddress, registryCoordinatorAddress)
+	if err != nil {
+		return err
+	}
+
+	waitForReceipt := true
+
+	_, err = client.TxManager.Send(context.Background(), tx, waitForReceipt)
+	if err != nil {
+		return err
+	}
+
+	tx, err = registryCoordinator.EnableOperatorSets(noSendTxOpts)
+	if err != nil {
+		return err
+	}
+
+	_, err = client.TxManager.Send(context.Background(), tx, waitForReceipt)
+	if err != nil {
+		return err
+	}
+
+	operatorSetParam := regcoord.IRegistryCoordinatorOperatorSetParam{
+		MaxOperatorCount:        10,
+		KickBIPsOfOperatorStake: 100,
+		KickBIPsOfTotalStake:    1000,
+	}
+	minimumStake := big.NewInt(0)
+
+	strategyParams := regcoord.IStakeRegistryStrategyParams{
+		Strategy:   erc20MockStrategyAddr,
+		Multiplier: big.NewInt(1),
+	}
+	strategyParamsArray := []regcoord.IStakeRegistryStrategyParams{strategyParams}
+	lookAheadPeriod := uint32(0)
+	tx, err = registryCoordinator.CreateSlashableStakeQuorum(
+		noSendTxOpts,
+		operatorSetParam,
+		minimumStake,
+		strategyParamsArray,
+		lookAheadPeriod,
+	)
+	if err != nil {
+		return err
+	}
+
+	_, err = client.TxManager.Send(context.Background(), tx, waitForReceipt)
+	if err != nil {
+		return err
+	}
+
+	strategies := []common.Address{erc20MockStrategyAddr}
+	operatorSetParams := allocationmanager.IAllocationManagerTypesCreateSetParams{
+		OperatorSetId: operatorSetId,
+		Strategies:    strategies,
+	}
+	operatorSetParamsArray := []allocationmanager.IAllocationManagerTypesCreateSetParams{operatorSetParams}
+	tx, err = allocationManager.CreateOperatorSets(noSendTxOpts, avsAddress, operatorSetParamsArray)
+	if err != nil {
+		return err
+	}
+
+	_, err = client.TxManager.Send(context.Background(), tx, waitForReceipt)
+	return err
 }
