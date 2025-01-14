@@ -23,6 +23,12 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const (
+	ANVIL_FIRST_ADDRESS           = "f39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
+	ANVIL_SECOND_ADDRESS          = "70997970C51812dc3A010C7d01b50e0d17dc79C8"
+	ANVIL_SECOND_PRIVATE_KEY      = "59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d"
+)
+
 func TestChainReader(t *testing.T) {
 	clients, anvilHttpEndpoint := testclients.BuildTestClients(t)
 	ctx := context.Background()
@@ -126,10 +132,10 @@ func TestSlashableSharesFunctions(t *testing.T) {
 	eigenClients, anvilHttpEndpoint := testclients.BuildTestClients(t)
 	contractAddrs := testutils.GetContractAddressesFromContractRegistry(anvilHttpEndpoint)
 
-	avsAddress := common.HexToAddress("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266")
-	operatorAddress := common.HexToAddress("0x70997970C51812dc3A010C7d01b50e0d17dc79C8")
+	avsAddress := common.HexToAddress(ANVIL_FIRST_ADDRESS)
+	operatorAddress := common.HexToAddress(ANVIL_SECOND_ADDRESS)
 
-	operatorPrivateKeyHex := "59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d"
+	operatorPrivateKeyHex := ANVIL_SECOND_PRIVATE_KEY
 	operatorClients, err := newTestClients(anvilHttpEndpoint, operatorPrivateKeyHex)
 	require.NoError(t, err)
 
