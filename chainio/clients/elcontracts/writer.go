@@ -615,7 +615,7 @@ func (w *ChainWriter) RegisterForOperatorSets(
 		allocationmanager.IAllocationManagerTypesRegisterParams{
 			Avs:            request.AVSAddress,
 			OperatorSetIds: request.OperatorSetIds,
-			Data: 				 data,
+			Data:           data,
 		})
 	if err != nil {
 		return nil, utils.WrapError("failed to create RegisterForOperatorSets tx", err)
