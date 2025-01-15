@@ -175,13 +175,15 @@ func TestGetCurrentClaimableDistributionRoot(t *testing.T) {
 	rewardsCoordinator, err := rewardscoordinator.NewContractIRewardsCoordinator(rewardsCoordinatorAddr, ethClient)
 	require.NoError(t, err)
 
+	ecdsaPrivKeyHex := "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
+
 	// Set delay to zero to inmediatly operate with coordinator
-	receipt, err := setTestRewardsCoordinatorActivationDelay(anvilHttpEndpoint, "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80", uint32(0))
+	receipt, err := setTestRewardsCoordinatorActivationDelay(anvilHttpEndpoint, ecdsaPrivKeyHex, uint32(0))
 	require.NoError(t, err)
 	require.Equal(t, receipt.Status, uint64(1))
 
 	// Create txManager to send transactions to the Ethereum node
-	txManager, err := testclients.NewTestTxManager(anvilHttpEndpoint, "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80")
+	txManager, err := testclients.NewTestTxManager(anvilHttpEndpoint, ecdsaPrivKeyHex)
 	require.NoError(t, err)
 	noSendTxOpts, err := txManager.GetNoSendTxOpts()
 	require.NoError(t, err)
@@ -240,14 +242,15 @@ func TestGetRootIndexFromRootHash(t *testing.T) {
 	require.NoError(t, err)
 	rewardsCoordinator, err := rewardscoordinator.NewContractIRewardsCoordinator(rewardsCoordinatorAddr, ethClient)
 	require.NoError(t, err)
+	ecdsaPrivKeyHex := "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
 
 	// Set delay to zero to inmediatly operate with coordinator
-	receipt, err := setTestRewardsCoordinatorActivationDelay(anvilHttpEndpoint, "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80", uint32(0))
+	receipt, err := setTestRewardsCoordinatorActivationDelay(anvilHttpEndpoint, ecdsaPrivKeyHex, uint32(0))
 	require.NoError(t, err)
 	require.Equal(t, receipt.Status, uint64(1))
 
 	// Create txManager to send transactions to the Ethereum node
-	txManager, err := testclients.NewTestTxManager(anvilHttpEndpoint, "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80")
+	txManager, err := testclients.NewTestTxManager(anvilHttpEndpoint, ecdsaPrivKeyHex)
 	require.NoError(t, err)
 	noSendTxOpts, err := txManager.GetNoSendTxOpts()
 	require.NoError(t, err)
@@ -356,8 +359,10 @@ func TestGetCumulativeClaimedRewards(t *testing.T) {
 	assert.NotEqual(t, common.Address{}, underlyingTokenAddr)
 	assert.NotNil(t, contractUnderlyingToken)
 
+	anvil_address := common.HexToAddress(testutils.ANVIL_FIRST_ADDRESS)
+
 	// This tests that without claims result is zero
-	claimed, err := chainReader.GetCumulativeClaimed(ctx, common.HexToAddress("f39Fd6e51aad88F6F4ce6aB8827279cffFb92266"), underlyingTokenAddr)
+	claimed, err := chainReader.GetCumulativeClaimed(ctx, anvil_address, underlyingTokenAddr)
 	assert.True(t, claimed.Cmp(big.NewInt(0)) == 0)
 	assert.NoError(t, err)
 
@@ -371,7 +376,7 @@ func TestGetCumulativeClaimedRewards(t *testing.T) {
 	require.True(t, receipt.Status == uint64(1))
 
 	// This tests that with a claim result is cumulativeEarnings
-	claimed, err = chainReader.GetCumulativeClaimed(ctx, common.HexToAddress("f39Fd6e51aad88F6F4ce6aB8827279cffFb92266"), underlyingTokenAddr)
+	claimed, err = chainReader.GetCumulativeClaimed(ctx, anvil_address, underlyingTokenAddr)
 	assert.Equal(t, claimed, big.NewInt(cumulativeEarnings))
 	assert.NoError(t, err)
 }
