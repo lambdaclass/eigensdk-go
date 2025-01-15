@@ -367,7 +367,7 @@ func TestGetCumulativeClaimedRewards(t *testing.T) {
 	claim, err := newTestClaim(chainReader, anvilHttpEndpoint, cumulativeEarnings, privateKeyHex)
 	require.NoError(t, err)
 
-	earner := common.HexToAddress("0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6")
+	earner := common.HexToAddress(testutils.REWARDS_COORDINATOR_ADDRESS)
 	receipt, err = chainWriter.ProcessClaim(context.Background(), *claim, earner, true)
 	require.NoError(t, err)
 	require.True(t, receipt.Status == gethtypes.ReceiptStatusSuccessful)
@@ -408,7 +408,7 @@ func TestCheckClaim(t *testing.T) {
 	claim, err := newTestClaim(chainReader, anvilHttpEndpoint, cumulativeEarnings, privateKeyHex)
 	require.NoError(t, err)
 
-	earner := common.HexToAddress("0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6")
+	earner := common.HexToAddress(testutils.REWARDS_COORDINATOR_ADDRESS)
 	receipt, err = chainWriter.ProcessClaim(context.Background(), *claim, earner, true)
 	require.NoError(t, err)
 	require.True(t, receipt.Status == gethtypes.ReceiptStatusSuccessful)
