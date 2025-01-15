@@ -13,6 +13,7 @@ import (
 	"github.com/Layr-Labs/eigensdk-go/types"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
+	gethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -236,7 +237,7 @@ func TestGetCurrentClaimableDistributionRoot(t *testing.T) {
 	// Set delay to zero to inmediatly operate with coordinator
 	receipt, err := setTestRewardsCoordinatorActivationDelay(anvilHttpEndpoint, ecdsaPrivKeyHex, uint32(0))
 	require.NoError(t, err)
-	require.Equal(t, receipt.Status, uint64(1))
+	require.Equal(t, receipt.Status, gethtypes.ReceiptStatusSuccessful)
 
 	// Create txManager to send transactions to the Ethereum node
 	txManager, err := testclients.NewTestTxManager(anvilHttpEndpoint, ecdsaPrivKeyHex)
@@ -303,7 +304,7 @@ func TestGetRootIndexFromRootHash(t *testing.T) {
 	// Set delay to zero to inmediatly operate with coordinator
 	receipt, err := setTestRewardsCoordinatorActivationDelay(anvilHttpEndpoint, ecdsaPrivKeyHex, uint32(0))
 	require.NoError(t, err)
-	require.Equal(t, receipt.Status, uint64(1))
+	require.Equal(t, receipt.Status, gethtypes.ReceiptStatusSuccessful)
 
 	// Create txManager to send transactions to the Ethereum node
 	txManager, err := testclients.NewTestTxManager(anvilHttpEndpoint, ecdsaPrivKeyHex)
@@ -403,7 +404,7 @@ func TestGetCumulativeClaimedRewards(t *testing.T) {
 	// Set activation delay to zero so that the earnings can be claimed right after submitting the root
 	receipt, err := setTestRewardsCoordinatorActivationDelay(anvilHttpEndpoint, privateKeyHex, activationDelay)
 	require.NoError(t, err)
-	require.True(t, receipt.Status == uint64(1))
+	require.True(t, receipt.Status == gethtypes.ReceiptStatusSuccessful)
 
 	strategyAddr := contractAddrs.Erc20MockStrategy
 	strategy, contractUnderlyingToken, underlyingTokenAddr, err := clients.ElChainReader.GetStrategyAndUnderlyingERC20Token(
@@ -429,7 +430,7 @@ func TestGetCumulativeClaimedRewards(t *testing.T) {
 	earner := common.HexToAddress("0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6")
 	receipt, err = chainWriter.ProcessClaim(context.Background(), *claim, earner, true)
 	require.NoError(t, err)
-	require.True(t, receipt.Status == uint64(1))
+	require.True(t, receipt.Status == gethtypes.ReceiptStatusSuccessful)
 
 	// This tests that with a claim result is cumulativeEarnings
 	claimed, err = chainReader.GetCumulativeClaimed(ctx, anvil_address, underlyingTokenAddr)
@@ -461,7 +462,7 @@ func TestCheckClaim(t *testing.T) {
 	// Set activation delay to zero so that the earnings can be claimed right after submitting the root
 	receipt, err := setTestRewardsCoordinatorActivationDelay(anvilHttpEndpoint, privateKeyHex, activationDelay)
 	require.NoError(t, err)
-	require.True(t, receipt.Status == uint64(1))
+	require.True(t, receipt.Status == gethtypes.ReceiptStatusSuccessful)
 
 	cumulativeEarnings := int64(45)
 	claim, err := newTestClaim(chainReader, anvilHttpEndpoint, cumulativeEarnings, privateKeyHex)
@@ -470,7 +471,7 @@ func TestCheckClaim(t *testing.T) {
 	earner := common.HexToAddress("0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6")
 	receipt, err = chainWriter.ProcessClaim(context.Background(), *claim, earner, true)
 	require.NoError(t, err)
-	require.True(t, receipt.Status == uint64(1))
+	require.True(t, receipt.Status == gethtypes.ReceiptStatusSuccessful)
 
 	strategyAddr := contractAddrs.Erc20MockStrategy
 	strategy, contractUnderlyingToken, underlyingTokenAddr, err := clients.ElChainReader.GetStrategyAndUnderlyingERC20Token(
