@@ -427,7 +427,7 @@ func TestGetCumulativeClaimedRewards(t *testing.T) {
 	claim, err := newTestClaim(chainReader, anvilHttpEndpoint, cumulativeEarnings, privateKeyHex)
 	require.NoError(t, err)
 
-	earner := common.HexToAddress("0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6")
+	earner := common.HexToAddress(testutils.REWARDS_COORDINATOR_ADDRESS)
 	receipt, err = chainWriter.ProcessClaim(context.Background(), *claim, earner, true)
 	require.NoError(t, err)
 	require.True(t, receipt.Status == gethtypes.ReceiptStatusSuccessful)
@@ -468,7 +468,7 @@ func TestCheckClaim(t *testing.T) {
 	claim, err := newTestClaim(chainReader, anvilHttpEndpoint, cumulativeEarnings, privateKeyHex)
 	require.NoError(t, err)
 
-	earner := common.HexToAddress("0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6")
+	earner := common.HexToAddress(testutils.REWARDS_COORDINATOR_ADDRESS)
 	receipt, err = chainWriter.ProcessClaim(context.Background(), *claim, earner, true)
 	require.NoError(t, err)
 	require.True(t, receipt.Status == gethtypes.ReceiptStatusSuccessful)
@@ -486,4 +486,159 @@ func TestCheckClaim(t *testing.T) {
 	checked, err := chainReader.CheckClaim(ctx, *claim)
 	require.NoError(t, err)
 	assert.True(t, checked)
+}
+
+func TestAdminFunctions(t *testing.T) {
+	testConfig := testutils.GetDefaultTestConfig()
+	anvilC, err := testutils.StartAnvilContainer(testConfig.AnvilStateFileName)
+	assert.NoError(t, err)
+
+	anvilHttpEndpoint, err := anvilC.Endpoint(context.Background(), "http")
+	assert.NoError(t, err)
+
+	permissionControllerAddr := common.HexToAddress(testutils.PERMISSION_CONTROLLER_ADDRESS)
+	config := elcontracts.Config{
+		PermissionsControllerAddress: permissionControllerAddr,
+	}
+
+	operatorAddr := common.HexToAddress(testutils.ANVIL_FIRST_ADDRESS)
+	privateKeyHex := testutils.ANVIL_FIRST_PRIVATE_KEY
+	accountChainWriter, err := testclients.NewTestChainWriterFromConfig(anvilHttpEndpoint, privateKeyHex, config)
+	assert.NoError(t, err)
+
+	pendingAdminAddr := common.HexToAddress(testutils.ANVIL_SECOND_ADDRESS)
+	pendingAdminPrivateKeyHex := testutils.ANVIL_SECOND_PRIVATE_KEY
+	adminChainWriter, err := testclients.NewTestChainWriterFromConfig(
+		anvilHttpEndpoint,
+		pendingAdminPrivateKeyHex,
+		config,
+	)
+	assert.NoError(t, err)
+
+	chainReader, err := testclients.NewTestChainReaderFromConfig(anvilHttpEndpoint, config)
+	assert.NoError(t, err)
+
+	t.Run("non-existent pending admin", func(t *testing.T) {
+		isPendingAdmin, err := chainReader.IsPendingAdmin(context.Background(), operatorAddr, pendingAdminAddr)
+		assert.NoError(t, err)
+		assert.False(t, isPendingAdmin)
+	})
+
+	t.Run("list pending admins when empty", func(t *testing.T) {
+		listPendingAdmins, err := chainReader.ListPendingAdmins(context.Background(), operatorAddr)
+		assert.NoError(t, err)
+		assert.Empty(t, listPendingAdmins)
+	})
+
+	t.Run("add pending admin and list", func(t *testing.T) {
+		request := elcontracts.AddPendingAdminRequest{
+			AccountAddress: operatorAddr,
+			AdminAddress:   pendingAdminAddr,
+			WaitForReceipt: true,
+		}
+
+		receipt, err := accountChainWriter.AddPendingAdmin(context.Background(), request)
+		assert.NoError(t, err)
+		assert.Equal(t, receipt.Status, gethtypes.ReceiptStatusSuccessful)
+
+		isPendingAdmin, err := chainReader.IsPendingAdmin(context.Background(), operatorAddr, pendingAdminAddr)
+		assert.NoError(t, err)
+		assert.True(t, isPendingAdmin)
+
+		listPendingAdmins, err := chainReader.ListPendingAdmins(context.Background(), operatorAddr)
+		assert.NoError(t, err)
+		assert.NotEmpty(t, listPendingAdmins)
+		assert.Len(t, listPendingAdmins, 1)
+	})
+
+	t.Run("non-existent admin", func(t *testing.T) {
+		isAdmin, err := chainReader.IsAdmin(context.Background(), operatorAddr, pendingAdminAddr)
+		assert.NoError(t, err)
+		assert.False(t, isAdmin)
+	})
+
+	t.Run("list admins", func(t *testing.T) {
+		acceptAdminRequest := elcontracts.AcceptAdminRequest{
+			AccountAddress: operatorAddr,
+			WaitForReceipt: true,
+		}
+
+		receipt, err := adminChainWriter.AcceptAdmin(context.Background(), acceptAdminRequest)
+		assert.NoError(t, err)
+		assert.Equal(t, receipt.Status, gethtypes.ReceiptStatusSuccessful)
+
+		listAdmins, err := chainReader.ListAdmins(context.Background(), operatorAddr)
+		assert.NoError(t, err)
+		assert.Len(t, listAdmins, 1)
+
+		admin := listAdmins[0]
+		isAdmin, err := chainReader.IsAdmin(context.Background(), operatorAddr, admin)
+		assert.NoError(t, err)
+		assert.True(t, isAdmin)
+	})
+}
+
+func TestAppointeesFunctions(t *testing.T) {
+	testConfig := testutils.GetDefaultTestConfig()
+	anvilC, err := testutils.StartAnvilContainer(testConfig.AnvilStateFileName)
+	assert.NoError(t, err)
+
+	anvilHttpEndpoint, err := anvilC.Endpoint(context.Background(), "http")
+	assert.NoError(t, err)
+
+	permissionControllerAddr := common.HexToAddress(testutils.PERMISSION_CONTROLLER_ADDRESS)
+	config := elcontracts.Config{
+		PermissionsControllerAddress: permissionControllerAddr,
+	}
+
+	chainReader, err := testclients.NewTestChainReaderFromConfig(anvilHttpEndpoint, config)
+	assert.NoError(t, err)
+
+	privateKey := testutils.ANVIL_FIRST_PRIVATE_KEY
+	chainWriter, err := testclients.NewTestChainWriterFromConfig(anvilHttpEndpoint, privateKey, config)
+	assert.NoError(t, err)
+
+	accountAddress := common.HexToAddress(testutils.ANVIL_FIRST_ADDRESS)
+
+	appointeeAddress := common.HexToAddress(testutils.ANVIL_SECOND_ADDRESS)
+	target := common.HexToAddress(testutils.ANVIL_THIRD_ADDRESS)
+	selector := [4]byte{0, 1, 2, 3}
+
+	t.Run("list appointees when empty", func(t *testing.T) {
+		appointees, err := chainReader.ListAppointees(context.Background(), accountAddress, target, selector)
+		assert.NoError(t, err)
+		assert.Empty(t, appointees)
+	})
+
+	t.Run("list appointees", func(t *testing.T) {
+		setPermissionRequest := elcontracts.SetPermissionRequest{
+			AccountAddress:   accountAddress,
+			AppointeeAddress: appointeeAddress,
+			Target:           target,
+			Selector:         selector,
+			WaitForReceipt:   true,
+		}
+
+		receipt, err := chainWriter.SetPermission(context.Background(), setPermissionRequest)
+		require.NoError(t, err)
+		require.Equal(t, receipt.Status, gethtypes.ReceiptStatusSuccessful)
+
+		canCall, err := chainReader.CanCall(context.Background(), accountAddress, appointeeAddress, target, selector)
+		require.NoError(t, err)
+		require.True(t, canCall)
+
+		appointees, err := chainReader.ListAppointees(context.Background(), accountAddress, target, selector)
+		assert.NoError(t, err)
+		assert.NotEmpty(t, appointees)
+	})
+
+	t.Run("list appointees permissions", func(t *testing.T) {
+		appointeesPermission, _, err := chainReader.ListAppointeePermissions(
+			context.Background(),
+			accountAddress,
+			appointeeAddress,
+		)
+		assert.NoError(t, err)
+		assert.NotEmpty(t, appointeesPermission)
+	})
 }
