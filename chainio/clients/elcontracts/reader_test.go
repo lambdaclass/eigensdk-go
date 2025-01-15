@@ -161,33 +161,55 @@ func TestChainReader(t *testing.T) {
 			strategies,
 		)
 		assert.NoError(t, err)
-		assert.NotEmpty(t, shares, 3)
+		assert.Len(t, shares, 3)
 
 		// We could test modify the shares and verify the diff is the expected
 	})
 
 	t.Run("GetOperatorsShares", func(t *testing.T) {
-		// Maybe could add more operators and strategies
-		operatorAddrs := []common.Address{common.HexToAddress(operator.Address)}
+		operatorAddr := common.HexToAddress(operator.Address)
+		operators := []common.Address{operatorAddr}
 		strategyAddr := contractAddrs.Erc20MockStrategy
 		strategies := []common.Address{strategyAddr}
 		shares, err := clients.ElChainReader.GetOperatorsShares(
 			ctx,
-			operatorAddrs,
+			operators,
 			strategies,
 		)
 		assert.NoError(t, err)
-		assert.NotZero(t, shares)
-	})
+		assert.Len(t, shares, 1)
 
-	t.Run("GetOperatorSetsForOperator", func(t *testing.T) {
-		// GetOperatorSetsForOperator with an operator without sets returns an empty list
-		operatorSet, err := clients.ElChainReader.GetOperatorSetsForOperator(
+		// with n strategies, response's list length is [1][n]
+		mult_strategies := []common.Address{strategyAddr, strategyAddr, strategyAddr}
+		shares, err = clients.ElChainReader.GetOperatorsShares(
 			ctx,
-			common.HexToAddress(operator.Address),
+			operators,
+			mult_strategies,
 		)
 		assert.NoError(t, err)
-		assert.Empty(t, operatorSet)
+		assert.Len(t, shares, 1)
+		assert.Len(t, shares[0], 3)
+
+		// with n strategies, response's list length is [n][1]
+		mult_operators := []common.Address{operatorAddr, operatorAddr, operatorAddr}
+		shares, err = clients.ElChainReader.GetOperatorsShares(
+			ctx,
+			mult_operators,
+			strategies,
+		)
+		assert.NoError(t, err)
+		assert.Len(t, shares, 3)
+		assert.Len(t, shares[0], 1)
+
+		// with n strategies and n operators, response's list length is [n][n]
+		shares, err = clients.ElChainReader.GetOperatorsShares(
+			ctx,
+			mult_operators,
+			mult_strategies,
+		)
+		assert.NoError(t, err)
+		assert.Len(t, shares, 3)
+		assert.Len(t, shares[2], 3)
 	})
 }
 
