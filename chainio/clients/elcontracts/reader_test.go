@@ -120,7 +120,7 @@ func TestChainReader(t *testing.T) {
 		assert.NotEmpty(t, digest)
 	})
 
-	t.Run("staker shares test (GetStakerShares)", func(t *testing.T) {
+	t.Run("get staker shares", func(t *testing.T) {
 		strategies, shares, err := clients.ElChainReader.GetStakerShares(
 			ctx,
 			common.HexToAddress(operator.Address),
@@ -132,7 +132,6 @@ func TestChainReader(t *testing.T) {
 	})
 
 	t.Run("get delegated operator", func(t *testing.T) {
-		// The delegated operator of an operator is the operator itself
 		val := big.NewInt(0)
 		address, err := clients.ElChainReader.GetDelegatedOperator(
 			ctx,
@@ -141,6 +140,7 @@ func TestChainReader(t *testing.T) {
 		)
 
 		assert.NoError(t, err)
+		// The delegated operator of an operator is the operator itself
 		assert.Equal(t, address.String(), operator.Address)
 	})
 
@@ -175,7 +175,7 @@ func TestGetCurrentClaimableDistributionRoot(t *testing.T) {
 	rewardsCoordinator, err := rewardscoordinator.NewContractIRewardsCoordinator(rewardsCoordinatorAddr, ethClient)
 	require.NoError(t, err)
 
-	ecdsaPrivKeyHex := "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
+	ecdsaPrivKeyHex := testutils.ANVIL_FIRST_PRIVATE_KEY
 
 	// Set delay to zero to inmediatly operate with coordinator
 	receipt, err := setTestRewardsCoordinatorActivationDelay(anvilHttpEndpoint, ecdsaPrivKeyHex, uint32(0))
@@ -188,7 +188,7 @@ func TestGetCurrentClaimableDistributionRoot(t *testing.T) {
 	noSendTxOpts, err := txManager.GetNoSendTxOpts()
 	require.NoError(t, err)
 
-	rewardsUpdater := common.HexToAddress("f39Fd6e51aad88F6F4ce6aB8827279cffFb92266")
+	rewardsUpdater := common.HexToAddress(testutils.ANVIL_FIRST_ADDRESS)
 
 	// Change the rewards updater to be able to submit the new root
 	tx, err := rewardsCoordinator.SetRewardsUpdater(noSendTxOpts, rewardsUpdater)
@@ -242,7 +242,7 @@ func TestGetRootIndexFromRootHash(t *testing.T) {
 	require.NoError(t, err)
 	rewardsCoordinator, err := rewardscoordinator.NewContractIRewardsCoordinator(rewardsCoordinatorAddr, ethClient)
 	require.NoError(t, err)
-	ecdsaPrivKeyHex := "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
+	ecdsaPrivKeyHex := testutils.ANVIL_FIRST_PRIVATE_KEY
 
 	// Set delay to zero to inmediatly operate with coordinator
 	receipt, err := setTestRewardsCoordinatorActivationDelay(anvilHttpEndpoint, ecdsaPrivKeyHex, uint32(0))
@@ -255,7 +255,7 @@ func TestGetRootIndexFromRootHash(t *testing.T) {
 	noSendTxOpts, err := txManager.GetNoSendTxOpts()
 	require.NoError(t, err)
 
-	rewardsUpdater := common.HexToAddress("f39Fd6e51aad88F6F4ce6aB8827279cffFb92266")
+	rewardsUpdater := common.HexToAddress(testutils.ANVIL_FIRST_ADDRESS)
 
 	// Change the rewards updater to be able to submit the new root
 	tx, err := rewardsCoordinator.SetRewardsUpdater(noSendTxOpts, rewardsUpdater)
