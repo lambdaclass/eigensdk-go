@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/Layr-Labs/eigensdk-go/chainio/clients/elcontracts"
+	allocationmanager "github.com/Layr-Labs/eigensdk-go/contracts/bindings/AllocationManager"
 	erc20 "github.com/Layr-Labs/eigensdk-go/contracts/bindings/IERC20"
 	rewardscoordinator "github.com/Layr-Labs/eigensdk-go/contracts/bindings/IRewardsCoordinator"
 	"github.com/Layr-Labs/eigensdk-go/testutils"
@@ -139,30 +140,6 @@ func TestChainReader(t *testing.T) {
 		assert.NoError(t, err)
 		// The delegated operator of an operator is the operator itself
 		assert.Equal(t, address.String(), operator.Address)
-	})
-
-	t.Run("get Allocatable Magnitude", func(t *testing.T) {
-		// Without changes, Allocable magnitude is max magnitude
-
-		rewardsCoordinatorAddr := contractAddrs.RewardsCoordinator
-		config := elcontracts.Config{
-			DelegationManagerAddress:  contractAddrs.DelegationManager,
-			RewardsCoordinatorAddress: rewardsCoordinatorAddr,
-		}
-
-		chainReader, err := testclients.NewTestChainReaderFromConfig(anvilHttpEndpoint, config)
-		require.NoError(t, err)
-
-		strategyAddr := contractAddrs.Erc20MockStrategy
-
-		strategies := []common.Address{strategyAddr}
-		maxmagnitude, err := chainReader.GetMaxMagnitudes(ctx, common.HexToAddress(testutils.ANVIL_FIRST_ADDRESS), strategies)
-		assert.NoError(t, err)
-
-		allocable, err := chainReader.GetAllocatableMagnitude(ctx, common.HexToAddress(testutils.ANVIL_FIRST_ADDRESS), strategyAddr)
-		assert.NoError(t, err)
-
-		assert.Equal(t, maxmagnitude[0], allocable)
 	})
 
 	t.Run("GetOperatorShares", func(t *testing.T) {
@@ -486,6 +463,88 @@ func TestCheckClaim(t *testing.T) {
 	checked, err := chainReader.CheckClaim(ctx, *claim)
 	require.NoError(t, err)
 	assert.True(t, checked)
+}
+
+func TestGetAllocatableMagnitudeAndGetMaxMagnitudes(t *testing.T) {
+	// Without changes, Allocable magnitude is max magnitude
+
+	// Test setup
+	ctx := context.Background()
+
+	testConfig := testutils.GetDefaultTestConfig()
+	anvilC, err := testutils.StartAnvilContainer(testConfig.AnvilStateFileName)
+	require.NoError(t, err)
+
+	anvilHttpEndpoint, err := anvilC.Endpoint(context.Background(), "http")
+	require.NoError(t, err)
+	contractAddrs := testutils.GetContractAddressesFromContractRegistry(anvilHttpEndpoint)
+
+	operatorAddr := common.HexToAddress(testutils.ANVIL_FIRST_ADDRESS)
+	config := elcontracts.Config{
+		DelegationManagerAddress: contractAddrs.DelegationManager,
+	}
+
+	chainReader, err := testclients.NewTestChainReaderFromConfig(anvilHttpEndpoint, config)
+	require.NoError(t, err)
+
+	strategyAddr := contractAddrs.Erc20MockStrategy
+	testAddr := common.HexToAddress(testutils.ANVIL_FIRST_ADDRESS)
+	operatorSetId := uint32(1)
+
+	strategies := []common.Address{strategyAddr}
+	maxmagnitude, err := chainReader.GetMaxMagnitudes(ctx, testAddr, strategies)
+	assert.NoError(t, err)
+
+	// Assert that at the beginning, Allocatable Magnitude is Max allocatable magnitude
+	allocable, err := chainReader.GetAllocatableMagnitude(ctx, testAddr, strategyAddr)
+	assert.NoError(t, err)
+
+	assert.Equal(t, maxmagnitude[0], allocable)
+
+	// Slash testAddr
+	privateKeyHex := testutils.ANVIL_FIRST_PRIVATE_KEY
+
+	chainWriter, err := testclients.NewTestChainWriterFromConfig(anvilHttpEndpoint, privateKeyHex, config)
+	require.NoError(t, err)
+
+	waitForReceipt := true
+	delay := uint32(1)
+	receipt, err := chainWriter.SetAllocationDelay(context.Background(), operatorAddr, delay, waitForReceipt)
+	require.NoError(t, err)
+	require.Equal(t, gethtypes.ReceiptStatusSuccessful, receipt.Status)
+
+	allocationConfigurationDelay := 1200
+	testutils.AdvanceChainByNBlocksExecInContainer(context.Background(), allocationConfigurationDelay+1, anvilC)
+
+	// Retrieve the allocation delay so that the delay is applied
+	_, err = chainReader.GetAllocationDelay(context.Background(), operatorAddr)
+	require.NoError(t, err)
+
+	err = createOperatorSet(anvilHttpEndpoint, privateKeyHex, testAddr, operatorSetId, strategyAddr)
+	require.NoError(t, err)
+
+	operatorSet := allocationmanager.OperatorSet{
+		Avs: testAddr,
+		Id:  operatorSetId,
+	}
+	slash_ammount := uint64(100)
+	allocateParams := []allocationmanager.IAllocationManagerTypesAllocateParams{
+		{
+			OperatorSet:   operatorSet,
+			Strategies:    []common.Address{strategyAddr},
+			NewMagnitudes: []uint64{slash_ammount},
+		},
+	}
+
+	receipt, err = chainWriter.ModifyAllocations(context.Background(), operatorAddr, allocateParams, waitForReceipt)
+	require.NoError(t, err)
+	require.Equal(t, gethtypes.ReceiptStatusSuccessful, receipt.Status)
+
+	// Assert that after slashing, Allocatable Magnitude + slash ammount equals Max allocatable magnitude
+	allocable, err = chainReader.GetAllocatableMagnitude(ctx, testAddr, strategyAddr)
+	assert.NoError(t, err)
+
+	assert.Equal(t, maxmagnitude[0], allocable+slash_ammount)
 }
 
 func TestAdminFunctions(t *testing.T) {
