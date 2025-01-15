@@ -3,29 +3,21 @@ package elcontracts_test
 import (
 	"context"
 	"math/big"
-	"os"
 	"testing"
 
 	"github.com/Layr-Labs/eigensdk-go/chainio/clients/elcontracts"
-	"github.com/Layr-Labs/eigensdk-go/chainio/clients/wallet"
-	"github.com/Layr-Labs/eigensdk-go/chainio/txmgr"
 	erc20 "github.com/Layr-Labs/eigensdk-go/contracts/bindings/IERC20"
 	rewardscoordinator "github.com/Layr-Labs/eigensdk-go/contracts/bindings/IRewardsCoordinator"
 	strategy "github.com/Layr-Labs/eigensdk-go/contracts/bindings/IStrategy"
 	mockerc20 "github.com/Layr-Labs/eigensdk-go/contracts/bindings/MockERC20"
-	"github.com/Layr-Labs/eigensdk-go/logging"
-	"github.com/Layr-Labs/eigensdk-go/metrics"
-	"github.com/Layr-Labs/eigensdk-go/signerv2"
 	"github.com/Layr-Labs/eigensdk-go/testutils"
 	"github.com/Layr-Labs/eigensdk-go/testutils/testclients"
 	"github.com/Layr-Labs/eigensdk-go/types"
 	"github.com/Layr-Labs/eigensdk-go/utils"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
-	gethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -174,7 +166,7 @@ func TestGetCurrentClaimableDistributionRoot(t *testing.T) {
 		RewardsCoordinatorAddress: rewardsCoordinatorAddr,
 	}
 
-	chainReader, err := NewTestChainReaderFromConfig(anvilHttpEndpoint, config)
+	chainReader, err := testclients.NewTestChainReaderFromConfig(anvilHttpEndpoint, config)
 	require.NoError(t, err)
 
 	// Create and configure rewards coordinator
@@ -189,7 +181,7 @@ func TestGetCurrentClaimableDistributionRoot(t *testing.T) {
 	require.Equal(t, receipt.Status, uint64(1))
 
 	// Create txManager to send transactions to the Ethereum node
-	txManager, err := NewTestTxManager(anvilHttpEndpoint, "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80")
+	txManager, err := testclients.NewTestTxManager(anvilHttpEndpoint, "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80")
 	require.NoError(t, err)
 	noSendTxOpts, err := txManager.GetNoSendTxOpts()
 	require.NoError(t, err)
@@ -240,7 +232,7 @@ func TestGetRootIndexFromRootHash(t *testing.T) {
 		RewardsCoordinatorAddress: rewardsCoordinatorAddr,
 	}
 
-	chainReader, err := NewTestChainReaderFromConfig(anvilHttpEndpoint, config)
+	chainReader, err := testclients.NewTestChainReaderFromConfig(anvilHttpEndpoint, config)
 	require.NoError(t, err)
 
 	// Create and configure rewards coordinator
@@ -255,7 +247,7 @@ func TestGetRootIndexFromRootHash(t *testing.T) {
 	require.Equal(t, receipt.Status, uint64(1))
 
 	// Create txManager to send transactions to the Ethereum node
-	txManager, err := NewTestTxManager(anvilHttpEndpoint, "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80")
+	txManager, err := testclients.NewTestTxManager(anvilHttpEndpoint, "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80")
 	require.NoError(t, err)
 	noSendTxOpts, err := txManager.GetNoSendTxOpts()
 	require.NoError(t, err)
@@ -339,13 +331,13 @@ func TestGetCumulativeClaimedRewards(t *testing.T) {
 		DelegationManagerAddress:  contractAddrs.DelegationManager,
 		RewardsCoordinatorAddress: rewardsCoordinatorAddr,
 	}
-	privateKeyHex := ANVIL_FIRST_PRIVATE_KEY
+	privateKeyHex := testutils.ANVIL_FIRST_PRIVATE_KEY
 
 	// Create ChainWriter
-	chainWriter, err := NewTestChainWriterFromConfig(anvilHttpEndpoint, privateKeyHex, config)
+	chainWriter, err := testclients.NewTestChainWriterFromConfig(anvilHttpEndpoint, privateKeyHex, config)
 	require.NoError(t, err)
 
-	chainReader, err := NewTestChainReaderFromConfig(anvilHttpEndpoint, config)
+	chainReader, err := testclients.NewTestChainReaderFromConfig(anvilHttpEndpoint, config)
 	require.NoError(t, err)
 
 	activationDelay := uint32(0)
@@ -395,13 +387,13 @@ func TestCheckClaim(t *testing.T) {
 		DelegationManagerAddress:  contractAddrs.DelegationManager,
 		RewardsCoordinatorAddress: rewardsCoordinatorAddr,
 	}
-	privateKeyHex := ANVIL_FIRST_PRIVATE_KEY
+	privateKeyHex := testutils.ANVIL_FIRST_PRIVATE_KEY
 
 	// Create ChainWriter and chain reader
-	chainWriter, err := NewTestChainWriterFromConfig(anvilHttpEndpoint, privateKeyHex, config)
+	chainWriter, err := testclients.NewTestChainWriterFromConfig(anvilHttpEndpoint, privateKeyHex, config)
 	require.NoError(t, err)
 
-	chainReader, err := NewTestChainReaderFromConfig(anvilHttpEndpoint, config)
+	chainReader, err := testclients.NewTestChainReaderFromConfig(anvilHttpEndpoint, config)
 	require.NoError(t, err)
 
 	activationDelay := uint32(0)
@@ -435,147 +427,6 @@ func TestCheckClaim(t *testing.T) {
 }
 
 // The functions below will be replaced for those placed in testutils/testclients/testclients.go
-func setTestRewardsCoordinatorActivationDelay(
-	httpEndpoint string,
-	privateKeyHex string,
-	activationDelay uint32,
-) (*gethtypes.Receipt, error) {
-	contractAddrs := testutils.GetContractAddressesFromContractRegistry(httpEndpoint)
-	rewardsCoordinatorAddr := contractAddrs.RewardsCoordinator
-	ethHttpClient, err := ethclient.Dial(httpEndpoint)
-	if err != nil {
-		return nil, utils.WrapError("Failed to create eth client", err)
-	}
-
-	rewardsCoordinator, err := rewardscoordinator.NewContractIRewardsCoordinator(rewardsCoordinatorAddr, ethHttpClient)
-	if err != nil {
-		return nil, utils.WrapError("Failed to create rewards coordinator", err)
-	}
-
-	txManager, err := NewTestTxManager(httpEndpoint, privateKeyHex)
-	if err != nil {
-		return nil, utils.WrapError("Failed to create tx manager", err)
-	}
-
-	noSendOpts, err := txManager.GetNoSendTxOpts()
-	if err != nil {
-		return nil, utils.WrapError("Failed to get NoSend tx opts", err)
-	}
-
-	tx, err := rewardsCoordinator.SetActivationDelay(noSendOpts, activationDelay)
-	if err != nil {
-		return nil, utils.WrapError("Failed to create SetActivationDelay tx", err)
-	}
-
-	receipt, err := txManager.Send(context.Background(), tx, true)
-	if err != nil {
-		return nil, utils.WrapError("Failed to send SetActivationDelay tx", err)
-	}
-	return receipt, err
-}
-
-// Creates a testing ChainWriter from an httpEndpoint, private key and config.
-// This is needed because the existing testclients.BuildTestClients returns a
-// ChainReader with a null rewardsCoordinator, which is required for some of the tests.
-func NewTestChainReaderFromConfig(
-	httpEndpoint string,
-	config elcontracts.Config,
-) (*elcontracts.ChainReader, error) {
-	testConfig := testutils.GetDefaultTestConfig()
-	logger := logging.NewTextSLogger(os.Stdout, &logging.SLoggerOptions{Level: testConfig.LogLevel})
-	ethHttpClient, err := ethclient.Dial(httpEndpoint)
-	if err != nil {
-		return nil, utils.WrapError("Failed to create eth client", err)
-	}
-
-	testReader, err := elcontracts.NewReaderFromConfig(
-		config,
-		ethHttpClient,
-		logger,
-	)
-	if err != nil {
-		return nil, utils.WrapError("Failed to create chain reader from config", err)
-	}
-	return testReader, nil
-}
-
-func NewTestTxManager(httpEndpoint string, privateKeyHex string) (*txmgr.SimpleTxManager, error) {
-	testConfig := testutils.GetDefaultTestConfig()
-	ethHttpClient, err := ethclient.Dial(httpEndpoint)
-	if err != nil {
-		return nil, utils.WrapError("Failed to create eth client", err)
-	}
-
-	chainid, err := ethHttpClient.ChainID(context.Background())
-	if err != nil {
-		return nil, utils.WrapError("Failed to retrieve chain id", err)
-	}
-	privateKey, err := crypto.HexToECDSA(privateKeyHex)
-	if err != nil {
-		return nil, utils.WrapError("Failed to convert hex string to private key", err)
-	}
-	signerV2, addr, err := signerv2.SignerFromConfig(signerv2.Config{PrivateKey: privateKey}, chainid)
-	if err != nil {
-		return nil, utils.WrapError("Failed to create signer", err)
-	}
-
-	logger := logging.NewTextSLogger(os.Stdout, &logging.SLoggerOptions{Level: testConfig.LogLevel})
-
-	pkWallet, err := wallet.NewPrivateKeyWallet(ethHttpClient, signerV2, addr, logger)
-	if err != nil {
-		return nil, utils.WrapError("Failed to create wallet", err)
-	}
-
-	txManager := txmgr.NewSimpleTxManager(pkWallet, ethHttpClient, logger, addr)
-	return txManager, nil
-}
-
-func NewTestChainWriterFromConfig(
-	httpEndpoint string,
-	privateKeyHex string,
-	config elcontracts.Config,
-) (*elcontracts.ChainWriter, error) {
-	privateKey, err := crypto.HexToECDSA(privateKeyHex)
-	if err != nil {
-		return nil, utils.WrapError("Failed convert hex string to ecdsa private key", err)
-	}
-	testConfig := testutils.GetDefaultTestConfig()
-	logger := logging.NewTextSLogger(os.Stdout, &logging.SLoggerOptions{Level: testConfig.LogLevel})
-	ethHttpClient, err := ethclient.Dial(httpEndpoint)
-	if err != nil {
-		return nil, utils.WrapError("Failed to create eth client", err)
-	}
-	chainid, err := ethHttpClient.ChainID(context.Background())
-	if err != nil {
-		return nil, utils.WrapError("Failed to get chain id", err)
-	}
-	promReg := prometheus.NewRegistry()
-	eigenMetrics := metrics.NewEigenMetrics("", "", promReg, logger)
-	signerV2, addr, err := signerv2.SignerFromConfig(signerv2.Config{PrivateKey: privateKey}, chainid)
-	if err != nil {
-		return nil, utils.WrapError("Failed to create the signer from the given config", err)
-	}
-
-	pkWallet, err := wallet.NewPrivateKeyWallet(ethHttpClient, signerV2, addr, logger)
-	if err != nil {
-		return nil, utils.WrapError("Failed to create wallet", err)
-	}
-	txManager := txmgr.NewSimpleTxManager(pkWallet, ethHttpClient, logger, addr)
-	testWriter, err := elcontracts.NewWriterFromConfig(
-		config,
-		ethHttpClient,
-		logger,
-		eigenMetrics,
-		txManager,
-	)
-	if err != nil {
-		return nil, err
-	}
-	return testWriter, nil
-}
-
-const ANVIL_FIRST_ADDRESS = "f39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
-const ANVIL_FIRST_PRIVATE_KEY = "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
 
 // Returns a (test) claim for the given cumulativeEarnings, whose earner is
 // the account given by the testutils.ANVIL_FIRST_ADDRESS address.
@@ -595,7 +446,7 @@ func newTestClaim(
 		return nil, utils.WrapError("Failed to create eth client", err)
 	}
 
-	txManager, err := NewTestTxManager(httpEndpoint, privateKeyHex)
+	txManager, err := testclients.NewTestTxManager(httpEndpoint, privateKeyHex)
 	if err != nil {
 		return nil, utils.WrapError("Failed to create tx manager", err)
 	}
@@ -635,7 +486,7 @@ func newTestClaim(
 	// Generate token tree leaf
 	// For the tree structure, see
 	// https://github.com/Layr-Labs/eigenlayer-contracts/blob/a888a1cd1479438dda4b138245a69177b125a973/docs/core/RewardsCoordinator.md#rewards-merkle-tree-structure
-	earnerAddr := common.HexToAddress(ANVIL_FIRST_ADDRESS)
+	earnerAddr := common.HexToAddress(testutils.ANVIL_FIRST_ADDRESS)
 	tokenLeaf := rewardscoordinator.IRewardsCoordinatorTypesTokenTreeMerkleLeaf{
 		Token:              tokenAddr,
 		CumulativeEarnings: big.NewInt(cumulativeEarnings),
@@ -701,7 +552,7 @@ func newTestClaim(
 		return nil, utils.WrapError("Failed to create rewards coordinator contract", err)
 	}
 
-	rewardsUpdater := common.HexToAddress(ANVIL_FIRST_ADDRESS)
+	rewardsUpdater := common.HexToAddress(testutils.ANVIL_FIRST_ADDRESS)
 
 	// Change the rewards updater to be able to submit the new root
 	tx, err = rewardsCoordinator.SetRewardsUpdater(noSendTxOpts, rewardsUpdater)
