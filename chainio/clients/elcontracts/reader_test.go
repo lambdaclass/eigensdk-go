@@ -534,7 +534,7 @@ func TestGetAllocatableMagnitudeAndGetMaxMagnitudes(t *testing.T) {
 
 	assert.Equal(t, maxmagnitude[0], allocable)
 
-	// Slash testAddr
+	// Reduce allocatable magnitude for testAddr
 	privateKeyHex := testutils.ANVIL_FIRST_PRIVATE_KEY
 
 	chainWriter, err := testclients.NewTestChainWriterFromConfig(anvilHttpEndpoint, privateKeyHex, config)
@@ -549,7 +549,7 @@ func TestGetAllocatableMagnitudeAndGetMaxMagnitudes(t *testing.T) {
 	allocationConfigurationDelay := 1200
 	testutils.AdvanceChainByNBlocksExecInContainer(context.Background(), allocationConfigurationDelay+1, anvilC)
 
-	// Retrieve the allocation delay so that the delay is applied
+	// Check that Allocation delay has been applied
 	_, err = chainReader.GetAllocationDelay(context.Background(), operatorAddr)
 	require.NoError(t, err)
 
@@ -560,12 +560,12 @@ func TestGetAllocatableMagnitudeAndGetMaxMagnitudes(t *testing.T) {
 		Avs: testAddr,
 		Id:  operatorSetId,
 	}
-	slash_ammount := uint64(100)
+	allocatable_reduction := uint64(100)
 	allocateParams := []allocationmanager.IAllocationManagerTypesAllocateParams{
 		{
 			OperatorSet:   operatorSet,
 			Strategies:    []common.Address{strategyAddr},
-			NewMagnitudes: []uint64{slash_ammount},
+			NewMagnitudes: []uint64{allocatable_reduction},
 		},
 	}
 
@@ -577,7 +577,7 @@ func TestGetAllocatableMagnitudeAndGetMaxMagnitudes(t *testing.T) {
 	allocable, err = chainReader.GetAllocatableMagnitude(ctx, testAddr, strategyAddr)
 	assert.NoError(t, err)
 
-	assert.Equal(t, maxmagnitude[0], allocable+slash_ammount)
+	assert.Equal(t, maxmagnitude[0], allocable+allocatable_reduction)
 }
 
 func TestAdminFunctions(t *testing.T) {
