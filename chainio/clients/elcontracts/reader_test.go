@@ -143,7 +143,6 @@ func TestChainReader(t *testing.T) {
 	})
 
 	t.Run("GetOperatorShares", func(t *testing.T) {
-		// Maybe could add more strategies
 		strategyAddr := contractAddrs.Erc20MockStrategy
 		strategies := []common.Address{strategyAddr}
 		shares, err := clients.ElChainReader.GetOperatorShares(
@@ -152,7 +151,19 @@ func TestChainReader(t *testing.T) {
 			strategies,
 		)
 		assert.NoError(t, err)
-		assert.NotZero(t, shares)
+		assert.Len(t, shares, 1)
+
+		// with n strategies, response's list length is n
+		strategies = []common.Address{strategyAddr, strategyAddr, strategyAddr}
+		shares, err = clients.ElChainReader.GetOperatorShares(
+			ctx,
+			common.HexToAddress(operator.Address),
+			strategies,
+		)
+		assert.NoError(t, err)
+		assert.NotEmpty(t, shares, 3)
+
+		// We could test modify the shares and verify the diff is the expected
 	})
 
 	t.Run("GetOperatorsShares", func(t *testing.T) {
