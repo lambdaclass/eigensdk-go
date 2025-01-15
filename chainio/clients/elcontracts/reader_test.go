@@ -360,7 +360,7 @@ func TestGetCumulativeClaimedRewards(t *testing.T) {
 
 	// This tests that without claims result is zero
 	claimed, err := chainReader.GetCumulativeClaimed(ctx, anvil_address, underlyingTokenAddr)
-	assert.True(t, claimed.Cmp(big.NewInt(0)) == 0)
+	assert.Zero(t, claimed.Cmp(big.NewInt(0)))
 	assert.NoError(t, err)
 
 	cumulativeEarnings := int64(45)
