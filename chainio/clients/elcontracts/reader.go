@@ -461,7 +461,7 @@ func (r *ChainReader) GetOperatorShares(
 
 func (r *ChainReader) GetOperatorsShares(
 	ctx context.Context,
-	operatorAddress []gethcommon.Address,
+	operatorAddress []gethcommon.Address, // Shouldn't be named operatorAddresses?
 	strategyAddresses []gethcommon.Address,
 ) ([][]*big.Int, error) {
 	if r.delegationManager == nil {
