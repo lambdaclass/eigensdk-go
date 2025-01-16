@@ -525,14 +525,14 @@ func TestGetAllocatableMagnitudeAndGetMaxMagnitudes(t *testing.T) {
 	operatorSetId := uint32(1)
 
 	strategies := []common.Address{strategyAddr}
-	maxmagnitude, err := chainReader.GetMaxMagnitudes(ctx, testAddr, strategies)
+	maxMagnitudes, err := chainReader.GetMaxMagnitudes(ctx, testAddr, strategies)
 	assert.NoError(t, err)
 
 	// Assert that at the beginning, Allocatable Magnitude is Max allocatable magnitude
 	allocable, err := chainReader.GetAllocatableMagnitude(ctx, testAddr, strategyAddr)
 	assert.NoError(t, err)
 
-	assert.Equal(t, maxmagnitude[0], allocable)
+	assert.Equal(t, maxMagnitudes[0], allocable)
 
 	// Reduce allocatable magnitude for testAddr
 	privateKeyHex := testutils.ANVIL_FIRST_PRIVATE_KEY
@@ -577,7 +577,7 @@ func TestGetAllocatableMagnitudeAndGetMaxMagnitudes(t *testing.T) {
 	allocable, err = chainReader.GetAllocatableMagnitude(ctx, testAddr, strategyAddr)
 	assert.NoError(t, err)
 
-	assert.Equal(t, maxmagnitude[0], allocable+allocatable_reduction)
+	assert.Equal(t, maxMagnitudes[0], allocable+allocatable_reduction)
 }
 
 func TestAdminFunctions(t *testing.T) {
