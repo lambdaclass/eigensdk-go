@@ -122,9 +122,9 @@ func TestChainReader(t *testing.T) {
 			ctx,
 			common.HexToAddress(operator.Address),
 		)
-		assert.NotZero(t, len(strategies))            // Strategies has at least one element
-		assert.NotZero(t, len(shares))                // Shares has at least one element
-		assert.Equal(t, len(strategies), len(shares)) // Strategies has the same ammount of elements as shares
+		assert.NotZero(t, len(strategies), "Strategies has at least one element")
+		assert.NotZero(t, len(shares), "Shares has at least one element")
+		assert.Equal(t, len(strategies), len(shares), "Strategies has the same ammount of elements as shares")
 		assert.NoError(t, err)
 	})
 
