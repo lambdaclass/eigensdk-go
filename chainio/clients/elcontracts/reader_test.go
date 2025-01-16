@@ -21,7 +21,7 @@ import (
 )
 
 func TestChainReader(t *testing.T) {
-	clients, anvilHttpEndpoint := testclients.BuildTestClients(t)
+	read_clients, anvilHttpEndpoint := testclients.BuildTestReadClients(t)
 	ctx := context.Background()
 
 	contractAddrs := testutils.GetContractAddressesFromContractRegistry(anvilHttpEndpoint)
@@ -30,13 +30,13 @@ func TestChainReader(t *testing.T) {
 	}
 
 	t.Run("is operator registered", func(t *testing.T) {
-		isOperator, err := clients.ElChainReader.IsOperatorRegistered(ctx, operator)
+		isOperator, err := read_clients.ElChainReader.IsOperatorRegistered(ctx, operator)
 		assert.NoError(t, err)
 		assert.Equal(t, isOperator, true)
 	})
 
 	t.Run("get operator details", func(t *testing.T) {
-		operatorDetails, err := clients.ElChainReader.GetOperatorDetails(ctx, operator)
+		operatorDetails, err := read_clients.ElChainReader.GetOperatorDetails(ctx, operator)
 		assert.NoError(t, err)
 		assert.NotNil(t, operatorDetails)
 		assert.Equal(t, operator.Address, operatorDetails.Address)
@@ -44,7 +44,7 @@ func TestChainReader(t *testing.T) {
 
 	t.Run("get strategy and underlying token", func(t *testing.T) {
 		strategyAddr := contractAddrs.Erc20MockStrategy
-		strategy, underlyingTokenAddr, err := clients.ElChainReader.GetStrategyAndUnderlyingToken(
+		strategy, underlyingTokenAddr, err := read_clients.ElChainReader.GetStrategyAndUnderlyingToken(
 			ctx,
 			strategyAddr,
 		)
@@ -52,7 +52,7 @@ func TestChainReader(t *testing.T) {
 		assert.NotNil(t, strategy)
 		assert.NotEqual(t, common.Address{}, underlyingTokenAddr)
 
-		erc20Token, err := erc20.NewContractIERC20(underlyingTokenAddr, clients.EthHttpClient)
+		erc20Token, err := erc20.NewContractIERC20(underlyingTokenAddr, read_clients.EthHttpClient)
 		assert.NoError(t, err)
 
 		tokenName, err := erc20Token.Name(&bind.CallOpts{})
@@ -62,7 +62,7 @@ func TestChainReader(t *testing.T) {
 
 	t.Run("get strategy and underlying ERC20 token", func(t *testing.T) {
 		strategyAddr := contractAddrs.Erc20MockStrategy
-		strategy, contractUnderlyingToken, underlyingTokenAddr, err := clients.ElChainReader.GetStrategyAndUnderlyingERC20Token(
+		strategy, contractUnderlyingToken, underlyingTokenAddr, err := read_clients.ElChainReader.GetStrategyAndUnderlyingERC20Token(
 			ctx,
 			strategyAddr,
 		)
@@ -77,7 +77,7 @@ func TestChainReader(t *testing.T) {
 	})
 
 	t.Run("get operator shares in strategy", func(t *testing.T) {
-		shares, err := clients.ElChainReader.GetOperatorSharesInStrategy(
+		shares, err := read_clients.ElChainReader.GetOperatorSharesInStrategy(
 			ctx,
 			common.HexToAddress(operator.Address),
 			contractAddrs.Erc20MockStrategy,
@@ -91,7 +91,7 @@ func TestChainReader(t *testing.T) {
 		delegationApprover := common.Address{0x0}
 		approverSalt := [32]byte{}
 		expiry := big.NewInt(0)
-		digest, err := clients.ElChainReader.CalculateDelegationApprovalDigestHash(
+		digest, err := read_clients.ElChainReader.CalculateDelegationApprovalDigestHash(
 			ctx,
 			staker,
 			common.HexToAddress(operator.Address),
@@ -107,7 +107,7 @@ func TestChainReader(t *testing.T) {
 		avs := common.Address{0x0}
 		salt := [32]byte{}
 		expiry := big.NewInt(0)
-		digest, err := clients.ElChainReader.CalculateOperatorAVSRegistrationDigestHash(
+		digest, err := read_clients.ElChainReader.CalculateOperatorAVSRegistrationDigestHash(
 			ctx,
 			common.HexToAddress(operator.Address),
 			avs,
@@ -119,19 +119,19 @@ func TestChainReader(t *testing.T) {
 	})
 
 	t.Run("get staker shares", func(t *testing.T) {
-		strategies, shares, err := clients.ElChainReader.GetStakerShares(
+		strategies, shares, err := read_clients.ElChainReader.GetStakerShares(
 			ctx,
 			common.HexToAddress(operator.Address),
 		)
-		assert.NotZero(t, len(strategies))            // Strategies has at least one element
-		assert.NotZero(t, len(shares))                // Shares has at least one element
-		assert.Equal(t, len(strategies), len(shares)) // Strategies has the same ammount of elements as shares
+		assert.NotZero(t, len(strategies), "Strategies has at least one element")
+		assert.NotZero(t, len(shares), "Shares has at least one element")
+		assert.Equal(t, len(strategies), len(shares), "Strategies has the same ammount of elements as shares")
 		assert.NoError(t, err)
 	})
 
 	t.Run("get delegated operator", func(t *testing.T) {
 		val := big.NewInt(0)
-		address, err := clients.ElChainReader.GetDelegatedOperator(
+		address, err := read_clients.ElChainReader.GetDelegatedOperator(
 			ctx,
 			common.HexToAddress(operator.Address),
 			val,
@@ -145,7 +145,7 @@ func TestChainReader(t *testing.T) {
 	t.Run("GetOperatorShares", func(t *testing.T) {
 		strategyAddr := contractAddrs.Erc20MockStrategy
 		strategies := []common.Address{strategyAddr}
-		shares, err := clients.ElChainReader.GetOperatorShares(
+		shares, err := read_clients.ElChainReader.GetOperatorShares(
 			ctx,
 			common.HexToAddress(operator.Address),
 			strategies,
@@ -155,7 +155,7 @@ func TestChainReader(t *testing.T) {
 
 		// with n strategies, response's list length is n
 		strategies = []common.Address{strategyAddr, strategyAddr, strategyAddr}
-		shares, err = clients.ElChainReader.GetOperatorShares(
+		shares, err = read_clients.ElChainReader.GetOperatorShares(
 			ctx,
 			common.HexToAddress(operator.Address),
 			strategies,
@@ -171,7 +171,7 @@ func TestChainReader(t *testing.T) {
 		operators := []common.Address{operatorAddr}
 		strategyAddr := contractAddrs.Erc20MockStrategy
 		strategies := []common.Address{strategyAddr}
-		shares, err := clients.ElChainReader.GetOperatorsShares(
+		shares, err := read_clients.ElChainReader.GetOperatorsShares(
 			ctx,
 			operators,
 			strategies,
@@ -181,7 +181,7 @@ func TestChainReader(t *testing.T) {
 
 		// with n strategies, response's list length is [1][n]
 		mult_strategies := []common.Address{strategyAddr, strategyAddr, strategyAddr}
-		shares, err = clients.ElChainReader.GetOperatorsShares(
+		shares, err = read_clients.ElChainReader.GetOperatorsShares(
 			ctx,
 			operators,
 			mult_strategies,
@@ -192,7 +192,7 @@ func TestChainReader(t *testing.T) {
 
 		// with n strategies, response's list length is [n][1]
 		mult_operators := []common.Address{operatorAddr, operatorAddr, operatorAddr}
-		shares, err = clients.ElChainReader.GetOperatorsShares(
+		shares, err = read_clients.ElChainReader.GetOperatorsShares(
 			ctx,
 			mult_operators,
 			strategies,
@@ -202,7 +202,7 @@ func TestChainReader(t *testing.T) {
 		assert.Len(t, shares[0], 1)
 
 		// with n strategies and n operators, response's list length is [n][n]
-		shares, err = clients.ElChainReader.GetOperatorsShares(
+		shares, err = read_clients.ElChainReader.GetOperatorsShares(
 			ctx,
 			mult_operators,
 			mult_strategies,
@@ -345,7 +345,9 @@ func TestGetRootIndexFromRootHash(t *testing.T) {
 		root,
 	)
 	assert.Error(t, err)
-	assert.Equal(t, err.Error(), "execution reverted: custom error 0x504570e3")
+	assert.Equal(t, err.Error(), "execution reverted: custom error 0x504570e3",
+		"GetRootIndexFromHash should return an InvalidRoot() error",
+	)
 	assert.Zero(t, root_index)
 
 	currRewardsCalculationEndTimestamp, err := chainReader.CurrRewardsCalculationEndTimestamp(context.Background())
@@ -430,15 +432,14 @@ func TestGetCumulativeClaimedRewards(t *testing.T) {
 
 	// This tests that without claims result is zero
 	claimed, err := chainReader.GetCumulativeClaimed(ctx, anvil_address, underlyingTokenAddr)
-	assert.True(t, claimed.Cmp(big.NewInt(0)) == 0)
+	assert.Zero(t, claimed.Cmp(big.NewInt(0)))
 	assert.NoError(t, err)
 
 	cumulativeEarnings := int64(45)
 	claim, err := newTestClaim(chainReader, anvilHttpEndpoint, cumulativeEarnings, privateKeyHex)
 	require.NoError(t, err)
 
-	earner := common.HexToAddress(testutils.REWARDS_COORDINATOR_ADDRESS)
-	receipt, err = chainWriter.ProcessClaim(context.Background(), *claim, earner, true)
+	receipt, err = chainWriter.ProcessClaim(context.Background(), *claim, rewardsCoordinatorAddr, true)
 	require.NoError(t, err)
 	require.True(t, receipt.Status == gethtypes.ReceiptStatusSuccessful)
 
@@ -478,8 +479,7 @@ func TestCheckClaim(t *testing.T) {
 	claim, err := newTestClaim(chainReader, anvilHttpEndpoint, cumulativeEarnings, privateKeyHex)
 	require.NoError(t, err)
 
-	earner := common.HexToAddress(testutils.REWARDS_COORDINATOR_ADDRESS)
-	receipt, err = chainWriter.ProcessClaim(context.Background(), *claim, earner, true)
+	receipt, err = chainWriter.ProcessClaim(context.Background(), *claim, rewardsCoordinatorAddr, true)
 	require.NoError(t, err)
 	require.True(t, receipt.Status == gethtypes.ReceiptStatusSuccessful)
 
