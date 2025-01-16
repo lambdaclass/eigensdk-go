@@ -573,7 +573,7 @@ func TestGetAllocatableMagnitudeAndGetMaxMagnitudes(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, gethtypes.ReceiptStatusSuccessful, receipt.Status)
 
-	// Assert that after slashing, Allocatable Magnitude + slash ammount equals Max allocatable magnitude
+	// Assert that after stake reduction, Allocatable Magnitude + reduction ammount equals Max allocatable magnitude
 	allocable, err = chainReader.GetAllocatableMagnitude(ctx, testAddr, strategyAddr)
 	assert.NoError(t, err)
 
