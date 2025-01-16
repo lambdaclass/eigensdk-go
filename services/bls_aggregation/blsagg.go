@@ -605,11 +605,6 @@ func (a *BlsAggregatorService) closeTaskGoroutine(taskIndex types.TaskIndex) {
 
 // verifySignature verifies that a signature is valid against the operator pubkey stored in the
 // operatorsAvsStateDict for that particular task
-// TODO(samlaf): right now we are only checking that the *digest* is signed correctly!!
-// we could be sent a signature of any kind of garbage and we would happily aggregate it
-// this forces the avs code to verify that the digest is indeed the digest of a valid taskResponse
-// we could take taskResponse as an interface{} and have avs code pass us a taskResponseHashFunction
-// that we could use to hash and verify the taskResponse itself
 func (a *BlsAggregatorService) verifySignature(
 	taskIndex types.TaskIndex,
 	signedTaskResponseDigest types.SignedTaskResponseDigest,

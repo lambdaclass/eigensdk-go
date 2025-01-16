@@ -5,6 +5,7 @@ import (
 	"math/big"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/Layr-Labs/eigensdk-go/chainio/clients"
 	"github.com/Layr-Labs/eigensdk-go/chainio/clients/elcontracts"
@@ -59,7 +60,7 @@ func TestRegisterOperator(t *testing.T) {
 			context.Background(),
 			[]string{"cast",
 				"send",
-				"0x408EfD9C90d59298A9b32F4441aC9Df6A2d8C3E1",
+				fundedAccount,
 				"--value",
 				"5ether",
 				"--private-key",
@@ -68,6 +69,7 @@ func TestRegisterOperator(t *testing.T) {
 		)
 		assert.NoError(t, err)
 		assert.Equal(t, 0, code)
+		time.Sleep(500 * time.Millisecond) // wait for the account to be funded
 
 		ecdsaPrivateKey, err := crypto.HexToECDSA(fundedPrivateKeyHex)
 		require.NoError(t, err)
