@@ -6,6 +6,7 @@ import (
 
 	chainioutils "github.com/Layr-Labs/eigensdk-go/chainio/utils"
 	"github.com/Layr-Labs/eigensdk-go/crypto/bls"
+	"github.com/Layr-Labs/eigensdk-go/testutils"
 	"github.com/Layr-Labs/eigensdk-go/testutils/testclients"
 	"github.com/Layr-Labs/eigensdk-go/types"
 	gethcommon "github.com/ethereum/go-ethereum/common"
@@ -20,9 +21,8 @@ func TestWriterMethods(t *testing.T) {
 	keypair, err := bls.NewKeyPairFromString("0x01")
 	require.NoError(t, err)
 
-	addr := gethcommon.HexToAddress("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266")
-	ecdsaPrivKeyHex := "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
-	ecdsaPrivateKey, err := crypto.HexToECDSA(ecdsaPrivKeyHex)
+	addr := gethcommon.HexToAddress(testutils.ANVIL_FIRST_ADDRESS)
+	ecdsaPrivateKey, err := crypto.HexToECDSA(testutils.ANVIL_FIRST_PRIVATE_KEY)
 	require.NoError(t, err)
 
 	quorumNumbers := types.QuorumNums{0}

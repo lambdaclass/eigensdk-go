@@ -33,7 +33,7 @@ func BuildTestClients(t *testing.T) (*clients.Clients, string) {
 	require.NoError(t, err)
 	logger := logging.NewTextSLogger(os.Stdout, &logging.SLoggerOptions{Level: testConfig.LogLevel})
 
-	privateKeyHex := "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
+	privateKeyHex := testutils.ANVIL_FIRST_PRIVATE_KEY
 	ecdsaPrivateKey, err := crypto.HexToECDSA(privateKeyHex)
 	require.NoError(t, err)
 

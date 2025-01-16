@@ -26,7 +26,7 @@ func TestChainReader(t *testing.T) {
 
 	contractAddrs := testutils.GetContractAddressesFromContractRegistry(anvilHttpEndpoint)
 	operator := types.Operator{
-		Address: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+		Address: testutils.ANVIL_FIRST_ADDRESS,
 	}
 
 	t.Run("is operator registered", func(t *testing.T) {

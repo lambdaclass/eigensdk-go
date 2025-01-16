@@ -33,7 +33,7 @@ func ExampleGeometricTxManager() {
 		panic(err)
 	}
 
-	ecdsaPrivateKey, err := crypto.HexToECDSA("ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80")
+	ecdsaPrivateKey, err := crypto.HexToECDSA(testutils.ANVIL_FIRST_PRIVATE_KEY)
 	if err != nil {
 		panic(err)
 	}

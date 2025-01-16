@@ -187,8 +187,7 @@ func TestSetClaimerFor(t *testing.T) {
 	require.NoError(t, err)
 
 	waitForReceipt := true
-	claimer := common.HexToAddress("0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6")
-
+	claimer := contractAddrs.RewardsCoordinator
 	// call SetClaimerFor
 	receipt, err := chainWriter.SetClaimerFor(context.Background(), claimer, waitForReceipt)
 	require.NoError(t, err)
