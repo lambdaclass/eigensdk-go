@@ -275,7 +275,9 @@ func TestGetRootIndexFromRootHash(t *testing.T) {
 		root,
 	)
 	assert.Error(t, err)
-	assert.Equal(t, err.Error(), "execution reverted: custom error 0x504570e3")
+	assert.Equal(t, err.Error(), "execution reverted: custom error 0x504570e3",
+		"GetRootIndexFromHash should return an InvalidRoot() error",
+	)
 	assert.Zero(t, root_index)
 
 	currRewardsCalculationEndTimestamp, err := chainReader.CurrRewardsCalculationEndTimestamp(context.Background())
