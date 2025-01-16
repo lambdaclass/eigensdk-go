@@ -27,8 +27,6 @@ const (
 	ANVIL_THIRD_ADDRESS      = "3C44CdDdB6a900fa2b585dd299e03d12FA4293BC"
 )
 
-const REWARDS_COORDINATOR_ADDRESS = "2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6"
-
 // This address is hardcoded because it is required by the elcontracts tests but is not
 // registered in the ContractRegistry in the contracts-deployed-anvil-state.json anvil state.
 const PERMISSION_CONTROLLER_ADDRESS = "610178dA211FEF7D417bC0e6FeD39F05609AD788"
