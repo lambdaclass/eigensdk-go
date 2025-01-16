@@ -461,13 +461,13 @@ func (r *ChainReader) GetOperatorShares(
 
 func (r *ChainReader) GetOperatorsShares(
 	ctx context.Context,
-	operatorAddress []gethcommon.Address, // Shouldn't be named operatorAddresses?
+	operatorAddresses []gethcommon.Address,
 	strategyAddresses []gethcommon.Address,
 ) ([][]*big.Int, error) {
 	if r.delegationManager == nil {
 		return nil, errors.New("DelegationManager contract not provided")
 	}
-	return r.delegationManager.GetOperatorsShares(&bind.CallOpts{Context: ctx}, operatorAddress, strategyAddresses)
+	return r.delegationManager.GetOperatorsShares(&bind.CallOpts{Context: ctx}, operatorAddresses, strategyAddresses)
 }
 
 // GetNumOperatorSetsForOperator returns the number of operator sets that an operator is part of
