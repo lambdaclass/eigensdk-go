@@ -20,7 +20,7 @@ import (
 )
 
 func TestChainReader(t *testing.T) {
-	clients, anvilHttpEndpoint := testclients.BuildTestClients(t)
+	read_clients, anvilHttpEndpoint := testclients.BuildTestReadClients(t)
 	ctx := context.Background()
 
 	contractAddrs := testutils.GetContractAddressesFromContractRegistry(anvilHttpEndpoint)
@@ -29,13 +29,13 @@ func TestChainReader(t *testing.T) {
 	}
 
 	t.Run("is operator registered", func(t *testing.T) {
-		isOperator, err := clients.ElChainReader.IsOperatorRegistered(ctx, operator)
+		isOperator, err := read_clients.ElChainReader.IsOperatorRegistered(ctx, operator)
 		assert.NoError(t, err)
 		assert.Equal(t, isOperator, true)
 	})
 
 	t.Run("get operator details", func(t *testing.T) {
-		operatorDetails, err := clients.ElChainReader.GetOperatorDetails(ctx, operator)
+		operatorDetails, err := read_clients.ElChainReader.GetOperatorDetails(ctx, operator)
 		assert.NoError(t, err)
 		assert.NotNil(t, operatorDetails)
 		assert.Equal(t, operator.Address, operatorDetails.Address)
@@ -43,7 +43,7 @@ func TestChainReader(t *testing.T) {
 
 	t.Run("get strategy and underlying token", func(t *testing.T) {
 		strategyAddr := contractAddrs.Erc20MockStrategy
-		strategy, underlyingTokenAddr, err := clients.ElChainReader.GetStrategyAndUnderlyingToken(
+		strategy, underlyingTokenAddr, err := read_clients.ElChainReader.GetStrategyAndUnderlyingToken(
 			ctx,
 			strategyAddr,
 		)
@@ -51,7 +51,7 @@ func TestChainReader(t *testing.T) {
 		assert.NotNil(t, strategy)
 		assert.NotEqual(t, common.Address{}, underlyingTokenAddr)
 
-		erc20Token, err := erc20.NewContractIERC20(underlyingTokenAddr, clients.EthHttpClient)
+		erc20Token, err := erc20.NewContractIERC20(underlyingTokenAddr, read_clients.EthHttpClient)
 		assert.NoError(t, err)
 
 		tokenName, err := erc20Token.Name(&bind.CallOpts{})
@@ -61,7 +61,7 @@ func TestChainReader(t *testing.T) {
 
 	t.Run("get strategy and underlying ERC20 token", func(t *testing.T) {
 		strategyAddr := contractAddrs.Erc20MockStrategy
-		strategy, contractUnderlyingToken, underlyingTokenAddr, err := clients.ElChainReader.GetStrategyAndUnderlyingERC20Token(
+		strategy, contractUnderlyingToken, underlyingTokenAddr, err := read_clients.ElChainReader.GetStrategyAndUnderlyingERC20Token(
 			ctx,
 			strategyAddr,
 		)
@@ -76,7 +76,7 @@ func TestChainReader(t *testing.T) {
 	})
 
 	t.Run("get operator shares in strategy", func(t *testing.T) {
-		shares, err := clients.ElChainReader.GetOperatorSharesInStrategy(
+		shares, err := read_clients.ElChainReader.GetOperatorSharesInStrategy(
 			ctx,
 			common.HexToAddress(operator.Address),
 			contractAddrs.Erc20MockStrategy,
@@ -90,7 +90,7 @@ func TestChainReader(t *testing.T) {
 		delegationApprover := common.Address{0x0}
 		approverSalt := [32]byte{}
 		expiry := big.NewInt(0)
-		digest, err := clients.ElChainReader.CalculateDelegationApprovalDigestHash(
+		digest, err := read_clients.ElChainReader.CalculateDelegationApprovalDigestHash(
 			ctx,
 			staker,
 			common.HexToAddress(operator.Address),
@@ -106,7 +106,7 @@ func TestChainReader(t *testing.T) {
 		avs := common.Address{0x0}
 		salt := [32]byte{}
 		expiry := big.NewInt(0)
-		digest, err := clients.ElChainReader.CalculateOperatorAVSRegistrationDigestHash(
+		digest, err := read_clients.ElChainReader.CalculateOperatorAVSRegistrationDigestHash(
 			ctx,
 			common.HexToAddress(operator.Address),
 			avs,
@@ -118,7 +118,7 @@ func TestChainReader(t *testing.T) {
 	})
 
 	t.Run("get staker shares", func(t *testing.T) {
-		strategies, shares, err := clients.ElChainReader.GetStakerShares(
+		strategies, shares, err := read_clients.ElChainReader.GetStakerShares(
 			ctx,
 			common.HexToAddress(operator.Address),
 		)
@@ -130,7 +130,7 @@ func TestChainReader(t *testing.T) {
 
 	t.Run("get delegated operator", func(t *testing.T) {
 		val := big.NewInt(0)
-		address, err := clients.ElChainReader.GetDelegatedOperator(
+		address, err := read_clients.ElChainReader.GetDelegatedOperator(
 			ctx,
 			common.HexToAddress(operator.Address),
 			val,

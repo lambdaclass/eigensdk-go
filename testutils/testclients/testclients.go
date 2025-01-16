@@ -58,6 +58,39 @@ func BuildTestClients(t *testing.T) (*clients.Clients, string) {
 	return clients, anvilHttpEndpoint
 }
 
+// Starts an anvil container and builds the ChainIO ReadClients for read-only testing.
+func BuildTestReadClients(t *testing.T) (*clients.ReadClients, string) {
+	testConfig := testutils.GetDefaultTestConfig()
+	anvilC, err := testutils.StartAnvilContainer(testConfig.AnvilStateFileName)
+	require.NoError(t, err)
+
+	anvilHttpEndpoint, err := anvilC.Endpoint(context.Background(), "http")
+	require.NoError(t, err)
+
+	anvilWsEndpoint, err := anvilC.Endpoint(context.Background(), "ws")
+	require.NoError(t, err)
+	logger := logging.NewTextSLogger(os.Stdout, &logging.SLoggerOptions{Level: testConfig.LogLevel})
+
+	contractAddrs := testutils.GetContractAddressesFromContractRegistry(anvilHttpEndpoint)
+	require.NoError(t, err)
+
+	chainioConfig := clients.BuildAllConfig{
+		EthHttpUrl:                 anvilHttpEndpoint,
+		EthWsUrl:                   anvilWsEndpoint,
+		RegistryCoordinatorAddr:    contractAddrs.RegistryCoordinator.String(),
+		OperatorStateRetrieverAddr: contractAddrs.OperatorStateRetriever.String(),
+		AvsName:                    "exampleAvs",
+		PromMetricsIpPortAddress:   ":9090",
+	}
+
+	clients, err := clients.BuildReadClients(
+		chainioConfig,
+		logger,
+	)
+	require.NoError(t, err)
+	return clients, anvilHttpEndpoint
+}
+
 // Creates a testing ChainWriter from an httpEndpoint, private key and config.
 // This is needed because the existing testclients.BuildTestClients returns a
 // ChainReader with a null rewardsCoordinator, which is required for some of the tests.
