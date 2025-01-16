@@ -362,8 +362,7 @@ func TestTransactionMethods(t *testing.T) {
 		Gas:   21000,
 	})
 
-	ecdsaPrivKeyHex := "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
-	ecdsaPrivKey, err := crypto.HexToECDSA(ecdsaPrivKeyHex)
+	ecdsaPrivKey, err := crypto.HexToECDSA(testutils.ANVIL_FIRST_PRIVATE_KEY)
 	assert.NoError(t, err)
 	signer := types.LatestSignerForChainID(big.NewInt(31337))
 	signature, err := crypto.Sign(signer.Hash(tx).Bytes(), ecdsaPrivKey)

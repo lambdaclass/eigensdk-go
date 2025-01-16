@@ -1644,8 +1644,7 @@ func TestIntegrationBlsAgg(t *testing.T) {
 		testData := testutils.NewTestData(defaultInput)
 
 		// define operator ecdsa and bls private keys
-		ecdsaPrivKeyHex := "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
-		ecdsaPrivKey, err := crypto.HexToECDSA(ecdsaPrivKeyHex)
+		ecdsaPrivKey, err := crypto.HexToECDSA(testutils.ANVIL_FIRST_PRIVATE_KEY)
 		require.NoError(t, err)
 		blsPrivKeyHex := testData.Input.BlsPrivKey
 		blsKeyPair := newBlsKeyPairPanics(blsPrivKeyHex)
