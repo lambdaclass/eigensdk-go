@@ -1178,7 +1178,45 @@ func TestInvalidConfig(t *testing.T) {
 	chainWriter, err := testclients.NewTestChainWriterFromConfig(anvilHttpEndpoint, privateKeyHex, config)
 	require.NoError(t, err)
 
-	_ = contractAddrs
-	_ = operator
-	_ = chainWriter
+	t.Run("register as operator", func(t *testing.T) {
+		receipt, err := chainWriter.RegisterAsOperator(
+			context.Background(),
+			operator,
+			true,
+		)
+		assert.Error(t, err)
+		assert.Nil(t, receipt)
+	})
+
+	t.Run("update operator details", func(t *testing.T) {
+		receipt, err := chainWriter.UpdateOperatorDetails(
+			context.Background(),
+			operator,
+			true,
+		)
+		assert.Error(t, err)
+		assert.Nil(t, receipt)
+	})
+
+	t.Run("update metadata URI", func(t *testing.T) {
+		receipt, err := chainWriter.UpdateMetadataURI(
+			context.Background(),
+			common.HexToAddress(operatorAddr),
+			"https://0.0.0.0",
+			true,
+		)
+		assert.Error(t, err)
+		assert.Nil(t, receipt)
+	})
+
+	t.Run("deposit erc20 into strategy", func(t *testing.T) {
+		receipt, err := chainWriter.DepositERC20IntoStrategy(
+			context.Background(),
+			contractAddrs.Erc20MockStrategy,
+			big.NewInt(1),
+			true,
+		)
+		assert.Error(t, err)
+		assert.Nil(t, receipt)
+	})
 }
