@@ -1439,4 +1439,71 @@ func TestInvalidConfig(t *testing.T) {
 		assert.Error(t, err)
 		assert.Nil(t, receipt)
 	})
+
+	t.Run("accept admin", func(t *testing.T) {
+		accountAddress := common.HexToAddress(testutils.ANVIL_FIRST_ADDRESS)
+		acceptAdminRequest := elcontracts.AcceptAdminRequest{
+			AccountAddress: accountAddress,
+			WaitForReceipt: true,
+		}
+
+		receipt, err := chainWriter.AcceptAdmin(
+			context.Background(),
+			acceptAdminRequest,
+		)
+		assert.Error(t, err)
+		assert.Nil(t, receipt)
+	})
+
+	t.Run("add pending admin", func(t *testing.T) {
+		accountAddress := common.HexToAddress(testutils.ANVIL_FIRST_ADDRESS)
+		admin1 := common.HexToAddress("14dC79964da2C08b23698B3D3cc7Ca32193d9955")
+
+		addAdmin1Request := elcontracts.AddPendingAdminRequest{
+			AccountAddress: accountAddress,
+			AdminAddress:   admin1,
+			WaitForReceipt: true,
+		}
+
+		receipt, err := chainWriter.AddPendingAdmin(
+			context.Background(),
+			addAdmin1Request,
+		)
+		assert.Error(t, err)
+		assert.Nil(t, receipt)
+	})
+
+	t.Run("remove admin", func(t *testing.T) {
+		accountAddress := common.HexToAddress(testutils.ANVIL_FIRST_ADDRESS)
+		admin2 := common.HexToAddress("23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f")
+
+		removeAdminRequest := elcontracts.RemoveAdminRequest{
+			AccountAddress: accountAddress,
+			AdminAddress:   admin2,
+			WaitForReceipt: true,
+		}
+
+		receipt, err := chainWriter.RemoveAdmin(
+			context.Background(),
+			removeAdminRequest,
+		)
+		assert.Error(t, err)
+		assert.Nil(t, receipt)
+	})
+
+	t.Run("remove pending admin", func(t *testing.T) {
+		pendingAdmin := common.HexToAddress("009440d62dc85c73dbf889b7ad1f4da8b231d2ef")
+		removePendingAdminRequest := elcontracts.RemovePendingAdminRequest{
+			AccountAddress: common.HexToAddress(operatorAddr),
+			AdminAddress:   pendingAdmin,
+			WaitForReceipt: true,
+		}
+
+		receipt, err := chainWriter.RemovePendingAdmin(
+			context.Background(),
+			removePendingAdminRequest,
+		)
+		assert.Error(t, err)
+		assert.Nil(t, receipt)
+	})
 }
