@@ -1347,4 +1347,51 @@ func TestInvalidConfig(t *testing.T) {
 		assert.Error(t, err)
 		assert.Nil(t, receipt)
 	})
+
+	t.Run("deregister from operator sets", func(t *testing.T) {
+		avsAddress := common.HexToAddress("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266")
+		operatorSetId := uint32(1)
+		deregistrationRequest := elcontracts.DeregistrationRequest{
+			AVSAddress:     avsAddress,
+			OperatorSetIds: []uint32{operatorSetId},
+			WaitForReceipt: true,
+		}
+
+		receipt, err := chainWriter.DeregisterFromOperatorSets(
+			context.Background(),
+			common.HexToAddress(operatorAddr),
+			deregistrationRequest,
+		)
+		assert.Error(t, err)
+		assert.Nil(t, receipt)
+	})
+
+	t.Run("register for operator sets", func(t *testing.T) {
+		operatorAddressHex := "70997970C51812dc3A010C7d01b50e0d17dc79C8"
+
+		operatorAddress := common.HexToAddress(operatorAddressHex)
+		keypair, err := bls.NewKeyPairFromString("0x01")
+		require.NoError(t, err)
+
+		avsAddress := common.HexToAddress("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266")
+		operatorSetId := uint32(1)
+
+		request := elcontracts.RegistrationRequest{
+			OperatorAddress: operatorAddress,
+			AVSAddress:      avsAddress,
+			OperatorSetIds:  []uint32{operatorSetId},
+			WaitForReceipt:  true,
+			Socket:          "socket",
+			BlsKeyPair:      keypair,
+		}
+
+		receipt, err := chainWriter.RegisterForOperatorSets(
+			context.Background(),
+			common.HexToAddress(operatorAddr),
+			request,
+		)
+		assert.Error(t, err)
+		assert.Nil(t, receipt)
+	})
+
 }
