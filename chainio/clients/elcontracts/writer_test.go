@@ -1394,4 +1394,49 @@ func TestInvalidConfig(t *testing.T) {
 		assert.Nil(t, receipt)
 	})
 
+	t.Run("remove permission", func(t *testing.T) {
+		accountAddress := common.HexToAddress(testutils.ANVIL_FIRST_ADDRESS)
+		appointeeAddress := common.HexToAddress("009440d62dc85c73dbf889b7ad1f4da8b231d2ef")
+		target := common.HexToAddress("14dC79964da2C08b23698B3D3cc7Ca32193d9955")
+		selector := [4]byte{0, 1, 2, 3}
+		waitForReceipt := true
+
+		removePermissionRequest := elcontracts.RemovePermissionRequest{
+			AccountAddress:   accountAddress,
+			AppointeeAddress: appointeeAddress,
+			Target:           target,
+			Selector:         selector,
+			WaitForReceipt:   waitForReceipt,
+		}
+
+		receipt, err := chainWriter.RemovePermission(
+			context.Background(),
+			removePermissionRequest,
+		)
+		assert.Error(t, err)
+		assert.Nil(t, receipt)
+	})
+
+	t.Run("set permission", func(t *testing.T) {
+		accountAddress := common.HexToAddress(testutils.ANVIL_FIRST_ADDRESS)
+		appointeeAddress := common.HexToAddress("009440d62dc85c73dbf889b7ad1f4da8b231d2ef")
+		target := common.HexToAddress("14dC79964da2C08b23698B3D3cc7Ca32193d9955")
+		selector := [4]byte{0, 1, 2, 3}
+		waitForReceipt := true
+
+		setPermissionRequest := elcontracts.SetPermissionRequest{
+			AccountAddress:   accountAddress,
+			AppointeeAddress: appointeeAddress,
+			Target:           target,
+			Selector:         selector,
+			WaitForReceipt:   waitForReceipt,
+		}
+
+		receipt, err := chainWriter.SetPermission(
+			context.Background(),
+			setPermissionRequest,
+		)
+		assert.Error(t, err)
+		assert.Nil(t, receipt)
+	})
 }
