@@ -1219,4 +1219,70 @@ func TestInvalidConfig(t *testing.T) {
 		assert.Error(t, err)
 		assert.Nil(t, receipt)
 	})
+
+	t.Run("set claimer for", func(t *testing.T) {
+		receipt, err := chainWriter.SetClaimerFor(
+			context.Background(),
+			common.HexToAddress(testutils.ANVIL_FIRST_ADDRESS),
+			true,
+		)
+		assert.Error(t, err)
+		assert.Nil(t, receipt)
+	})
+
+	t.Run("process claim", func(t *testing.T) {
+		rewardsCoordinatorAddr := contractAddrs.RewardsCoordinator
+		config := elcontracts.Config{
+			DelegationManagerAddress:  contractAddrs.DelegationManager,
+			RewardsCoordinatorAddress: rewardsCoordinatorAddr,
+		}
+		chainReader, err := testclients.NewTestChainReaderFromConfig(anvilHttpEndpoint, config)
+		require.NoError(t, err)
+
+		activationDelay := uint32(0)
+		receipt, err := setTestRewardsCoordinatorActivationDelay(anvilHttpEndpoint, privateKeyHex, activationDelay)
+		require.NoError(t, err)
+		require.Equal(t, gethtypes.ReceiptStatusSuccessful, receipt.Status)
+
+		cumulativeEarnings := int64(42)
+		claim, err := newTestClaim(chainReader, anvilHttpEndpoint, cumulativeEarnings, privateKeyHex)
+		require.NoError(t, err)
+
+		receipt, err = chainWriter.ProcessClaim(
+			context.Background(),
+			*claim,
+			common.HexToAddress(testutils.ANVIL_FIRST_ADDRESS),
+			true,
+		)
+		assert.Error(t, err)
+		assert.Nil(t, receipt)
+	})
+
+	t.Run("process claims", func(t *testing.T) {
+		rewardsCoordinatorAddr := contractAddrs.RewardsCoordinator
+		config := elcontracts.Config{
+			DelegationManagerAddress:  contractAddrs.DelegationManager,
+			RewardsCoordinatorAddress: rewardsCoordinatorAddr,
+		}
+		chainReader, err := testclients.NewTestChainReaderFromConfig(anvilHttpEndpoint, config)
+		require.NoError(t, err)
+
+		activationDelay := uint32(0)
+		receipt, err := setTestRewardsCoordinatorActivationDelay(anvilHttpEndpoint, privateKeyHex, activationDelay)
+		require.NoError(t, err)
+		require.Equal(t, gethtypes.ReceiptStatusSuccessful, receipt.Status)
+
+		cumulativeEarnings := int64(42)
+		claim, err := newTestClaim(chainReader, anvilHttpEndpoint, cumulativeEarnings, privateKeyHex)
+		require.NoError(t, err)
+
+		receipt, err = chainWriter.ProcessClaims(
+			context.Background(),
+			[]rewardscoordinator.IRewardsCoordinatorTypesRewardsMerkleClaim{*claim},
+			common.HexToAddress(testutils.ANVIL_FIRST_ADDRESS),
+			true,
+		)
+		assert.Error(t, err)
+		assert.Nil(t, receipt)
+	})
 }
