@@ -584,82 +584,6 @@ func (w *ChainWriter) RegisterForOperatorSets(
 	return receipt, nil
 }
 
-func getPubkeyRegistrationParams(
-	ethClient bind.ContractBackend,
-	registryCoordinatorAddr, operatorAddress gethcommon.Address,
-	blsKeyPair *bls.KeyPair,
-) (*regcoord.IBLSApkRegistryPubkeyRegistrationParams, error) {
-	registryCoordinator, err := regcoord.NewContractRegistryCoordinator(registryCoordinatorAddr, ethClient)
-	if err != nil {
-		return nil, utils.WrapError("failed to create registry coordinator", err)
-	}
-	// params to register bls pubkey with bls apk registry
-	g1HashedMsgToSign, err := registryCoordinator.PubkeyRegistrationMessageHash(
-		&bind.CallOpts{},
-		operatorAddress,
-	)
-	if err != nil {
-		return nil, err
-	}
-	signedMsg := chainioutils.ConvertToBN254G1Point(
-		blsKeyPair.SignHashedToCurveMessage(chainioutils.ConvertBn254GethToGnark(g1HashedMsgToSign)).G1Point,
-	)
-	G1pubkeyBN254 := chainioutils.ConvertToBN254G1Point(blsKeyPair.GetPubKeyG1())
-	G2pubkeyBN254 := chainioutils.ConvertToBN254G2Point(blsKeyPair.GetPubKeyG2())
-	pubkeyRegParams := regcoord.IBLSApkRegistryPubkeyRegistrationParams{
-		PubkeyRegistrationSignature: signedMsg,
-		PubkeyG1:                    G1pubkeyBN254,
-		PubkeyG2:                    G2pubkeyBN254,
-	}
-	return &pubkeyRegParams, nil
-}
-
-func abiEncodeRegistrationParams(
-	socket string,
-	pubkeyRegistrationParams regcoord.IBLSApkRegistryPubkeyRegistrationParams,
-) ([]byte, error) {
-	registrationParamsType, err := abi.NewType("tuple", "", []abi.ArgumentMarshaling{
-		{Name: "Socket", Type: "string"},
-		{Name: "PubkeyRegParams", Type: "tuple", Components: []abi.ArgumentMarshaling{
-			{Name: "PubkeyRegistrationSignature", Type: "tuple", Components: []abi.ArgumentMarshaling{
-				{Name: "X", Type: "uint256"},
-				{Name: "Y", Type: "uint256"},
-			}},
-			{Name: "PubkeyG1", Type: "tuple", Components: []abi.ArgumentMarshaling{
-				{Name: "X", Type: "uint256"},
-				{Name: "Y", Type: "uint256"},
-			}},
-			{Name: "PubkeyG2", Type: "tuple", Components: []abi.ArgumentMarshaling{
-				{Name: "X", Type: "uint256[2]"},
-				{Name: "Y", Type: "uint256[2]"},
-			}},
-		}},
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	registrationParams := struct {
-		Socket          string
-		PubkeyRegParams regcoord.IBLSApkRegistryPubkeyRegistrationParams
-	}{
-		socket,
-		pubkeyRegistrationParams,
-	}
-
-	args := abi.Arguments{
-		{Type: registrationParamsType, Name: "registrationParams"},
-	}
-
-	data, err := args.Pack(&registrationParams)
-	if err != nil {
-		return nil, err
-	}
-	// The encoder is prepending 32 bytes to the data as if it was used in a dynamic function parameter.
-	// This is not used when decoding the bytes directly, so we need to remove it.
-	return data[32:], nil
-}
-
 func (w *ChainWriter) RemovePermission(
 	ctx context.Context,
 	request RemovePermissionRequest,
@@ -824,4 +748,80 @@ func (w *ChainWriter) RemovePendingAdmin(
 	}
 
 	return w.txMgr.Send(ctx, tx, request.WaitForReceipt)
+}
+
+func getPubkeyRegistrationParams(
+	ethClient bind.ContractBackend,
+	registryCoordinatorAddr, operatorAddress gethcommon.Address,
+	blsKeyPair *bls.KeyPair,
+) (*regcoord.IBLSApkRegistryPubkeyRegistrationParams, error) {
+	registryCoordinator, err := regcoord.NewContractRegistryCoordinator(registryCoordinatorAddr, ethClient)
+	if err != nil {
+		return nil, utils.WrapError("failed to create registry coordinator", err)
+	}
+	// params to register bls pubkey with bls apk registry
+	g1HashedMsgToSign, err := registryCoordinator.PubkeyRegistrationMessageHash(
+		&bind.CallOpts{},
+		operatorAddress,
+	)
+	if err != nil {
+		return nil, err
+	}
+	signedMsg := chainioutils.ConvertToBN254G1Point(
+		blsKeyPair.SignHashedToCurveMessage(chainioutils.ConvertBn254GethToGnark(g1HashedMsgToSign)).G1Point,
+	)
+	G1pubkeyBN254 := chainioutils.ConvertToBN254G1Point(blsKeyPair.GetPubKeyG1())
+	G2pubkeyBN254 := chainioutils.ConvertToBN254G2Point(blsKeyPair.GetPubKeyG2())
+	pubkeyRegParams := regcoord.IBLSApkRegistryPubkeyRegistrationParams{
+		PubkeyRegistrationSignature: signedMsg,
+		PubkeyG1:                    G1pubkeyBN254,
+		PubkeyG2:                    G2pubkeyBN254,
+	}
+	return &pubkeyRegParams, nil
+}
+
+func abiEncodeRegistrationParams(
+	socket string,
+	pubkeyRegistrationParams regcoord.IBLSApkRegistryPubkeyRegistrationParams,
+) ([]byte, error) {
+	registrationParamsType, err := abi.NewType("tuple", "", []abi.ArgumentMarshaling{
+		{Name: "Socket", Type: "string"},
+		{Name: "PubkeyRegParams", Type: "tuple", Components: []abi.ArgumentMarshaling{
+			{Name: "PubkeyRegistrationSignature", Type: "tuple", Components: []abi.ArgumentMarshaling{
+				{Name: "X", Type: "uint256"},
+				{Name: "Y", Type: "uint256"},
+			}},
+			{Name: "PubkeyG1", Type: "tuple", Components: []abi.ArgumentMarshaling{
+				{Name: "X", Type: "uint256"},
+				{Name: "Y", Type: "uint256"},
+			}},
+			{Name: "PubkeyG2", Type: "tuple", Components: []abi.ArgumentMarshaling{
+				{Name: "X", Type: "uint256[2]"},
+				{Name: "Y", Type: "uint256[2]"},
+			}},
+		}},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	registrationParams := struct {
+		Socket          string
+		PubkeyRegParams regcoord.IBLSApkRegistryPubkeyRegistrationParams
+	}{
+		socket,
+		pubkeyRegistrationParams,
+	}
+
+	args := abi.Arguments{
+		{Type: registrationParamsType, Name: "registrationParams"},
+	}
+
+	data, err := args.Pack(&registrationParams)
+	if err != nil {
+		return nil, err
+	}
+	// The encoder is prepending 32 bytes to the data as if it was used in a dynamic function parameter.
+	// This is not used when decoding the bytes directly, so we need to remove it.
+	return data[32:], nil
 }
