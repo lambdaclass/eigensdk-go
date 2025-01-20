@@ -1285,4 +1285,27 @@ func TestInvalidConfig(t *testing.T) {
 		assert.Error(t, err)
 		assert.Nil(t, receipt)
 	})
+
+	t.Run("set operator AVS split", func(t *testing.T) {
+		receipt, err := chainWriter.SetOperatorAVSSplit(
+			context.Background(),
+			common.HexToAddress(operatorAddr),
+			common.HexToAddress(testutils.ANVIL_FIRST_ADDRESS),
+			uint16(1),
+			true,
+		)
+		assert.Error(t, err)
+		assert.Nil(t, receipt)
+	})
+
+	t.Run("set operator PI split", func(t *testing.T) {
+		receipt, err := chainWriter.SetOperatorPISplit(
+			context.Background(),
+			common.HexToAddress(operatorAddr),
+			uint16(1),
+			true,
+		)
+		assert.Error(t, err)
+		assert.Nil(t, receipt)
+	})
 }
