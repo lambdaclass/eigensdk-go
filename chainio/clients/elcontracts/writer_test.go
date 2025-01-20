@@ -1308,4 +1308,43 @@ func TestInvalidConfig(t *testing.T) {
 		assert.Error(t, err)
 		assert.Nil(t, receipt)
 	})
+
+	t.Run("modify allocations", func(t *testing.T) {
+		strategyAddr := contractAddrs.Erc20MockStrategy
+		avsAddr := common.HexToAddress(testutils.ANVIL_FIRST_ADDRESS)
+		operatorSetId := uint32(1)
+
+		operatorSet := allocationmanager.OperatorSet{
+			Avs: avsAddr,
+			Id:  operatorSetId,
+		}
+		newAllocation := uint64(100)
+		allocateParams := []allocationmanager.IAllocationManagerTypesAllocateParams{
+			{
+				OperatorSet:   operatorSet,
+				Strategies:    []common.Address{strategyAddr},
+				NewMagnitudes: []uint64{newAllocation},
+			},
+		}
+
+		receipt, err := chainWriter.ModifyAllocations(
+			context.Background(),
+			common.HexToAddress(operatorAddr),
+			allocateParams,
+			true,
+		)
+		assert.Error(t, err)
+		assert.Nil(t, receipt)
+	})
+
+	t.Run("set allocation delay", func(t *testing.T) {
+		receipt, err := chainWriter.SetAllocationDelay(
+			context.Background(),
+			common.HexToAddress(operatorAddr),
+			uint32(0),
+			true,
+		)
+		assert.Error(t, err)
+		assert.Nil(t, receipt)
+	})
 }
