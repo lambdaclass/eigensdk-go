@@ -952,3 +952,17 @@ func TestOperatorSetsWithWrongInput(t *testing.T) {
 		require.Error(t, err)
 	})
 }
+
+// The idea is to cover some cases where network can fail (and binding returns error) by passing a canceled context
+func TestFailingNetwork(t *testing.T) {
+	read_clients, anvilHttpEndpoint := testclients.BuildTestReadClients(t)
+	ctx := context.Background()
+
+	subCtx, cancelFn := context.WithCancel(ctx)
+	cancelFn()
+
+	contractAddrs := testutils.GetContractAddressesFromContractRegistry(anvilHttpEndpoint)
+	operator := types.Operator{
+		Address: testutils.ANVIL_FIRST_ADDRESS,
+	}
+}
