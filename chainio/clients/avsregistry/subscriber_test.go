@@ -70,7 +70,7 @@ func TestSubscriberAvsRegistry(t *testing.T) {
 			assert.Equal(t, socketUpdate, operatorSocketUpdate.Socket)
 		case <-time.After(10 * time.Second):
 			// Throw an error if the event is not received within 10 seconds, making the test fail
-			t.Fatal("Timed out waiting for operatorSocketUpdate event")
+			t.Fatal("Timed out waiting for OperatorSocketUpdate event")
 		}
 	})
 }
