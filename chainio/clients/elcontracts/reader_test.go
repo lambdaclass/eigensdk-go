@@ -953,7 +953,8 @@ func TestOperatorSetsWithWrongInput(t *testing.T) {
 	})
 }
 
-// The idea is to cover some cases where network can fail (and binding returns error) by passing a canceled context
+// The idea is to cover some cases where network can fail by passing a
+// cancelled context, so the binding returns an error
 func TestFailingNetwork(t *testing.T) {
 	read_clients, anvilHttpEndpoint := testclients.BuildTestReadClients(t)
 	ctx := context.Background()
