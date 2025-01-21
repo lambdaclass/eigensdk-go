@@ -735,6 +735,44 @@ func TestAppointeesFunctions(t *testing.T) {
 	})
 }
 
+func TestContractErrorCases(t *testing.T) {
+	ctx := context.Background()
+
+	testConfig := testutils.GetDefaultTestConfig()
+	anvilC, err := testutils.StartAnvilContainer(testConfig.AnvilStateFileName)
+	require.NoError(t, err)
+
+	anvilHttpEndpoint, err := anvilC.Endpoint(context.Background(), "http")
+	require.NoError(t, err)
+	contractAddrs := testutils.GetContractAddressesFromContractRegistry(anvilHttpEndpoint)
+
+	config := elcontracts.Config{
+		DelegationManagerAddress: contractAddrs.DelegationManager,
+	}
+
+	chainReader, err := testclients.NewTestChainReaderFromConfig(anvilHttpEndpoint, config)
+	require.NoError(t, err)
+
+	strategyAddr := common.HexToAddress("34634374736473673643")
+
+	t.Run("GetStrategyAndUnderlyingToken", func(t *testing.T) {
+		strategy, undToken, err := chainReader.GetStrategyAndUnderlyingToken(ctx, strategyAddr)
+		assert.Zero(t, strategy)
+		assert.Zero(t, undToken)
+		assert.Error(t, err)
+		assert.Equal(t, err.Error(), "Failed to fetch token contract: no contract code at given address")
+	})
+
+	t.Run("GetStrategyAndUnderlyingERC20Token", func(t *testing.T) {
+		strategy, methods, undToken, err := chainReader.GetStrategyAndUnderlyingERC20Token(ctx, strategyAddr)
+		assert.Zero(t, strategy)
+		assert.Zero(t, methods)
+		assert.Zero(t, undToken)
+		assert.Error(t, err)
+		assert.Equal(t, err.Error(), "Failed to fetch token contract: no contract code at given address")
+	})
+}
+
 func TestOperatorSetsAndSlashableShares(t *testing.T) {
 	testConfig := testutils.GetDefaultTestConfig()
 	anvilC, err := testutils.StartAnvilContainer(testConfig.AnvilStateFileName)
