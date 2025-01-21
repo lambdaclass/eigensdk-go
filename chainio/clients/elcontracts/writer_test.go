@@ -1299,7 +1299,7 @@ func TestInvalidConfig(t *testing.T) {
 	})
 
 	t.Run("deregister from operator sets", func(t *testing.T) {
-		avsAddress := common.HexToAddress("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266")
+		avsAddress := common.HexToAddress(testutils.ANVIL_FIRST_ADDRESS)
 		operatorSetId := uint32(1)
 		deregistrationRequest := elcontracts.DeregistrationRequest{
 			AVSAddress:     avsAddress,
@@ -1323,7 +1323,7 @@ func TestInvalidConfig(t *testing.T) {
 		keypair, err := bls.NewKeyPairFromString("0x01")
 		require.NoError(t, err)
 
-		avsAddress := common.HexToAddress("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266")
+		avsAddress := common.HexToAddress(testutils.ANVIL_FIRST_ADDRESS)
 		operatorSetId := uint32(1)
 
 		request := elcontracts.RegistrationRequest{
