@@ -1134,6 +1134,7 @@ func TestInvalidConfig(t *testing.T) {
 	require.NoError(t, err)
 
 	contractAddrs := testutils.GetContractAddressesFromContractRegistry(anvilHttpEndpoint)
+	anvilFirstAddr := common.HexToAddress(testutils.ANVIL_FIRST_ADDRESS)
 
 	operatorAddr := testutils.ANVIL_FIRST_ADDRESS
 	operator := types.Operator{
@@ -1169,7 +1170,7 @@ func TestInvalidConfig(t *testing.T) {
 	t.Run("update metadata URI", func(t *testing.T) {
 		receipt, err := chainWriter.UpdateMetadataURI(
 			context.Background(),
-			common.HexToAddress(operatorAddr),
+			anvilFirstAddr,
 			"https://0.0.0.0",
 			true,
 		)
@@ -1191,7 +1192,7 @@ func TestInvalidConfig(t *testing.T) {
 	t.Run("set claimer for", func(t *testing.T) {
 		receipt, err := chainWriter.SetClaimerFor(
 			context.Background(),
-			common.HexToAddress(testutils.ANVIL_FIRST_ADDRESS),
+			anvilFirstAddr,
 			true,
 		)
 		assert.Error(t, err)
@@ -1219,7 +1220,7 @@ func TestInvalidConfig(t *testing.T) {
 		receipt, err = chainWriter.ProcessClaim(
 			context.Background(),
 			*claim,
-			common.HexToAddress(testutils.ANVIL_FIRST_ADDRESS),
+			anvilFirstAddr,
 			true,
 		)
 		assert.Error(t, err)
@@ -1247,7 +1248,7 @@ func TestInvalidConfig(t *testing.T) {
 		receipt, err = chainWriter.ProcessClaims(
 			context.Background(),
 			[]rewardscoordinator.IRewardsCoordinatorTypesRewardsMerkleClaim{*claim},
-			common.HexToAddress(testutils.ANVIL_FIRST_ADDRESS),
+			anvilFirstAddr,
 			true,
 		)
 		assert.Error(t, err)
@@ -1258,7 +1259,7 @@ func TestInvalidConfig(t *testing.T) {
 		receipt, err := chainWriter.SetOperatorAVSSplit(
 			context.Background(),
 			common.HexToAddress(operatorAddr),
-			common.HexToAddress(testutils.ANVIL_FIRST_ADDRESS),
+			anvilFirstAddr,
 			uint16(1),
 			true,
 		)
@@ -1279,7 +1280,7 @@ func TestInvalidConfig(t *testing.T) {
 
 	t.Run("modify allocations", func(t *testing.T) {
 		strategyAddr := contractAddrs.Erc20MockStrategy
-		avsAddr := common.HexToAddress(testutils.ANVIL_FIRST_ADDRESS)
+		avsAddr := anvilFirstAddr
 		operatorSetId := uint32(1)
 
 		operatorSet := allocationmanager.OperatorSet{
@@ -1363,7 +1364,7 @@ func TestInvalidConfig(t *testing.T) {
 	})
 
 	t.Run("remove permission", func(t *testing.T) {
-		accountAddress := common.HexToAddress(testutils.ANVIL_FIRST_ADDRESS)
+		accountAddress := anvilFirstAddr
 		appointeeAddress := common.HexToAddress("009440d62dc85c73dbf889b7ad1f4da8b231d2ef")
 		target := common.HexToAddress("14dC79964da2C08b23698B3D3cc7Ca32193d9955")
 		selector := [4]byte{0, 1, 2, 3}
@@ -1386,7 +1387,7 @@ func TestInvalidConfig(t *testing.T) {
 	})
 
 	t.Run("set permission", func(t *testing.T) {
-		accountAddress := common.HexToAddress(testutils.ANVIL_FIRST_ADDRESS)
+		accountAddress := anvilFirstAddr
 		appointeeAddress := common.HexToAddress("009440d62dc85c73dbf889b7ad1f4da8b231d2ef")
 		target := common.HexToAddress("14dC79964da2C08b23698B3D3cc7Ca32193d9955")
 		selector := [4]byte{0, 1, 2, 3}
@@ -1409,7 +1410,7 @@ func TestInvalidConfig(t *testing.T) {
 	})
 
 	t.Run("accept admin", func(t *testing.T) {
-		accountAddress := common.HexToAddress(testutils.ANVIL_FIRST_ADDRESS)
+		accountAddress := anvilFirstAddr
 		acceptAdminRequest := elcontracts.AcceptAdminRequest{
 			AccountAddress: accountAddress,
 			WaitForReceipt: true,
@@ -1424,7 +1425,7 @@ func TestInvalidConfig(t *testing.T) {
 	})
 
 	t.Run("add pending admin", func(t *testing.T) {
-		accountAddress := common.HexToAddress(testutils.ANVIL_FIRST_ADDRESS)
+		accountAddress := anvilFirstAddr
 		admin1 := common.HexToAddress("14dC79964da2C08b23698B3D3cc7Ca32193d9955")
 
 		addAdmin1Request := elcontracts.AddPendingAdminRequest{
@@ -1442,7 +1443,7 @@ func TestInvalidConfig(t *testing.T) {
 	})
 
 	t.Run("remove admin", func(t *testing.T) {
-		accountAddress := common.HexToAddress(testutils.ANVIL_FIRST_ADDRESS)
+		accountAddress := anvilFirstAddr
 		admin2 := common.HexToAddress("23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f")
 
 		removeAdminRequest := elcontracts.RemoveAdminRequest{
