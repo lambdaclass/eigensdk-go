@@ -195,6 +195,50 @@ func NewTestTxManager(httpEndpoint string, privateKeyHex string) (*txmgr.SimpleT
 	return txManager, nil
 }
 
+// Creates a testing ChainWriter from an httpEndpoint, private key and config.
+// This is needed because the existing testclients.BuildTestClients returns a
+// ChainWriter with a null rewardsCoordinator, which is required for some of the tests.
+func NewTestAvsRegistryWriterFromConfig(
+	httpEndpoint string,
+	privateKeyHex string,
+	config avsregistry.Config,
+) (*avsregistry.ChainWriter, error) {
+	privateKey, err := crypto.HexToECDSA(privateKeyHex)
+	if err != nil {
+		return nil, utils.WrapError("Failed convert hex string to ecdsa private key", err)
+	}
+	testConfig := testutils.GetDefaultTestConfig()
+	logger := logging.NewTextSLogger(os.Stdout, &logging.SLoggerOptions{Level: testConfig.LogLevel})
+	ethHttpClient, err := ethclient.Dial(httpEndpoint)
+	if err != nil {
+		return nil, utils.WrapError("Failed to create eth client", err)
+	}
+	chainid, err := ethHttpClient.ChainID(context.Background())
+	if err != nil {
+		return nil, utils.WrapError("Failed to get chain id", err)
+	}
+	signerV2, addr, err := signerv2.SignerFromConfig(signerv2.Config{PrivateKey: privateKey}, chainid)
+	if err != nil {
+		return nil, utils.WrapError("Failed to create the signer from the given config", err)
+	}
+
+	pkWallet, err := wallet.NewPrivateKeyWallet(ethHttpClient, signerV2, addr, logger)
+	if err != nil {
+		return nil, utils.WrapError("Failed to create wallet", err)
+	}
+	txManager := txmgr.NewSimpleTxManager(pkWallet, ethHttpClient, logger, addr)
+	testWriter, err := avsregistry.NewWriterFromConfig(
+		config,
+		ethHttpClient,
+		txManager,
+		logger,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return testWriter, nil
+}
+
 // Creates a testing AVSRegistrer ChainReader from an httpEndpoint, private key and config.
 func NewTestAVSChainReaderFromConfig(
 	httpEndpoint string,
