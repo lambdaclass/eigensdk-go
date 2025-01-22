@@ -188,7 +188,7 @@ func TestReaderMethods(t *testing.T) {
 			require.Equal(t, 1, len(operators))
 		})
 
-		t.Run("get operator stake in quoryms at current block", func(t *testing.T) {
+		t.Run("get operator stake in quorums at current block", func(t *testing.T) {
 			stakeMap, err := chainReader.GetOperatorStakeInQuorumsOfOperatorAtCurrentBlock(&bind.CallOpts{}, operatorId)
 			require.NoError(t, err)
 			require.Equal(t, 1, len(stakeMap))
@@ -204,6 +204,19 @@ func TestReaderMethods(t *testing.T) {
 			require.NoError(t, err)
 			require.NotNil(t, indices)
 		})
+
+		t.Run(
+			"query existing registered operator pub keys", func(t *testing.T) {
+				addresses, pubKeys, err := chainReader.QueryExistingRegisteredOperatorPubKeys(
+					context.Background(),
+					big.NewInt(0),
+					nil,
+					nil,
+				)
+				require.NoError(t, err)
+				require.Equal(t, 1, len(pubKeys))
+				require.Equal(t, 1, len(addresses))
+			})
 	})
 }
 
