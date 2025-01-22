@@ -179,7 +179,6 @@ func TestReaderMethods(t *testing.T) {
 			operatorId,
 		)
 		require.NoError(t, err)
-		t.Logf("quorums: %+v \n operators: %+v", quorums, operators)
 		require.Equal(t, 1, len(quorums))
 		require.Equal(t, 1, len(operators))
 	})
