@@ -105,8 +105,7 @@ func NewWriterFromConfig(
 	), nil
 }
 
-// RegisterOperator is used to register a single operator with the AVS's registry coordinator. Is similar to
-// previous RegisterOperatorInQuorumWithAVSRegistryCoordinator but generates a random salt and expiry for the signature.
+// RegisterOperator is used to register a single operator with the AVS's registry coordinator.
 func (w *ChainWriter) RegisterOperator(
 	ctx context.Context,
 	// we need to pass the private key explicitly and can't use the signer because registering requires signing a
