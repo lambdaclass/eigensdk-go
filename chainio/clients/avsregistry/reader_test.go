@@ -148,12 +148,37 @@ func TestReaderWithInvalidConfiguration(t *testing.T) {
 	require.NoError(t, err)
 
 	quorumNumbers := types.QuorumNums{0}
+	randomOperatorId := types.OperatorId{99}
 
 	tests := []struct {
 		name        string
 		runFunc     func() error
 		expectError bool
 	}{
+		{
+			name: "get operator id",
+			runFunc: func() error {
+				_, err := chainReader.GetOperatorId(&bind.CallOpts{}, common.Address{})
+				return err
+			},
+			expectError: true,
+		},
+		{
+			name: "get operator from id",
+			runFunc: func() error {
+				_, err := chainReader.GetOperatorFromId(&bind.CallOpts{}, randomOperatorId)
+				return err
+			},
+			expectError: true,
+		},
+		{
+			name: "check if operator is registered",
+			runFunc: func() error {
+				_, err := chainReader.IsOperatorRegistered(&bind.CallOpts{}, common.Address{})
+				return err
+			},
+			expectError: true,
+		},
 		{
 			name: "get quorum state",
 			runFunc: func() error {
@@ -181,11 +206,46 @@ func TestReaderWithInvalidConfiguration(t *testing.T) {
 		{
 			name: "get operators stake in quorums of operator at block",
 			runFunc: func() error {
-				randomOperatorId := types.OperatorId{99}
 				_, _, err := chainReader.GetOperatorsStakeInQuorumsOfOperatorAtBlock(
 					&bind.CallOpts{},
 					randomOperatorId,
 					100,
+				)
+				return err
+			},
+			expectError: true,
+		},
+		{
+			name: "get single operator stake in quorums of operator at current block",
+			runFunc: func() error {
+				_, err := chainReader.GetOperatorStakeInQuorumsOfOperatorAtCurrentBlock(
+					&bind.CallOpts{},
+					randomOperatorId,
+				)
+				return err
+			},
+			expectError: true,
+		}, {
+			name: "check signatures indices",
+			runFunc: func() error {
+				_, err := chainReader.GetCheckSignaturesIndices(
+					&bind.CallOpts{},
+					100,
+					quorumNumbers,
+					[]types.OperatorId{randomOperatorId},
+				)
+				return err
+			},
+			expectError: true,
+		},
+		{
+			name: "query registered operator sockets",
+			runFunc: func() error {
+				_, err := chainReader.QueryExistingRegisteredOperatorSockets(
+					context.Background(),
+					big.NewInt(0),
+					nil,
+					nil,
 				)
 				return err
 			},
