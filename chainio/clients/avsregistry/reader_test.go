@@ -225,7 +225,7 @@ func TestReaderWithInvalidConfiguration(t *testing.T) {
 	_, anvilHttpEndpoint := testclients.BuildTestClients(t)
 
 	config := avsregistry.Config{}
-	chainReader, err := testclients.NewTestAVSChainReaderFromConfig(anvilHttpEndpoint, config)
+	chainReader, err := testclients.NewTestAvsRegistryReaderFromConfig(anvilHttpEndpoint, config)
 	require.NoError(t, err)
 
 	quorumNumbers := types.QuorumNums{0}

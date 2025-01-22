@@ -240,7 +240,7 @@ func NewTestAvsRegistryWriterFromConfig(
 }
 
 // Creates a testing AVSRegistrer ChainReader from an httpEndpoint, private key and config.
-func NewTestAVSChainReaderFromConfig(
+func NewTestAvsRegistryReaderFromConfig(
 	httpEndpoint string,
 	config avsregistry.Config,
 ) (*avsregistry.ChainReader, error) {
