@@ -7,16 +7,28 @@ import (
 	"testing"
 
 	"github.com/Layr-Labs/eigensdk-go/chainio/clients/avsregistry"
+	"github.com/Layr-Labs/eigensdk-go/crypto/bls"
+	"github.com/Layr-Labs/eigensdk-go/testutils"
 	"github.com/Layr-Labs/eigensdk-go/testutils/testclients"
 	"github.com/Layr-Labs/eigensdk-go/types"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
+	gethcommon "github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/require"
 )
 
 func TestReaderMethods(t *testing.T) {
 	clients, _ := testclients.BuildTestClients(t)
 	chainReader := clients.ReadClients.AvsRegistryChainReader
+	chainWriter := clients.AvsRegistryChainWriter
+
+	keypair, err := bls.NewKeyPairFromString("0x01")
+	require.NoError(t, err)
+
+	operatorAddr := gethcommon.HexToAddress(testutils.ANVIL_FIRST_ADDRESS)
+	ecdsaPrivateKey, err := crypto.HexToECDSA(testutils.ANVIL_FIRST_PRIVATE_KEY)
+	require.NoError(t, err)
 
 	quorumNumbers := types.QuorumNums{0}
 
@@ -137,6 +149,40 @@ func TestReaderMethods(t *testing.T) {
 			require.NoError(t, err)
 			require.Equal(t, 0, len(address_to_sockets))
 		})
+
+	t.Run("get operators stake in quorums", func(t *testing.T) {
+		receipt, err := chainWriter.RegisterOperator(
+			context.Background(),
+			ecdsaPrivateKey,
+			keypair,
+			quorumNumbers,
+			"",
+			true,
+		)
+		require.NoError(t, err)
+		require.NotNil(t, receipt)
+
+		operatorId, err := chainReader.GetOperatorId(&bind.CallOpts{}, operatorAddr)
+		require.NoError(t, err)
+
+		quorums, operators, err := chainReader.GetOperatorsStakeInQuorumsOfOperatorAtBlock(
+			&bind.CallOpts{},
+			operatorId,
+			uint32(receipt.BlockNumber.Uint64()),
+		)
+		require.NoError(t, err)
+		require.Equal(t, 1, len(quorums))
+		require.Equal(t, 1, len(operators))
+
+		quorums, operators, err = chainReader.GetOperatorsStakeInQuorumsOfOperatorAtCurrentBlock(
+			&bind.CallOpts{},
+			operatorId,
+		)
+		require.NoError(t, err)
+		t.Logf("quorums: %+v \n operators: %+v", quorums, operators)
+		require.Equal(t, 1, len(quorums))
+		require.Equal(t, 1, len(operators))
+	})
 }
 
 // Test that the reader returns an error when the configuration is invalid.
