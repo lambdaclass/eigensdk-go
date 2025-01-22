@@ -162,25 +162,48 @@ func TestReaderMethods(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, receipt)
 
+		blockNumber := uint32(receipt.BlockNumber.Uint64())
+
 		operatorId, err := chainReader.GetOperatorId(&bind.CallOpts{}, operatorAddr)
 		require.NoError(t, err)
 
-		quorums, operators, err := chainReader.GetOperatorsStakeInQuorumsOfOperatorAtBlock(
-			&bind.CallOpts{},
-			operatorId,
-			uint32(receipt.BlockNumber.Uint64()),
-		)
-		require.NoError(t, err)
-		require.Equal(t, 1, len(quorums))
-		require.Equal(t, 1, len(operators))
+		t.Run("get operators stake in quorums at block", func(t *testing.T) {
+			stake, operators, err := chainReader.GetOperatorsStakeInQuorumsOfOperatorAtBlock(
+				&bind.CallOpts{},
+				operatorId,
+				blockNumber,
+			)
+			require.NoError(t, err)
+			require.Equal(t, 1, len(stake))
+			require.Equal(t, 1, len(operators))
+		})
 
-		quorums, operators, err = chainReader.GetOperatorsStakeInQuorumsOfOperatorAtCurrentBlock(
-			&bind.CallOpts{},
-			operatorId,
-		)
-		require.NoError(t, err)
-		require.Equal(t, 1, len(quorums))
-		require.Equal(t, 1, len(operators))
+		t.Run("get operators stake in quorums at current block", func(t *testing.T) {
+			stake, operators, err := chainReader.GetOperatorsStakeInQuorumsOfOperatorAtCurrentBlock(
+				&bind.CallOpts{},
+				operatorId,
+			)
+			require.NoError(t, err)
+			require.Equal(t, 1, len(stake))
+			require.Equal(t, 1, len(operators))
+		})
+
+		t.Run("get operator stake in quoryms at current block", func(t *testing.T) {
+			stakeMap, err := chainReader.GetOperatorStakeInQuorumsOfOperatorAtCurrentBlock(&bind.CallOpts{}, operatorId)
+			require.NoError(t, err)
+			require.Equal(t, 1, len(stakeMap))
+		})
+
+		t.Run("get check signatures indices ", func(t *testing.T) {
+			indices, err := chainReader.GetCheckSignaturesIndices(
+				&bind.CallOpts{},
+				blockNumber,
+				quorumNumbers,
+				[]types.OperatorId{operatorId},
+			)
+			require.NoError(t, err)
+			require.NotNil(t, indices)
+		})
 	})
 }
 
