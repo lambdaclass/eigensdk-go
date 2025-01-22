@@ -2,9 +2,11 @@ package avsregistry_test
 
 import (
 	"context"
+	"fmt"
 	"math/big"
 	"testing"
 
+	"github.com/Layr-Labs/eigensdk-go/chainio/clients/avsregistry"
 	"github.com/Layr-Labs/eigensdk-go/testutils/testclients"
 	"github.com/Layr-Labs/eigensdk-go/types"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -135,4 +137,68 @@ func TestReaderMethods(t *testing.T) {
 			require.NoError(t, err)
 			require.Equal(t, 0, len(address_to_sockets))
 		})
+}
+
+// Test that the reader returns an error when the configuration is invalid.
+func TestReaderWithInvalidConfiguration(t *testing.T) {
+	_, anvilHttpEndpoint := testclients.BuildTestClients(t)
+
+	config := avsregistry.Config{}
+	chainReader, err := testclients.NewTestAVSChainReaderFromConfig(anvilHttpEndpoint, config)
+	require.NoError(t, err)
+
+	quorumNumbers := types.QuorumNums{0}
+
+	tests := []struct {
+		name        string
+		runFunc     func() error
+		expectError bool
+	}{
+		{
+			name: "get quorum state",
+			runFunc: func() error {
+				_, err := chainReader.GetQuorumCount(&bind.CallOpts{})
+				return err
+			},
+			expectError: true,
+		},
+		{
+			name: "get operator stake in quorums at current block",
+			runFunc: func() error {
+				_, err := chainReader.GetOperatorsStakeInQuorumsAtBlock(&bind.CallOpts{}, quorumNumbers, 100)
+				return err
+			},
+			expectError: true,
+		},
+		{
+			name: "get operator address in quorums at current block",
+			runFunc: func() error {
+				_, err := chainReader.GetOperatorAddrsInQuorumsAtCurrentBlock(&bind.CallOpts{}, quorumNumbers)
+				return err
+			},
+			expectError: true,
+		},
+		{
+			name: "get operators stake in quorums of operator at block",
+			runFunc: func() error {
+				randomOperatorId := types.OperatorId{99}
+				_, _, err := chainReader.GetOperatorsStakeInQuorumsOfOperatorAtBlock(
+					&bind.CallOpts{},
+					randomOperatorId,
+					100,
+				)
+				return err
+			},
+			expectError: true,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(fmt.Sprintf("%s with invalid config", tc.name), func(t *testing.T) {
+			err := tc.runFunc()
+			if tc.expectError {
+				require.Error(t, err, "Expected error for %s", tc.name)
+			}
+		})
+	}
 }
