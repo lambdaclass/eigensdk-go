@@ -149,7 +149,7 @@ func (w *ChainWriter) RegisterAsOperator(
 	}
 	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
 	if err != nil {
-		return nil, errors.New("failed to send tx with err: " + err.Error())
+		return nil, utils.WrapError("failed to send tx", err)
 	}
 	w.logger.Info("tx successfully included", "txHash", receipt.TxHash.String())
 
@@ -182,7 +182,7 @@ func (w *ChainWriter) UpdateOperatorDetails(
 	}
 	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
 	if err != nil {
-		return nil, errors.New("failed to send tx with err: " + err.Error())
+		return nil, utils.WrapError("failed to send tx", err)
 	}
 	w.logger.Info(
 		"successfully updated operator details",
@@ -216,7 +216,7 @@ func (w *ChainWriter) UpdateMetadataURI(
 	}
 	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
 	if err != nil {
-		return nil, errors.New("failed to send tx with err: " + err.Error())
+		return nil, utils.WrapError("failed to send tx", err)
 	}
 	w.logger.Info(
 		"successfully updated operator metadata uri",
@@ -256,7 +256,7 @@ func (w *ChainWriter) DepositERC20IntoStrategy(
 	}
 	_, err = w.txMgr.Send(ctx, tx, waitForReceipt)
 	if err != nil {
-		return nil, errors.New("failed to send tx with err: " + err.Error())
+		return nil, utils.WrapError("failed to send tx", err)
 	}
 
 	tx, err = w.strategyManager.DepositIntoStrategy(noSendTxOpts, strategyAddr, underlyingTokenAddr, amount)
@@ -265,7 +265,7 @@ func (w *ChainWriter) DepositERC20IntoStrategy(
 	}
 	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
 	if err != nil {
-		return nil, errors.New("failed to send tx with err: " + err.Error())
+		return nil, utils.WrapError("failed to send tx", err)
 	}
 
 	w.logger.Infof("deposited %s into strategy %s", amount.String(), strategyAddr)
