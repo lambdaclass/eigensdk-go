@@ -581,14 +581,18 @@ func TestGetAllocatableMagnitudeAndGetMaxMagnitudes(t *testing.T) {
 	operatorSetId := uint32(1)
 
 	strategies := []common.Address{strategyAddr}
-	maxMagnitudes, err := chainReader.GetMaxMagnitudes(ctx, testAddr, strategies)
+	request := elcontracts.GetMaxMagnitudes0Request{
+		OperatorAddress:     operatorAddr,
+		StrategiesAddresses: strategies,
+	}
+	response, err := chainReader.GetMaxMagnitudes(ctx, nil, request)
 	assert.NoError(t, err)
 
 	// Assert that at the beginning, Allocatable Magnitude is Max allocatable magnitude
 	allocable, err := chainReader.GetAllocatableMagnitude(ctx, testAddr, strategyAddr)
 	assert.NoError(t, err)
 
-	assert.Equal(t, maxMagnitudes[0], allocable)
+	assert.Equal(t, response.MaxMagnitudes[0], allocable)
 
 	// Reduce allocatable magnitude for testAddr
 	privateKeyHex := testutils.ANVIL_FIRST_PRIVATE_KEY
@@ -632,16 +636,16 @@ func TestGetAllocatableMagnitudeAndGetMaxMagnitudes(t *testing.T) {
 	// Assert that after stake reduction, Allocatable Magnitude + reduction ammount equals Max allocatable magnitude
 	allocable, err = chainReader.GetAllocatableMagnitude(ctx, testAddr, strategyAddr)
 	assert.NoError(t, err)
-	assert.Equal(t, maxMagnitudes[0], allocable+allocatable_reduction)
+	assert.Equal(t, response.MaxMagnitudes[0], allocable+allocatable_reduction)
 
 	// Check that the new allocationDelay is equal to delay
-	request := elcontracts.GetOperatorDetailsRequest{OperatorAddress: operatorAddr}
+	requestOp := elcontracts.GetOperatorDetailsRequest{OperatorAddress: operatorAddr}
 
-	response, err := chainReader.GetOperatorDetails(ctx, nil, request)
+	responseOp, err := chainReader.GetOperatorDetails(ctx, nil, requestOp)
 	assert.NoError(t, err)
-	assert.NotNil(t, response)
-	assert.Equal(t, request.OperatorAddress, response.OperatorAddress)
-	assert.Equal(t, delay, response.AllocationDelay)
+	assert.NotNil(t, responseOp)
+	assert.Equal(t, request.OperatorAddress, responseOp.OperatorAddress)
+	assert.Equal(t, delay, responseOp.AllocationDelay)
 }
 
 func TestAdminFunctions(t *testing.T) {
@@ -974,8 +978,8 @@ func TestInvalidConfig(t *testing.T) {
 
 		_, err = chainReader.GetMaxMagnitudes(
 			context.Background(),
-			common.HexToAddress(operatorAddr),
-			[]common.Address{strategyAddr},
+			nil,
+			elcontracts.GetMaxMagnitudes0Request{},
 		)
 		require.Error(t, err)
 

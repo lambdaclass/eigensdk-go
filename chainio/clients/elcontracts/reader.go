@@ -490,14 +490,23 @@ func (r *ChainReader) GetAllocatableMagnitude(
 
 func (r *ChainReader) GetMaxMagnitudes(
 	ctx context.Context,
-	operatorAddress gethcommon.Address,
-	strategyAddresses []gethcommon.Address,
-) ([]uint64, error) {
+	blockNumber *big.Int,
+	request GetMaxMagnitudes0Request,
+) (GetMaxMagnitudes0Response, error) {
 	if r.allocationManager == nil {
-		return []uint64{}, errors.New("AllocationManager contract not provided")
+		return GetMaxMagnitudes0Response{}, errors.New("AllocationManager contract not provided")
 	}
 
-	return r.allocationManager.GetMaxMagnitudes0(&bind.CallOpts{Context: ctx}, operatorAddress, strategyAddresses)
+	maxMagnitudes, err := r.allocationManager.GetMaxMagnitudes0(
+		&bind.CallOpts{Context: ctx, BlockNumber: blockNumber},
+		request.OperatorAddress,
+		request.StrategiesAddresses,
+	)
+	if err != nil {
+		return GetMaxMagnitudes0Response{}, utils.WrapError("failed to get max magnitudes", err)
+	}
+
+	return GetMaxMagnitudes0Response{MaxMagnitudes: maxMagnitudes}, nil
 }
 
 func (r *ChainReader) GetAllocationInfo(

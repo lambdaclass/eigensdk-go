@@ -216,3 +216,12 @@ type GetOperatorAVSSplitRequest struct {
 type GetOperatorAVSSplitResponse struct {
 	Split uint16
 }
+
+type GetMaxMagnitudes0Request struct {
+	OperatorAddress     common.Address
+	StrategiesAddresses []common.Address
+}
+
+type GetMaxMagnitudes0Response struct {
+	MaxMagnitudes []uint64
+}
