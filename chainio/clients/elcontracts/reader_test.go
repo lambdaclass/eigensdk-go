@@ -882,7 +882,7 @@ func TestInvalidConfig(t *testing.T) {
 		)
 		require.Error(t, err)
 
-		_, err = chainReader.GetOperatorPISplit(context.Background(), common.HexToAddress(operatorAddr))
+		_, err = chainReader.GetOperatorPISplit(context.Background(), nil, elcontracts.GetOperatorAVSSplitRequest{})
 		require.Error(t, err)
 	})
 

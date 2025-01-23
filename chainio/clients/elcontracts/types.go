@@ -208,3 +208,11 @@ type CheckClaimRequest struct {
 type CheckClaimResponse struct {
 	IsValid bool
 }
+
+type GetOperatorAVSSplitRequest struct {
+	OperatorAddress common.Address
+}
+
+type GetOperatorAVSSplitResponse struct {
+	Split uint16
+}

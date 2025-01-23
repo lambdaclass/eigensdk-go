@@ -458,13 +458,22 @@ func (r *ChainReader) GetOperatorAVSSplit(
 
 func (r *ChainReader) GetOperatorPISplit(
 	ctx context.Context,
-	operator gethcommon.Address,
-) (uint16, error) {
+	blockNumber *big.Int,
+	request GetOperatorAVSSplitRequest,
+) (GetOperatorAVSSplitResponse, error) {
 	if r.rewardsCoordinator == nil {
-		return 0, errors.New("RewardsCoordinator contract not provided")
+		return GetOperatorAVSSplitResponse{}, errors.New("RewardsCoordinator contract not provided")
 	}
 
-	return r.rewardsCoordinator.GetOperatorPISplit(&bind.CallOpts{Context: ctx}, operator)
+	split, err := r.rewardsCoordinator.GetOperatorPISplit(
+		&bind.CallOpts{Context: ctx, BlockNumber: blockNumber},
+		request.OperatorAddress,
+	)
+	if err != nil {
+		return GetOperatorAVSSplitResponse{}, utils.WrapError("failed to get operator PI split", err)
+	}
+
+	return GetOperatorAVSSplitResponse{Split: split}, nil
 }
 
 func (r *ChainReader) GetAllocatableMagnitude(

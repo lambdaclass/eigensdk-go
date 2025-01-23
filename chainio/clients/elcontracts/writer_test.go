@@ -373,20 +373,23 @@ func TestSetOperatorPISplit(t *testing.T) {
 	require.NoError(t, err)
 
 	expectedInitialSplit := uint16(1000)
-	initialSplit, err := chainReader.GetOperatorPISplit(context.Background(), operatorAddr)
+	request := elcontracts.GetOperatorAVSSplitRequest{
+		OperatorAddress: operatorAddr,
+	}
+	response, err := chainReader.GetOperatorPISplit(context.Background(), nil, request)
 	require.NoError(t, err)
-	require.Equal(t, expectedInitialSplit, initialSplit)
+	require.Equal(t, expectedInitialSplit, response.Split)
 
-	newSplit := initialSplit + 1
+	newSplit := response.Split + 1
 	// Set a new operator PI split
 	receipt, err = chainWriter.SetOperatorPISplit(context.Background(), operatorAddr, newSplit, waitForReceipt)
 	require.NoError(t, err)
 	require.Equal(t, gethtypes.ReceiptStatusSuccessful, receipt.Status)
 
 	// Retrieve the operator PI split to check it has been set
-	updatedSplit, err := chainReader.GetOperatorPISplit(context.Background(), operatorAddr)
+	response, err = chainReader.GetOperatorPISplit(context.Background(), nil, request)
 	require.NoError(t, err)
-	require.Equal(t, newSplit, updatedSplit)
+	require.Equal(t, newSplit, response.Split)
 
 	// Set a invalid operator PI split
 	invalidSplit := uint16(10001)
