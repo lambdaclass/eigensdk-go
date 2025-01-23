@@ -285,3 +285,11 @@ type GetOperatorsForOperatorSetRequest struct {
 type GetOperatorsForOperatorSetResponse struct {
 	Operators []common.Address
 }
+
+type GetStrategiesForOperatorSetRequest struct {
+	OperatorSet allocationmanager.OperatorSet
+}
+
+type GetStrategiesForOperatorSetResponse struct {
+	StrategiesAddresses []common.Address
+}

@@ -1160,9 +1160,12 @@ func TestInvalidConfig(t *testing.T) {
 				Avs: testAddr,
 				Id:  operatorSetId,
 			}
+			request := elcontracts.GetStrategiesForOperatorSetRequest{
+				OperatorSet: operatorSet,
+			}
 			_, err := chainReader.GetStrategiesForOperatorSet(
 				context.Background(),
-				operatorSet,
+				nil, request,
 			)
 			require.Error(t, err)
 		},
@@ -1262,10 +1265,13 @@ func TestOperatorSetsAndSlashableShares(t *testing.T) {
 
 	t.Run("get operators and operator sets", func(t *testing.T) {
 		t.Run("validate strategies for operatorSet", func(t *testing.T) {
-			strats, err := chainReader.GetStrategiesForOperatorSet(context.Background(), operatorSet)
+			request := elcontracts.GetStrategiesForOperatorSetRequest{
+				OperatorSet: operatorSet,
+			}
+			response, err := chainReader.GetStrategiesForOperatorSet(context.Background(), nil, request)
 			require.NoError(t, err)
-			require.Len(t, strats, 1)
-			require.Equal(t, strats[0].Hex(), strategyAddr.Hex())
+			require.Len(t, response.StrategiesAddresses, 1)
+			require.Equal(t, response.StrategiesAddresses[0].Hex(), strategyAddr.Hex())
 		})
 
 		t.Run("get registered sets", func(t *testing.T) {
@@ -1371,7 +1377,10 @@ func TestOperatorSetsWithWrongInput(t *testing.T) {
 		_, err = chainReader.GetNumOperatorsForOperatorSet(ctx, operatorSet)
 		require.Error(t, err)
 
-		_, err = chainReader.GetStrategiesForOperatorSet(ctx, operatorSet)
+		requestStr := elcontracts.GetStrategiesForOperatorSetRequest{
+			OperatorSet: operatorSet,
+		}
+		_, err = chainReader.GetStrategiesForOperatorSet(ctx, nil, requestStr)
 		require.Error(t, err)
 
 		strategies := []common.Address{contractAddrs.Erc20MockStrategy}

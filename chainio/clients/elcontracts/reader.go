@@ -715,16 +715,25 @@ func (r *ChainReader) GetNumOperatorsForOperatorSet(
 // Not supported for M2 AVSs
 func (r *ChainReader) GetStrategiesForOperatorSet(
 	ctx context.Context,
-	operatorSet allocationmanager.OperatorSet,
-) ([]gethcommon.Address, error) {
-	if operatorSet.Id == 0 {
-		return nil, errLegacyAVSsNotSupported
+	blockNumber *big.Int,
+	request GetStrategiesForOperatorSetRequest,
+) (GetStrategiesForOperatorSetResponse, error) {
+	if request.OperatorSet.Id == 0 {
+		return GetStrategiesForOperatorSetResponse{}, errLegacyAVSsNotSupported
 	} else {
 		if r.allocationManager == nil {
-			return nil, errors.New("AllocationManager contract not provided")
+			return GetStrategiesForOperatorSetResponse{}, errors.New("AllocationManager contract not provided")
 		}
 
-		return r.allocationManager.GetStrategiesInOperatorSet(&bind.CallOpts{Context: ctx}, operatorSet)
+		strategies, err := r.allocationManager.GetStrategiesInOperatorSet(
+			&bind.CallOpts{Context: ctx, BlockNumber: blockNumber},
+			request.OperatorSet,
+		)
+		if err != nil {
+			return GetStrategiesForOperatorSetResponse{}, utils.WrapError("failed to get strategies", err)
+		}
+
+		return GetStrategiesForOperatorSetResponse{StrategiesAddresses: strategies}, nil
 	}
 }
 
@@ -795,15 +804,19 @@ func (r *ChainReader) GetSlashableSharesForOperatorSetsBefore(
 ) ([]OperatorSetStakes, error) {
 	operatorSetStakes := make([]OperatorSetStakes, len(operatorSets))
 	for i, operatorSet := range operatorSets {
-		request := GetOperatorsForOperatorSetRequest{
+		requestOperator := GetOperatorsForOperatorSetRequest{
 			OperatorSet: operatorSet,
 		}
-		response, err := r.GetOperatorsForOperatorSet(ctx, nil, request)
+		responseOperators, err := r.GetOperatorsForOperatorSet(ctx, nil, requestOperator)
 		if err != nil {
 			return nil, err
 		}
 
-		strategies, err := r.GetStrategiesForOperatorSet(ctx, operatorSet)
+		requestStrategies := GetStrategiesForOperatorSetRequest{
+			OperatorSet: operatorSet,
+		}
+		// blockNumber should be nil or futureBlock?
+		responseStrategies, err := r.GetStrategiesForOperatorSet(ctx, nil, requestStrategies)
 		// If operator setId is 0 will fail on if above
 		if err != nil {
 			return nil, err
@@ -815,8 +828,8 @@ func (r *ChainReader) GetSlashableSharesForOperatorSetsBefore(
 				Id:  operatorSet.Id,
 				Avs: operatorSet.Avs,
 			},
-			response.Operators,
-			strategies,
+			responseOperators.Operators,
+			responseStrategies.StrategiesAddresses,
 			futureBlock,
 		)
 		// This call should not fail since it's a getter
@@ -826,8 +839,8 @@ func (r *ChainReader) GetSlashableSharesForOperatorSetsBefore(
 
 		operatorSetStakes[i] = OperatorSetStakes{
 			OperatorSet:     operatorSet,
-			Strategies:      strategies,
-			Operators:       response.Operators,
+			Strategies:      responseStrategies.StrategiesAddresses,
+			Operators:       responseOperators.Operators,
 			SlashableStakes: slashableShares,
 		}
 	}
