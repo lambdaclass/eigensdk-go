@@ -303,27 +303,29 @@ func TestGetCurrentClaimableDistributionRoot(t *testing.T) {
 	require.NoError(t, err)
 
 	// Check that if there is no root submitted the result is zero
-	distr_root, err := chainReader.GetCurrentClaimableDistributionRoot(
+	response, err := chainReader.GetCurrentClaimableDistributionRoot(
 		ctx,
+		nil,
 	)
 	assert.NoError(t, err)
-	assert.Zero(t, distr_root.Root)
+	assert.Zero(t, response.DistributionRoot.Root)
 
-	response, err := chainReader.CurrRewardsCalculationEndTimestamp(context.Background(), nil)
+	responseTimestamp, err := chainReader.CurrRewardsCalculationEndTimestamp(context.Background(), nil)
 	require.NoError(t, err)
 
-	tx, err = rewardsCoordinator.SubmitRoot(noSendTxOpts, root, response.Timestamp+1)
+	tx, err = rewardsCoordinator.SubmitRoot(noSendTxOpts, root, responseTimestamp.Timestamp+1)
 	require.NoError(t, err)
 
 	_, err = txManager.Send(context.Background(), tx, waitForReceipt)
 	require.NoError(t, err)
 
 	// Check that if there is a root submitted the result is that root
-	distr_root, err = chainReader.GetCurrentClaimableDistributionRoot(
+	response, err = chainReader.GetCurrentClaimableDistributionRoot(
 		ctx,
+		nil,
 	)
 	assert.NoError(t, err)
-	assert.Equal(t, distr_root.Root, root)
+	assert.Equal(t, response.DistributionRoot.Root, root)
 }
 
 func TestGetRootIndexFromRootHash(t *testing.T) {
@@ -941,7 +943,7 @@ func TestInvalidConfig(t *testing.T) {
 		_, err = chainReader.GetRootIndexFromHash(context.Background(), [32]byte{})
 		require.Error(t, err)
 
-		_, err = chainReader.GetCurrentClaimableDistributionRoot(context.Background())
+		_, err = chainReader.GetCurrentClaimableDistributionRoot(context.Background(), nil)
 		require.Error(t, err)
 	})
 
@@ -949,7 +951,7 @@ func TestInvalidConfig(t *testing.T) {
 		contractAddrs := testutils.GetContractAddressesFromContractRegistry(anvilHttpEndpoint)
 		strategyAddr := contractAddrs.Erc20MockStrategy
 
-		_, err = chainReader.GetCurrentClaimableDistributionRoot(context.Background())
+		_, err = chainReader.GetCurrentClaimableDistributionRoot(context.Background(), nil)
 		require.Error(t, err)
 
 		_, err := chainReader.GetCumulativeClaimed(

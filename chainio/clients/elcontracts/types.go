@@ -5,6 +5,7 @@ import (
 
 	allocationmanager "github.com/Layr-Labs/eigensdk-go/contracts/bindings/AllocationManager"
 	erc20 "github.com/Layr-Labs/eigensdk-go/contracts/bindings/IERC20"
+	rewardscoordinator "github.com/Layr-Labs/eigensdk-go/contracts/bindings/IRewardsCoordinator"
 	strategy "github.com/Layr-Labs/eigensdk-go/contracts/bindings/IStrategy"
 	"github.com/Layr-Labs/eigensdk-go/crypto/bls"
 
@@ -177,4 +178,8 @@ type GetDistributionRootsLengthResponse struct {
 
 type CurrRewardsCalculationEndTimestampResponse struct {
 	Timestamp uint32
+}
+
+type GetCurrentClaimableDistributionRootResponse struct {
+	DistributionRoot rewardscoordinator.IRewardsCoordinatorTypesDistributionRoot
 }

@@ -362,14 +362,25 @@ func (r *ChainReader) CurrRewardsCalculationEndTimestamp(
 
 func (r *ChainReader) GetCurrentClaimableDistributionRoot(
 	ctx context.Context,
-) (rewardscoordinator.IRewardsCoordinatorTypesDistributionRoot, error) {
+	blockNumber *big.Int,
+) (GetCurrentClaimableDistributionRootResponse, error) {
 	if r.rewardsCoordinator == nil {
-		return rewardscoordinator.IRewardsCoordinatorTypesDistributionRoot{}, errors.New(
+		return GetCurrentClaimableDistributionRootResponse{}, errors.New(
 			"RewardsCoordinator contract not provided",
 		)
 	}
 
-	return r.rewardsCoordinator.GetCurrentClaimableDistributionRoot(&bind.CallOpts{Context: ctx})
+	root, err := r.rewardsCoordinator.GetCurrentClaimableDistributionRoot(
+		&bind.CallOpts{Context: ctx, BlockNumber: blockNumber},
+	)
+	if err != nil {
+		return GetCurrentClaimableDistributionRootResponse{}, utils.WrapError(
+			"failed to get current claimable distribution root",
+			err,
+		)
+	}
+
+	return GetCurrentClaimableDistributionRootResponse{DistributionRoot: root}, nil
 }
 
 func (r *ChainReader) GetRootIndexFromHash(
