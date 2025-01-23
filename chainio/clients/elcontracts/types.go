@@ -252,3 +252,11 @@ type GetOperatorsSharesRequest struct {
 type GetOperatorsSharesResponse struct {
 	Shares [][]*big.Int
 }
+
+type GetNumOperatorSetsForOperatorRequest struct {
+	OperatorAddress common.Address
+}
+
+type GetNumOperatorSetsForOperatorResponse struct {
+	NumOperatorSets *big.Int
+}

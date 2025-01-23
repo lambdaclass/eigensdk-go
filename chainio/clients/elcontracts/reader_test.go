@@ -1052,7 +1052,11 @@ func TestInvalidConfig(t *testing.T) {
 
 	t.Run("try to get the number of operator sets for an operator with invalid config", func(t *testing.T) {
 		// GetNumOperatorSetsForOperator needs a correct AllocationManagerAddress
-		_, err := chainReader.GetNumOperatorSetsForOperator(context.Background(), common.HexToAddress(operator.Address))
+		_, err := chainReader.GetNumOperatorSetsForOperator(
+			context.Background(),
+			nil,
+			elcontracts.GetNumOperatorSetsForOperatorRequest{},
+		)
 		require.Error(t, err)
 	})
 
@@ -1262,12 +1266,16 @@ func TestOperatorSetsAndSlashableShares(t *testing.T) {
 		})
 
 		t.Run("get amount operatorSets for operator", func(t *testing.T) {
-			opSetsCount, err := chainReader.GetNumOperatorSetsForOperator(
+			request := elcontracts.GetNumOperatorSetsForOperatorRequest{
+				OperatorAddress: operatorAddr,
+			}
+			response, err := chainReader.GetNumOperatorSetsForOperator(
 				context.Background(),
-				operatorAddr,
+				nil,
+				request,
 			)
 			require.NoError(t, err)
-			require.NotZero(t, opSetsCount)
+			require.NotZero(t, response.NumOperatorSets)
 		})
 
 		t.Run("get operator for operatorsets", func(t *testing.T) {

@@ -587,16 +587,17 @@ func (r *ChainReader) GetOperatorsShares(
 // Doesn't include M2 AVSs
 func (r *ChainReader) GetNumOperatorSetsForOperator(
 	ctx context.Context,
-	operatorAddress gethcommon.Address,
-) (*big.Int, error) {
+	blockNumber *big.Int,
+	request GetNumOperatorSetsForOperatorRequest,
+) (GetNumOperatorSetsForOperatorResponse, error) {
 	if r.allocationManager == nil {
-		return nil, errors.New("AllocationManager contract not provided")
+		return GetNumOperatorSetsForOperatorResponse{}, errors.New("AllocationManager contract not provided")
 	}
-	opSets, err := r.allocationManager.GetAllocatedSets(&bind.CallOpts{Context: ctx}, operatorAddress)
+	opSets, err := r.allocationManager.GetAllocatedSets(&bind.CallOpts{Context: ctx}, request.OperatorAddress)
 	if err != nil {
-		return nil, err
+		return GetNumOperatorSetsForOperatorResponse{}, err
 	}
-	return big.NewInt(int64(len(opSets))), nil
+	return GetNumOperatorSetsForOperatorResponse{NumOperatorSets: big.NewInt(int64(len(opSets)))}, nil
 }
 
 // GetOperatorSetsForOperator returns the list of operator sets that an operator is part of
