@@ -615,7 +615,10 @@ func (r *ChainReader) GetOperatorSetsForOperator(
 	}
 	// TODO: we're fetching max int64 operatorSets here. What's the practical limit for timeout by RPC? do we need to
 	// paginate?
-	opSets, err := r.allocationManager.GetAllocatedSets(&bind.CallOpts{Context: ctx}, request.OperatorAddress)
+	opSets, err := r.allocationManager.GetAllocatedSets(
+		&bind.CallOpts{Context: ctx, BlockNumber: blockNumber},
+		request.OperatorAddress,
+	)
 	if err != nil {
 		return GetOperatorSetsForOperatorResponse{}, err
 	}
@@ -636,7 +639,7 @@ func (r *ChainReader) IsOperatorRegisteredWithOperatorSet(
 		}
 
 		status, err := r.avsDirectory.AvsOperatorStatus(
-			&bind.CallOpts{Context: ctx},
+			&bind.CallOpts{Context: ctx, BlockNumber: blockNumber},
 			request.OperatorSet.Avs,
 			request.OperatorAddress,
 		)
@@ -655,7 +658,7 @@ func (r *ChainReader) IsOperatorRegisteredWithOperatorSet(
 		if r.allocationManager == nil {
 			return IsOperatorRegisteredResponse{IsRegistered: false}, errors.New("AllocationManager contract not provided")
 		}
-		registeredOperatorSets, err := r.allocationManager.GetRegisteredSets(&bind.CallOpts{Context: ctx}, request.OperatorAddress)
+		registeredOperatorSets, err := r.allocationManager.GetRegisteredSets(&bind.CallOpts{Context: ctx, BlockNumber: blockNumber}, request.OperatorAddress)
 		// This call should not fail since it's a getter
 		if err != nil {
 			return IsOperatorRegisteredResponse{IsRegistered: false}, utils.WrapError("failed to get registered operator sets", err)
@@ -674,16 +677,21 @@ func (r *ChainReader) IsOperatorRegisteredWithOperatorSet(
 // Not supported for M2 AVSs
 func (r *ChainReader) GetOperatorsForOperatorSet(
 	ctx context.Context,
-	operatorSet allocationmanager.OperatorSet,
-) ([]gethcommon.Address, error) {
-	if operatorSet.Id == 0 {
-		return nil, errLegacyAVSsNotSupported
+	blockNumber *big.Int,
+	request GetOperatorsForOperatorSetRequest,
+) (GetOperatorsForOperatorSetResponse, error) {
+	if request.OperatorSet.Id == 0 {
+		return GetOperatorsForOperatorSetResponse{}, errLegacyAVSsNotSupported
 	} else {
 		if r.allocationManager == nil {
-			return nil, errors.New("AllocationManager contract not provided")
+			return GetOperatorsForOperatorSetResponse{}, errors.New("AllocationManager contract not provided")
+		}
+		members, err := r.allocationManager.GetMembers(&bind.CallOpts{Context: ctx, BlockNumber: blockNumber}, request.OperatorSet)
+		if err != nil {
+			return GetOperatorsForOperatorSetResponse{}, utils.WrapError("failed to get members", err)
 		}
 
-		return r.allocationManager.GetMembers(&bind.CallOpts{Context: ctx}, operatorSet)
+		return GetOperatorsForOperatorSetResponse{Operators: members}, nil
 	}
 }
 
@@ -787,7 +795,10 @@ func (r *ChainReader) GetSlashableSharesForOperatorSetsBefore(
 ) ([]OperatorSetStakes, error) {
 	operatorSetStakes := make([]OperatorSetStakes, len(operatorSets))
 	for i, operatorSet := range operatorSets {
-		operators, err := r.GetOperatorsForOperatorSet(ctx, operatorSet)
+		request := GetOperatorsForOperatorSetRequest{
+			OperatorSet: operatorSet,
+		}
+		response, err := r.GetOperatorsForOperatorSet(ctx, nil, request)
 		if err != nil {
 			return nil, err
 		}
@@ -804,7 +815,7 @@ func (r *ChainReader) GetSlashableSharesForOperatorSetsBefore(
 				Id:  operatorSet.Id,
 				Avs: operatorSet.Avs,
 			},
-			operators,
+			response.Operators,
 			strategies,
 			futureBlock,
 		)
@@ -816,7 +827,7 @@ func (r *ChainReader) GetSlashableSharesForOperatorSetsBefore(
 		operatorSetStakes[i] = OperatorSetStakes{
 			OperatorSet:     operatorSet,
 			Strategies:      strategies,
-			Operators:       operators,
+			Operators:       response.Operators,
 			SlashableStakes: slashableShares,
 		}
 	}

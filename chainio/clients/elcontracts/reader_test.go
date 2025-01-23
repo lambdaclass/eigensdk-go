@@ -1122,9 +1122,13 @@ func TestInvalidConfig(t *testing.T) {
 				Avs: testAddr,
 				Id:  operatorSetId,
 			}
+			request := elcontracts.GetOperatorsForOperatorSetRequest{
+				OperatorSet: operatorSet,
+			}
 			_, err := chainReader.GetOperatorsForOperatorSet(
 				context.Background(),
-				operatorSet,
+				nil,
+				request,
 			)
 			require.Error(t, err)
 		},
@@ -1293,9 +1297,12 @@ func TestOperatorSetsAndSlashableShares(t *testing.T) {
 		})
 
 		t.Run("get operator for operatorsets", func(t *testing.T) {
-			operators, err := chainReader.GetOperatorsForOperatorSet(context.Background(), operatorSet)
+			request := elcontracts.GetOperatorsForOperatorSetRequest{
+				OperatorSet: operatorSet,
+			}
+			response, err := chainReader.GetOperatorsForOperatorSet(context.Background(), nil, request)
 			require.NoError(t, err)
-			require.NotEmpty(t, operators)
+			require.NotEmpty(t, response.Operators)
 		})
 
 		t.Run("get amount of operators for operatorsets", func(t *testing.T) {
@@ -1355,7 +1362,10 @@ func TestOperatorSetsWithWrongInput(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Run("test operator set with invalid id", func(t *testing.T) {
-		_, err := chainReader.GetOperatorsForOperatorSet(ctx, operatorSet)
+		request := elcontracts.GetOperatorsForOperatorSetRequest{
+			OperatorSet: operatorSet,
+		}
+		_, err := chainReader.GetOperatorsForOperatorSet(ctx, nil, request)
 		require.Error(t, err)
 
 		_, err = chainReader.GetNumOperatorsForOperatorSet(ctx, operatorSet)

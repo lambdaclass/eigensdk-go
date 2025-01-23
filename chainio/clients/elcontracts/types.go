@@ -277,3 +277,11 @@ type IsOperatorRegisteredWithOperatorSetRequest struct {
 type IsOperatorRegisteredWithOperatorSetResponse struct {
 	IsRegistered bool
 }
+
+type GetOperatorsForOperatorSetRequest struct {
+	OperatorSet allocationmanager.OperatorSet
+}
+
+type GetOperatorsForOperatorSetResponse struct {
+	Operators []common.Address
+}
