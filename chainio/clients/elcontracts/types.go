@@ -159,3 +159,14 @@ type CalculateDelegationApprovalDigestHashRequest struct {
 type CalculateDelegationApprovalDigestHashResponse struct {
 	DigestHash [32]byte
 }
+
+type CalculateOperatorAVSRegistrationDigestHashRequest struct {
+	OperatorAddress common.Address
+	AVSAddress      common.Address
+	Salt            [32]byte
+	Expiry          *big.Int
+}
+
+type CalculateOperatorAVSRegistrationDigestHashResponse struct {
+	DigestHash [32]byte
+}

@@ -297,22 +297,28 @@ func (r *ChainReader) CalculateDelegationApprovalDigestHash(
 
 func (r *ChainReader) CalculateOperatorAVSRegistrationDigestHash(
 	ctx context.Context,
-	operator gethcommon.Address,
-	avs gethcommon.Address,
-	salt [32]byte,
-	expiry *big.Int,
-) ([32]byte, error) {
+	blockNumber *big.Int,
+	request CalculateOperatorAVSRegistrationDigestHashRequest,
+) (CalculateOperatorAVSRegistrationDigestHashResponse, error) {
 	if r.avsDirectory == nil {
-		return [32]byte{}, errors.New("AVSDirectory contract not provided")
+		return CalculateOperatorAVSRegistrationDigestHashResponse{}, errors.New("AVSDirectory contract not provided")
 	}
 
-	return r.avsDirectory.CalculateOperatorAVSRegistrationDigestHash(
-		&bind.CallOpts{Context: ctx},
-		operator,
-		avs,
-		salt,
-		expiry,
+	digestHash, err := r.avsDirectory.CalculateOperatorAVSRegistrationDigestHash(
+		&bind.CallOpts{Context: ctx, BlockNumber: blockNumber},
+		request.OperatorAddress,
+		request.AVSAddress,
+		request.Salt,
+		request.Expiry,
 	)
+	if err != nil {
+		return CalculateOperatorAVSRegistrationDigestHashResponse{}, utils.WrapError(
+			"failed to calculate operator AVS registration digest hash",
+			err,
+		)
+	}
+
+	return CalculateOperatorAVSRegistrationDigestHashResponse{DigestHash: digestHash}, nil
 }
 
 func (r *ChainReader) GetDistributionRootsLength(ctx context.Context) (*big.Int, error) {

@@ -130,15 +130,19 @@ func TestChainReader(t *testing.T) {
 		avs := common.Address{0x0}
 		salt := [32]byte{}
 		expiry := big.NewInt(0)
-		digest, err := read_clients.ElChainReader.CalculateOperatorAVSRegistrationDigestHash(
+		request := elcontracts.CalculateOperatorAVSRegistrationDigestHashRequest{
+			OperatorAddress: common.HexToAddress(operator.Address),
+			AVSAddress:      avs,
+			Salt:            salt,
+			Expiry:          expiry,
+		}
+		response, err := read_clients.ElChainReader.CalculateOperatorAVSRegistrationDigestHash(
 			ctx,
-			common.HexToAddress(operator.Address),
-			avs,
-			salt,
-			expiry,
+			nil,
+			request,
 		)
 		assert.NoError(t, err)
-		assert.NotEmpty(t, digest)
+		assert.NotEmpty(t, response.DigestHash)
 	})
 
 	t.Run("get staker shares", func(t *testing.T) {
@@ -922,9 +926,9 @@ func TestInvalidConfig(t *testing.T) {
 
 		// CalculateOperatorAVSRegistrationDigestHash needs a correct AvsDirectoryAddress
 		_, err = chainReader.CalculateOperatorAVSRegistrationDigestHash(context.Background(),
-			common.HexToAddress(operatorAddr),
-			staker,
-			approverSalt, expiry)
+			nil,
+			elcontracts.CalculateOperatorAVSRegistrationDigestHashRequest{},
+		)
 		require.Error(t, err)
 	})
 

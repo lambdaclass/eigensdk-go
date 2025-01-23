@@ -28,11 +28,9 @@ import (
 type eLReader interface {
 	CalculateOperatorAVSRegistrationDigestHash(
 		ctx context.Context,
-		operatorAddr gethcommon.Address,
-		serviceManagerAddr gethcommon.Address,
-		operatorToAvsRegistrationSigSalt [32]byte,
-		operatorToAvsRegistrationSigExpiry *big.Int,
-	) ([32]byte, error)
+		blockNumber *big.Int,
+		request elcontracts.CalculateOperatorAVSRegistrationDigestHashRequest,
+	) (elcontracts.CalculateOperatorAVSRegistrationDigestHashResponse, error)
 }
 
 type ChainWriter struct {
@@ -161,17 +159,22 @@ func (w *ChainWriter) RegisterOperatorInQuorumWithAVSRegistryCoordinator(
 	}
 
 	// params to register operator in delegation manager's operator-avs mapping
-	msgToSign, err := w.elReader.CalculateOperatorAVSRegistrationDigestHash(
+	// TODO: Review this function after finishing the refactor of the ChainReader
+	request := elcontracts.CalculateOperatorAVSRegistrationDigestHashRequest{
+		OperatorAddress: operatorAddr,
+		AVSAddress:      w.serviceManagerAddr,
+		Salt:            operatorToAvsRegistrationSigSalt,
+		Expiry:          operatorToAvsRegistrationSigExpiry,
+	}
+	response, err := w.elReader.CalculateOperatorAVSRegistrationDigestHash(
 		ctx,
-		operatorAddr,
-		w.serviceManagerAddr,
-		operatorToAvsRegistrationSigSalt,
-		operatorToAvsRegistrationSigExpiry,
+		nil,
+		request,
 	)
 	if err != nil {
 		return nil, err
 	}
-	operatorSignature, err := crypto.Sign(msgToSign[:], operatorEcdsaPrivateKey)
+	operatorSignature, err := crypto.Sign(response.DigestHash[:], operatorEcdsaPrivateKey)
 	if err != nil {
 		return nil, err
 	}
@@ -283,17 +286,22 @@ func (w *ChainWriter) RegisterOperator(
 	).Add(new(big.Int).SetUint64(curBlock.Time()), big.NewInt(sigValidForSeconds))
 
 	// params to register operator in delegation manager's operator-avs mapping
-	msgToSign, err := w.elReader.CalculateOperatorAVSRegistrationDigestHash(
+	// TODO: Review this function after finishing the refactor of the ChainReader
+	request := elcontracts.CalculateOperatorAVSRegistrationDigestHashRequest{
+		OperatorAddress: operatorAddr,
+		AVSAddress:      w.serviceManagerAddr,
+		Salt:            operatorToAvsRegistrationSigSalt,
+		Expiry:          operatorToAvsRegistrationSigExpiry,
+	}
+	response, err := w.elReader.CalculateOperatorAVSRegistrationDigestHash(
 		ctx,
-		operatorAddr,
-		w.serviceManagerAddr,
-		operatorToAvsRegistrationSigSalt,
-		operatorToAvsRegistrationSigExpiry,
+		nil,
+		request,
 	)
 	if err != nil {
 		return nil, err
 	}
-	operatorSignature, err := crypto.Sign(msgToSign[:], operatorEcdsaPrivateKey)
+	operatorSignature, err := crypto.Sign(response.DigestHash[:], operatorEcdsaPrivateKey)
 	if err != nil {
 		return nil, err
 	}
