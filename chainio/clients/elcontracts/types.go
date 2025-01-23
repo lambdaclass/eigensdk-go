@@ -4,6 +4,7 @@ import (
 	"math/big"
 
 	allocationmanager "github.com/Layr-Labs/eigensdk-go/contracts/bindings/AllocationManager"
+	strategy "github.com/Layr-Labs/eigensdk-go/contracts/bindings/IStrategy"
 	"github.com/Layr-Labs/eigensdk-go/crypto/bls"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -116,4 +117,13 @@ type GetOperatorDetailsResponse struct {
 	OperatorAddress           common.Address
 	DelegationApproverAddress common.Address
 	AllocationDelay           uint32
+}
+
+type GetStrategyAndUnderlyingTokenRequest struct {
+	StrategyAddress common.Address
+}
+
+type GetStrategyAndUnderlyingTokenResponse struct {
+	StrategyContract       *strategy.ContractIStrategy
+	UnderlyingTokenAddress common.Address
 }

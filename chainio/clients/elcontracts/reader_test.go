@@ -52,16 +52,17 @@ func TestChainReader(t *testing.T) {
 	})
 
 	t.Run("get strategy and underlying token", func(t *testing.T) {
-		strategyAddr := contractAddrs.Erc20MockStrategy
-		strategy, underlyingTokenAddr, err := read_clients.ElChainReader.GetStrategyAndUnderlyingToken(
+		request := elcontracts.GetStrategyAndUnderlyingTokenRequest{StrategyAddress: contractAddrs.Erc20MockStrategy}
+		response, err := read_clients.ElChainReader.GetStrategyAndUnderlyingToken(
 			ctx,
-			strategyAddr,
+			nil,
+			request,
 		)
 		assert.NoError(t, err)
-		assert.NotNil(t, strategy)
-		assert.NotEqual(t, common.Address{}, underlyingTokenAddr)
+		assert.NotNil(t, response)
+		assert.NotEqual(t, common.Address{}, response.UnderlyingTokenAddress)
 
-		erc20Token, err := erc20.NewContractIERC20(underlyingTokenAddr, read_clients.EthHttpClient)
+		erc20Token, err := erc20.NewContractIERC20(response.UnderlyingTokenAddress, read_clients.EthHttpClient)
 		assert.NoError(t, err)
 
 		tokenName, err := erc20Token.Name(&bind.CallOpts{})
@@ -783,7 +784,11 @@ func TestContractErrorCases(t *testing.T) {
 	strategyAddr := common.HexToAddress("34634374736473673643")
 
 	t.Run("GetStrategyAndUnderlyingToken", func(t *testing.T) {
-		_, _, err := chainReader.GetStrategyAndUnderlyingToken(ctx, strategyAddr)
+		_, err := chainReader.GetStrategyAndUnderlyingToken(
+			ctx,
+			nil,
+			elcontracts.GetStrategyAndUnderlyingTokenRequest{},
+		)
 		assert.Error(t, err)
 		assert.Equal(t, err.Error(), "Failed to fetch token contract: no contract code at given address")
 	})
@@ -851,7 +856,10 @@ func TestInvalidConfig(t *testing.T) {
 		require.Error(t, err)
 
 		// GetStrategyAndUnderlyingToken needs a correct StrategyAddress
-		_, _, err = chainReader.GetStrategyAndUnderlyingToken(context.Background(), strategyAddr)
+		request := elcontracts.GetStrategyAndUnderlyingTokenRequest{
+			StrategyAddress: strategyAddr,
+		}
+		_, err = chainReader.GetStrategyAndUnderlyingToken(context.Background(), nil, request)
 		require.Error(t, err)
 
 		_, _, _, err = chainReader.GetStrategyAndUnderlyingERC20Token(context.Background(), strategyAddr)
