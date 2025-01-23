@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"crypto/rand"
-	"errors"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -23,6 +22,7 @@ import (
 	"github.com/Layr-Labs/eigensdk-go/crypto/bls"
 	"github.com/Layr-Labs/eigensdk-go/logging"
 	"github.com/Layr-Labs/eigensdk-go/types"
+	"github.com/Layr-Labs/eigensdk-go/utils"
 )
 
 type eLReader interface {
@@ -203,7 +203,7 @@ func (w *ChainWriter) RegisterOperatorInQuorumWithAVSRegistryCoordinator(
 	}
 	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
 	if err != nil {
-		return nil, errors.New("failed to send tx with err: " + err.Error())
+		return nil, utils.WrapError("failed to send tx with err", err.Error())
 	}
 	w.logger.Info(
 		"successfully registered operator with AVS registry coordinator",
@@ -325,7 +325,7 @@ func (w *ChainWriter) RegisterOperator(
 	}
 	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
 	if err != nil {
-		return nil, errors.New("failed to send tx with err: " + err.Error())
+		return nil, utils.WrapError("failed to send tx with err", err.Error())
 	}
 	w.logger.Info(
 		"successfully registered operator with AVS registry coordinator",
@@ -367,7 +367,7 @@ func (w *ChainWriter) UpdateStakesOfEntireOperatorSetForQuorums(
 	}
 	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
 	if err != nil {
-		return nil, errors.New("failed to send tx with err: " + err.Error())
+		return nil, utils.WrapError("failed to send tx with err: ", err.Error())
 	}
 	w.logger.Info(
 		"successfully updated stakes for entire operator set",
@@ -396,7 +396,7 @@ func (w *ChainWriter) UpdateStakesOfOperatorSubsetForAllQuorums(
 	}
 	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
 	if err != nil {
-		return nil, errors.New("failed to send tx with err: " + err.Error())
+		return nil, utils.WrapError("failed to send tx with err", err.Error())
 	}
 	w.logger.Info(
 		"successfully updated stakes of operator subset for all quorums",
@@ -425,7 +425,7 @@ func (w *ChainWriter) DeregisterOperator(
 	}
 	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
 	if err != nil {
-		return nil, errors.New("failed to send tx with err: " + err.Error())
+		return nil, utils.WrapError("failed to send tx with err", err.Error())
 	}
 	w.logger.Info(
 		"successfully deregistered operator with the AVS's registry coordinator",
@@ -455,7 +455,7 @@ func (w *ChainWriter) DeregisterOperatorOperatorSets(
 	}
 	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
 	if err != nil {
-		return nil, errors.New("failed to send tx with err: " + err.Error())
+		return nil, utils.WrapError("failed to send tx with err", err.Error())
 	}
 	w.logger.Info(
 		"successfully deregistered operator with the AVS's registry coordinator",
@@ -480,7 +480,7 @@ func (w *ChainWriter) UpdateSocket(
 	}
 	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
 	if err != nil {
-		return nil, errors.New("failed to send UpdateSocket tx with err: " + err.Error())
+		return nil, utils.WrapError("failed to send UpdateSocket tx with err", err.Error())
 	}
 	return receipt, nil
 }
