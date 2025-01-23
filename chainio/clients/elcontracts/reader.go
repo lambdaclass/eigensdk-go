@@ -593,7 +593,10 @@ func (r *ChainReader) GetNumOperatorSetsForOperator(
 	if r.allocationManager == nil {
 		return GetNumOperatorSetsForOperatorResponse{}, errors.New("AllocationManager contract not provided")
 	}
-	opSets, err := r.allocationManager.GetAllocatedSets(&bind.CallOpts{Context: ctx}, request.OperatorAddress)
+	opSets, err := r.allocationManager.GetAllocatedSets(
+		&bind.CallOpts{Context: ctx, BlockNumber: blockNumber},
+		request.OperatorAddress,
+	)
 	if err != nil {
 		return GetNumOperatorSetsForOperatorResponse{}, err
 	}
@@ -604,51 +607,66 @@ func (r *ChainReader) GetNumOperatorSetsForOperator(
 // Doesn't include M2 AVSs
 func (r *ChainReader) GetOperatorSetsForOperator(
 	ctx context.Context,
-	operatorAddress gethcommon.Address,
-) ([]allocationmanager.OperatorSet, error) {
+	blockNumber *big.Int,
+	request GetOperatorSetsForOperatorRequest,
+) (GetOperatorSetsForOperatorResponse, error) {
 	if r.allocationManager == nil {
-		return nil, errors.New("AllocationManager contract not provided")
+		return GetOperatorSetsForOperatorResponse{}, errors.New("AllocationManager contract not provided")
 	}
 	// TODO: we're fetching max int64 operatorSets here. What's the practical limit for timeout by RPC? do we need to
 	// paginate?
-	return r.allocationManager.GetAllocatedSets(&bind.CallOpts{Context: ctx}, operatorAddress)
+	opSets, err := r.allocationManager.GetAllocatedSets(&bind.CallOpts{Context: ctx}, request.OperatorAddress)
+	if err != nil {
+		return GetOperatorSetsForOperatorResponse{}, err
+	}
+
+	return GetOperatorSetsForOperatorResponse{OperatorSets: opSets}, nil
 }
 
 // IsOperatorRegisteredWithOperatorSet returns if an operator is registered with a specific operator set
 func (r *ChainReader) IsOperatorRegisteredWithOperatorSet(
 	ctx context.Context,
-	operatorAddress gethcommon.Address,
-	operatorSet allocationmanager.OperatorSet,
-) (bool, error) {
-	if operatorSet.Id == 0 {
+	blockNumber *big.Int,
+	request IsOperatorRegisteredWithOperatorSetRequest,
+) (IsOperatorRegisteredResponse, error) {
+	if request.OperatorSet.Id == 0 {
 		// this is an M2 AVS
 		if r.avsDirectory == nil {
-			return false, errors.New("AVSDirectory contract not provided")
+			return IsOperatorRegisteredResponse{}, errors.New("AVSDirectory contract not provided")
 		}
 
-		status, err := r.avsDirectory.AvsOperatorStatus(&bind.CallOpts{Context: ctx}, operatorSet.Avs, operatorAddress)
+		status, err := r.avsDirectory.AvsOperatorStatus(
+			&bind.CallOpts{Context: ctx},
+			request.OperatorSet.Avs,
+			request.OperatorAddress,
+		)
 		// This call should not fail since it's a getter
 		if err != nil {
-			return false, err
+			return IsOperatorRegisteredResponse{
+					IsRegistered: false,
+				}, utils.WrapError(
+					"failed to check the operator status",
+					err,
+				)
 		}
 
-		return status == 1, nil
+		return IsOperatorRegisteredResponse{IsRegistered: status == 1}, nil
 	} else {
 		if r.allocationManager == nil {
-			return false, errors.New("AllocationManager contract not provided")
+			return IsOperatorRegisteredResponse{IsRegistered: false}, errors.New("AllocationManager contract not provided")
 		}
-		registeredOperatorSets, err := r.allocationManager.GetRegisteredSets(&bind.CallOpts{Context: ctx}, operatorAddress)
+		registeredOperatorSets, err := r.allocationManager.GetRegisteredSets(&bind.CallOpts{Context: ctx}, request.OperatorAddress)
 		// This call should not fail since it's a getter
 		if err != nil {
-			return false, err
+			return IsOperatorRegisteredResponse{IsRegistered: false}, utils.WrapError("failed to get registered operator sets", err)
 		}
 		for _, registeredOperatorSet := range registeredOperatorSets {
-			if registeredOperatorSet.Id == operatorSet.Id && registeredOperatorSet.Avs == operatorSet.Avs {
-				return true, nil
+			if registeredOperatorSet.Id == request.OperatorSet.Id && registeredOperatorSet.Avs == request.OperatorSet.Avs {
+				return IsOperatorRegisteredResponse{IsRegistered: true}, nil
 			}
 		}
 
-		return false, nil
+		return IsOperatorRegisteredResponse{IsRegistered: false}, nil
 	}
 }
 

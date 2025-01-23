@@ -1062,7 +1062,10 @@ func TestInvalidConfig(t *testing.T) {
 
 	t.Run("try to get the operator sets for an operator with invalid config", func(t *testing.T) {
 		// GetOperatorSetsForOperator needs a correct AllocationManagerAddress
-		_, err := chainReader.GetOperatorSetsForOperator(context.Background(), common.HexToAddress(operator.Address))
+		request := elcontracts.GetOperatorSetsForOperatorRequest{
+			OperatorAddress: common.HexToAddress(operatorAddr),
+		}
+		_, err := chainReader.GetOperatorSetsForOperator(context.Background(), nil, request)
 		require.Error(t, err)
 	})
 
@@ -1075,10 +1078,14 @@ func TestInvalidConfig(t *testing.T) {
 				Avs: testAddr,
 				Id:  operatorSetId,
 			}
+			request := elcontracts.IsOperatorRegisteredWithOperatorSetRequest{
+				OperatorAddress: common.HexToAddress(operator.Address),
+				OperatorSet:     operatorSet,
+			}
 			_, err := chainReader.IsOperatorRegisteredWithOperatorSet(
 				context.Background(),
-				common.HexToAddress(operator.Address),
-				operatorSet,
+				nil,
+				request,
 			)
 			require.Error(t, err)
 		},
@@ -1093,10 +1100,14 @@ func TestInvalidConfig(t *testing.T) {
 				Avs: testAddr,
 				Id:  operatorSetId,
 			}
+			request := elcontracts.IsOperatorRegisteredWithOperatorSetRequest{
+				OperatorAddress: common.HexToAddress(operator.Address),
+				OperatorSet:     operatorSet,
+			}
 			_, err := chainReader.IsOperatorRegisteredWithOperatorSet(
 				context.Background(),
-				common.HexToAddress(operator.Address),
-				operatorSet,
+				nil,
+				request,
 			)
 			require.Error(t, err)
 		},
@@ -1260,9 +1271,12 @@ func TestOperatorSetsAndSlashableShares(t *testing.T) {
 		})
 
 		t.Run("get operator sets for operator", func(t *testing.T) {
-			opSets, err := chainReader.GetOperatorSetsForOperator(context.Background(), operatorAddr)
+			request := elcontracts.GetOperatorSetsForOperatorRequest{
+				OperatorAddress: operatorAddr,
+			}
+			response, err := chainReader.GetOperatorSetsForOperator(context.Background(), nil, request)
 			require.NoError(t, err)
-			require.NotEmpty(t, opSets)
+			require.NotEmpty(t, response.OperatorSets)
 		})
 
 		t.Run("get amount operatorSets for operator", func(t *testing.T) {

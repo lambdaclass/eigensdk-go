@@ -260,3 +260,20 @@ type GetNumOperatorSetsForOperatorRequest struct {
 type GetNumOperatorSetsForOperatorResponse struct {
 	NumOperatorSets *big.Int
 }
+
+type GetOperatorSetsForOperatorRequest struct {
+	OperatorAddress common.Address
+}
+
+type GetOperatorSetsForOperatorResponse struct {
+	OperatorSets []allocationmanager.OperatorSet
+}
+
+type IsOperatorRegisteredWithOperatorSetRequest struct {
+	OperatorAddress common.Address
+	OperatorSet     allocationmanager.OperatorSet
+}
+
+type IsOperatorRegisteredWithOperatorSetResponse struct {
+	IsRegistered bool
+}

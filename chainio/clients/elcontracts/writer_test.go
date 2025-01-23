@@ -187,13 +187,15 @@ func TestRegisterAndDeregisterFromOperatorSets(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, gethtypes.ReceiptStatusSuccessful, receipt.Status)
 
-		isRegistered, err := chainReader.IsOperatorRegisteredWithOperatorSet(
-			context.Background(),
-			operatorAddress,
-			operatorSet,
+		request := elcontracts.IsOperatorRegisteredWithOperatorSetRequest{
+			OperatorAddress: operatorAddress,
+			OperatorSet:     operatorSet,
+		}
+		response, err := chainReader.IsOperatorRegisteredWithOperatorSet(
+			context.Background(), nil, request,
 		)
 		require.NoError(t, err)
-		require.Equal(t, true, isRegistered)
+		require.Equal(t, true, response.IsRegistered)
 	})
 
 	t.Run("register operator for same operator set", func(t *testing.T) {
@@ -221,13 +223,17 @@ func TestRegisterAndDeregisterFromOperatorSets(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, gethtypes.ReceiptStatusSuccessful, receipt.Status)
 
-		isRegistered, err := chainReader.IsOperatorRegisteredWithOperatorSet(
+		request := elcontracts.IsOperatorRegisteredWithOperatorSetRequest{
+			OperatorAddress: operatorAddress,
+			OperatorSet:     operatorSet,
+		}
+		response, err := chainReader.IsOperatorRegisteredWithOperatorSet(
 			context.Background(),
-			operatorAddress,
-			operatorSet,
+			nil,
+			request,
 		)
 		require.NoError(t, err)
-		require.False(t, isRegistered)
+		require.False(t, response.IsRegistered)
 	})
 
 	t.Run("deregister operator from operator set when not registered", func(t *testing.T) {
