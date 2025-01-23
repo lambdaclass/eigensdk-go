@@ -698,16 +698,22 @@ func (r *ChainReader) GetOperatorsForOperatorSet(
 // GetNumOperatorsForOperatorSet returns the number of operators in a specific operator set
 func (r *ChainReader) GetNumOperatorsForOperatorSet(
 	ctx context.Context,
-	operatorSet allocationmanager.OperatorSet,
-) (*big.Int, error) {
-	if operatorSet.Id == 0 {
-		return nil, errLegacyAVSsNotSupported
+	blockNumber *big.Int,
+	request GetNumOperatorsForOperatorSetRequest,
+) (GetNumOperatorsForOperatorSetResponse, error) {
+	if request.OperatorSet.Id == 0 {
+		return GetNumOperatorsForOperatorSetResponse{}, errLegacyAVSsNotSupported
 	} else {
 		if r.allocationManager == nil {
-			return nil, errors.New("AllocationManager contract not provided")
+			return GetNumOperatorsForOperatorSetResponse{}, errors.New("AllocationManager contract not provided")
 		}
 
-		return r.allocationManager.GetMemberCount(&bind.CallOpts{Context: ctx}, operatorSet)
+		memberCount, err := r.allocationManager.GetMemberCount(&bind.CallOpts{Context: ctx, BlockNumber: blockNumber}, request.OperatorSet)
+		if err != nil {
+			return GetNumOperatorsForOperatorSetResponse{}, utils.WrapError("failed to get member count", err)
+		}
+
+		return GetNumOperatorsForOperatorSetResponse{NumOperators: memberCount}, nil
 	}
 }
 
@@ -739,42 +745,42 @@ func (r *ChainReader) GetStrategiesForOperatorSet(
 
 func (r *ChainReader) GetSlashableShares(
 	ctx context.Context,
-	operatorAddress gethcommon.Address,
-	operatorSet allocationmanager.OperatorSet,
-	strategies []gethcommon.Address,
-) (map[gethcommon.Address]*big.Int, error) {
+	blockNumber *big.Int,
+	request GetSlashableSharesRequest,
+) (GetSlashableSharesResponse, error) {
 	if r.allocationManager == nil {
-		return nil, errors.New("AllocationManager contract not provided")
+		return GetSlashableSharesResponse{}, errors.New("AllocationManager contract not provided")
 	}
 
-	currentBlock, err := r.ethClient.BlockNumber(ctx)
+	// TODO: Is necessary to get the block number here? Or should we use the one passed as argument?
+	// currentBlock, err := r.ethClient.BlockNumber(ctx)
 	// This call should not fail since it's a getter
-	if err != nil {
-		return nil, err
-	}
+	// if err != nil {
+	// 	return GetSlashableSharesResponse{}, err
+	// }
 
 	slashableShares, err := r.allocationManager.GetMinimumSlashableStake(
-		&bind.CallOpts{Context: ctx},
-		operatorSet,
-		[]gethcommon.Address{operatorAddress},
-		strategies,
-		uint32(currentBlock),
+		&bind.CallOpts{Context: ctx, BlockNumber: blockNumber},
+		request.OperatorSet,
+		[]gethcommon.Address{request.OperatorAddress},
+		request.StrategiesAddresses,
+		uint32(blockNumber.Uint64()),
 	)
 	// This call should not fail since it's a getter
 	if err != nil {
-		return nil, err
+		return GetSlashableSharesResponse{}, err
 	}
 	if len(slashableShares) == 0 {
-		return nil, errors.New("no slashable shares found for operator")
+		return GetSlashableSharesResponse{}, errors.New("no slashable shares found for operator")
 	}
 
 	slashableShareStrategyMap := make(map[gethcommon.Address]*big.Int)
-	for i, strat := range strategies {
+	for i, strat := range request.StrategiesAddresses {
 		// The reason we use 0 here is because we only have one operator in the list
 		slashableShareStrategyMap[strat] = slashableShares[0][i]
 	}
 
-	return slashableShareStrategyMap, nil
+	return GetSlashableSharesResponse{SlashableShares: slashableShareStrategyMap}, nil
 }
 
 // GetSlashableSharesForOperatorSets returns the strategies the operatorSets take into account, their

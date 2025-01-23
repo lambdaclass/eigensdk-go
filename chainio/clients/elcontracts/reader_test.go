@@ -1143,9 +1143,13 @@ func TestInvalidConfig(t *testing.T) {
 				Avs: testAddr,
 				Id:  operatorSetId,
 			}
+			request := elcontracts.GetNumOperatorsForOperatorSetRequest{
+				OperatorSet: operatorSet,
+			}
 			_, err := chainReader.GetNumOperatorsForOperatorSet(
 				context.Background(),
-				operatorSet,
+				nil,
+				request,
 			)
 			require.Error(t, err)
 		},
@@ -1312,19 +1316,26 @@ func TestOperatorSetsAndSlashableShares(t *testing.T) {
 		})
 
 		t.Run("get amount of operators for operatorsets", func(t *testing.T) {
-			operatorsCount, err := chainReader.GetNumOperatorsForOperatorSet(context.Background(), operatorSet)
+			request := elcontracts.GetNumOperatorsForOperatorSetRequest{
+				OperatorSet: operatorSet,
+			}
+			response, err := chainReader.GetNumOperatorsForOperatorSet(context.Background(), nil, request)
 			require.NoError(t, err)
-			require.NotZero(t, operatorsCount)
+			require.NotZero(t, response.NumOperators)
 		})
 	})
 
 	t.Run("slashable shares tests", func(t *testing.T) {
+		request := elcontracts.GetSlashableSharesRequest{
+			OperatorAddress:     operatorAddr,
+			OperatorSet:         operatorSet,
+			StrategiesAddresses: strategies,
+		}
 		t.Run("get slashable shares for single operator", func(t *testing.T) {
 			shares, err := chainReader.GetSlashableShares(
 				context.Background(),
-				operatorAddr,
-				operatorSet,
-				strategies,
+				receipt.BlockNumber,
+				request,
 			)
 			require.NoError(t, err)
 			require.NotEmpty(t, shares)
@@ -1374,7 +1385,10 @@ func TestOperatorSetsWithWrongInput(t *testing.T) {
 		_, err := chainReader.GetOperatorsForOperatorSet(ctx, nil, request)
 		require.Error(t, err)
 
-		_, err = chainReader.GetNumOperatorsForOperatorSet(ctx, operatorSet)
+		requestNumOps := elcontracts.GetNumOperatorsForOperatorSetRequest{
+			OperatorSet: operatorSet,
+		}
+		_, err = chainReader.GetNumOperatorsForOperatorSet(ctx, nil, requestNumOps)
 		require.Error(t, err)
 
 		requestStr := elcontracts.GetStrategiesForOperatorSetRequest{
@@ -1384,12 +1398,15 @@ func TestOperatorSetsWithWrongInput(t *testing.T) {
 		require.Error(t, err)
 
 		strategies := []common.Address{contractAddrs.Erc20MockStrategy}
-
+		requestSlashable := elcontracts.GetSlashableSharesRequest{
+			OperatorAddress:     operatorAddr,
+			OperatorSet:         operatorSet,
+			StrategiesAddresses: strategies,
+		}
 		_, err = chainReader.GetSlashableShares(
 			ctx,
-			operatorAddr,
-			operatorSet,
-			strategies,
+			nil,
+			requestSlashable,
 		)
 		require.Error(t, err)
 	})

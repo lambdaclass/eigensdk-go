@@ -286,10 +286,28 @@ type GetOperatorsForOperatorSetResponse struct {
 	Operators []common.Address
 }
 
+type GetNumOperatorsForOperatorSetRequest struct {
+	OperatorSet allocationmanager.OperatorSet
+}
+
+type GetNumOperatorsForOperatorSetResponse struct {
+	NumOperators *big.Int
+}
+
 type GetStrategiesForOperatorSetRequest struct {
 	OperatorSet allocationmanager.OperatorSet
 }
 
 type GetStrategiesForOperatorSetResponse struct {
 	StrategiesAddresses []common.Address
+}
+
+type GetSlashableSharesRequest struct {
+	OperatorAddress     common.Address
+	OperatorSet         allocationmanager.OperatorSet
+	StrategiesAddresses []common.Address
+}
+
+type GetSlashableSharesResponse struct {
+	SlashableShares map[common.Address]*big.Int
 }
