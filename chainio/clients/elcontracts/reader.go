@@ -385,13 +385,22 @@ func (r *ChainReader) GetCurrentClaimableDistributionRoot(
 
 func (r *ChainReader) GetRootIndexFromHash(
 	ctx context.Context,
-	rootHash [32]byte,
-) (uint32, error) {
+	blockNumber *big.Int,
+	request GetRootIndexFromHashRequest,
+) (GetRootIndexFromHashResponse, error) {
 	if r.rewardsCoordinator == nil {
-		return 0, errors.New("RewardsCoordinator contract not provided")
+		return GetRootIndexFromHashResponse{}, errors.New("RewardsCoordinator contract not provided")
 	}
 
-	return r.rewardsCoordinator.GetRootIndexFromHash(&bind.CallOpts{Context: ctx}, rootHash)
+	rootIndex, err := r.rewardsCoordinator.GetRootIndexFromHash(
+		&bind.CallOpts{Context: ctx, BlockNumber: blockNumber},
+		request.RootHash,
+	)
+	if err != nil {
+		return GetRootIndexFromHashResponse{}, utils.WrapError("failed to get root index from hash", err)
+	}
+
+	return GetRootIndexFromHashResponse{RootIndex: rootIndex}, nil
 }
 
 func (r *ChainReader) GetCumulativeClaimed(

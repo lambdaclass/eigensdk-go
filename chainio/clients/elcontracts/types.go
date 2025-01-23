@@ -183,3 +183,11 @@ type CurrRewardsCalculationEndTimestampResponse struct {
 type GetCurrentClaimableDistributionRootResponse struct {
 	DistributionRoot rewardscoordinator.IRewardsCoordinatorTypesDistributionRoot
 }
+
+type GetRootIndexFromHashRequest struct {
+	RootHash [32]byte
+}
+
+type GetRootIndexFromHashResponse struct {
+	RootIndex uint32
+}

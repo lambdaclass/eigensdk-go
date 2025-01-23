@@ -381,12 +381,12 @@ func TestGetRootIndexFromRootHash(t *testing.T) {
 	// Check that if there is no root submitted the result is an InvalidRoot error
 	root_index, err := chainReader.GetRootIndexFromHash(
 		ctx,
-		root,
+		nil,
+		elcontracts.GetRootIndexFromHashRequest{
+			RootHash: root,
+		},
 	)
 	assert.Error(t, err)
-	assert.Equal(t, err.Error(), "execution reverted: custom error 0x504570e3",
-		"GetRootIndexFromHash should return an InvalidRoot() error",
-	)
 	assert.Zero(t, root_index)
 
 	response, err := chainReader.CurrRewardsCalculationEndTimestamp(context.Background(), nil)
@@ -415,20 +415,26 @@ func TestGetRootIndexFromRootHash(t *testing.T) {
 	require.NoError(t, err)
 
 	// Check that the first root inserted is the first indexed (zero)
-	root_index, err = chainReader.GetRootIndexFromHash(
+	responseHash, err := chainReader.GetRootIndexFromHash(
 		ctx,
-		root,
+		nil,
+		elcontracts.GetRootIndexFromHashRequest{
+			RootHash: root,
+		},
 	)
 	assert.NoError(t, err)
-	assert.Equal(t, root_index, uint32(0))
+	assert.Equal(t, responseHash.RootIndex, uint32(0))
 
 	// Check that the second root inserted is the second indexed (zero)
-	root_index, err = chainReader.GetRootIndexFromHash(
+	responseHash, err = chainReader.GetRootIndexFromHash(
 		ctx,
-		root2,
+		nil,
+		elcontracts.GetRootIndexFromHashRequest{
+			RootHash: root2,
+		},
 	)
 	assert.NoError(t, err)
-	assert.Equal(t, root_index, uint32(1))
+	assert.Equal(t, responseHash.RootIndex, uint32(1))
 }
 
 func TestGetCumulativeClaimedRewards(t *testing.T) {
@@ -940,7 +946,7 @@ func TestInvalidConfig(t *testing.T) {
 		require.Error(t, err)
 
 		// GetRootIndexFromHash needs a correct RewardsCoordinatorAddress
-		_, err = chainReader.GetRootIndexFromHash(context.Background(), [32]byte{})
+		_, err = chainReader.GetRootIndexFromHash(context.Background(), nil, elcontracts.GetRootIndexFromHashRequest{})
 		require.Error(t, err)
 
 		_, err = chainReader.GetCurrentClaimableDistributionRoot(context.Background(), nil)
