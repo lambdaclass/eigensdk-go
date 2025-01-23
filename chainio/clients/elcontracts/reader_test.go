@@ -31,11 +31,14 @@ func TestChainReader(t *testing.T) {
 	operator := types.Operator{
 		Address: testutils.ANVIL_FIRST_ADDRESS,
 	}
+	operatorRequest := elcontracts.IsOperatorRegisteredRequest{
+		OperatorAddress: common.HexToAddress(testutils.ANVIL_FIRST_ADDRESS),
+	}
 
 	t.Run("is operator registered", func(t *testing.T) {
-		isOperator, err := read_clients.ElChainReader.IsOperatorRegistered(ctx, operator)
+		response, err := read_clients.ElChainReader.IsOperatorRegistered(ctx, nil, operatorRequest)
 		assert.NoError(t, err)
-		assert.Equal(t, isOperator, true)
+		assert.Equal(t, response.IsRegistered, true)
 	})
 
 	t.Run("get operator details", func(t *testing.T) {
@@ -795,6 +798,9 @@ func TestInvalidConfig(t *testing.T) {
 	operator := types.Operator{
 		Address: operatorAddr,
 	}
+	operatorRequest := elcontracts.IsOperatorRegisteredRequest{
+		OperatorAddress: common.HexToAddress(operatorAddr),
+	}
 
 	config := elcontracts.Config{}
 	chainReader, err := testclients.NewTestChainReaderFromConfig(anvilHttpEndpoint, config)
@@ -802,7 +808,7 @@ func TestInvalidConfig(t *testing.T) {
 
 	t.Run("try to check if operator is registered with invalid config", func(t *testing.T) {
 		// IsOperatorRegistered needs a correct DelegationManagerAddress
-		_, err := chainReader.IsOperatorRegistered(context.Background(), operator)
+		_, err := chainReader.IsOperatorRegistered(context.Background(), nil, operatorRequest)
 		require.Error(t, err)
 	})
 
