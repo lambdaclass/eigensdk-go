@@ -18,7 +18,6 @@ import (
 	permissioncontroller "github.com/Layr-Labs/eigensdk-go/contracts/bindings/PermissionController"
 	strategymanager "github.com/Layr-Labs/eigensdk-go/contracts/bindings/StrategyManager"
 	"github.com/Layr-Labs/eigensdk-go/logging"
-	"github.com/Layr-Labs/eigensdk-go/types"
 	"github.com/Layr-Labs/eigensdk-go/utils"
 )
 
@@ -156,32 +155,34 @@ func (r *ChainReader) GetDelegatedOperator(
 	return GetDelegatedOperatorResponse{OperatorAddress: operator}, nil
 }
 
+// TODO: This return type should be types.Operator or GetOperatorDetailsResponse?
 func (r *ChainReader) GetOperatorDetails(
 	ctx context.Context,
-	operator types.Operator,
-) (types.Operator, error) {
+	blockNumber *big.Int,
+	request GetOperatorDetailsRequest,
+) (GetOperatorDetailsResponse, error) {
 	if r.delegationManager == nil {
-		return types.Operator{}, errors.New("DelegationManager contract not provided")
+		return GetOperatorDetailsResponse{}, errors.New("DelegationManager contract not provided")
 	}
 
 	delegationManagerAddress, err := r.delegationManager.DelegationApprover(
 		&bind.CallOpts{Context: ctx},
-		gethcommon.HexToAddress(operator.Address),
+		request.OperatorAddress,
 	)
 	// This call should not fail since it's a getter
 	if err != nil {
-		return types.Operator{}, err
+		return GetOperatorDetailsResponse{}, utils.WrapError("failed to get delegation approver", err)
 	}
 
 	isSet, delay, err := r.allocationManager.GetAllocationDelay(
 		&bind.CallOpts{
 			Context: ctx,
 		},
-		gethcommon.HexToAddress(operator.Address),
+		request.OperatorAddress,
 	)
 	// This call should not fail
 	if err != nil {
-		return types.Operator{}, err
+		return GetOperatorDetailsResponse{}, utils.WrapError("failed to get allocation delay", err)
 	}
 
 	var allocationDelay uint32
@@ -191,9 +192,9 @@ func (r *ChainReader) GetOperatorDetails(
 		allocationDelay = 0
 	}
 
-	return types.Operator{
-		Address:                   operator.Address,
-		DelegationApproverAddress: delegationManagerAddress.Hex(),
+	return GetOperatorDetailsResponse{
+		OperatorAddress:           request.OperatorAddress,
+		DelegationApproverAddress: delegationManagerAddress,
 		AllocationDelay:           allocationDelay,
 	}, nil
 }

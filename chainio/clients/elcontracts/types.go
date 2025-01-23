@@ -107,3 +107,13 @@ type GetDelegatedOperatorRequest struct {
 type GetDelegatedOperatorResponse struct {
 	OperatorAddress common.Address
 }
+
+type GetOperatorDetailsRequest struct {
+	OperatorAddress common.Address
+}
+
+type GetOperatorDetailsResponse struct {
+	OperatorAddress           common.Address
+	DelegationApproverAddress common.Address
+	AllocationDelay           uint32
+}

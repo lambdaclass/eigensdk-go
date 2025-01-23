@@ -28,24 +28,27 @@ func TestChainReader(t *testing.T) {
 	ctx := context.Background()
 
 	contractAddrs := testutils.GetContractAddressesFromContractRegistry(anvilHttpEndpoint)
+	operatorAddr := testutils.ANVIL_FIRST_ADDRESS
+	operatorAddrHex := common.HexToAddress(operatorAddr)
 	operator := types.Operator{
 		Address: testutils.ANVIL_FIRST_ADDRESS,
 	}
-	operatorRequest := elcontracts.IsOperatorRegisteredRequest{
-		OperatorAddress: common.HexToAddress(testutils.ANVIL_FIRST_ADDRESS),
-	}
 
 	t.Run("is operator registered", func(t *testing.T) {
+		operatorRequest := elcontracts.IsOperatorRegisteredRequest{
+			OperatorAddress: operatorAddrHex,
+		}
 		response, err := read_clients.ElChainReader.IsOperatorRegistered(ctx, nil, operatorRequest)
 		assert.NoError(t, err)
 		assert.Equal(t, response.IsRegistered, true)
 	})
 
 	t.Run("get operator details", func(t *testing.T) {
-		operatorDetails, err := read_clients.ElChainReader.GetOperatorDetails(ctx, operator)
+		request := elcontracts.GetOperatorDetailsRequest{OperatorAddress: operatorAddrHex}
+		response, err := read_clients.ElChainReader.GetOperatorDetails(ctx, nil, request)
 		assert.NoError(t, err)
-		assert.NotNil(t, operatorDetails)
-		assert.Equal(t, operator.Address, operatorDetails.Address)
+		assert.NotNil(t, response)
+		assert.Equal(t, operator.Address, response.OperatorAddress.String())
 	})
 
 	t.Run("get strategy and underlying token", func(t *testing.T) {
@@ -595,15 +598,13 @@ func TestGetAllocatableMagnitudeAndGetMaxMagnitudes(t *testing.T) {
 	assert.Equal(t, maxMagnitudes[0], allocable+allocatable_reduction)
 
 	// Check that the new allocationDelay is equal to delay
-	op := types.Operator{
-		Address: operatorAddr.String(),
-	}
+	request := elcontracts.GetOperatorDetailsRequest{OperatorAddress: operatorAddr}
 
-	operatorDetails, err := chainReader.GetOperatorDetails(ctx, op)
+	response, err := chainReader.GetOperatorDetails(ctx, nil, request)
 	assert.NoError(t, err)
-	assert.NotNil(t, operatorDetails)
-	assert.Equal(t, op.Address, operatorDetails.Address)
-	assert.Equal(t, delay, operatorDetails.AllocationDelay)
+	assert.NotNil(t, response)
+	assert.Equal(t, request.OperatorAddress, response.OperatorAddress)
+	assert.Equal(t, delay, response.AllocationDelay)
 }
 
 func TestAdminFunctions(t *testing.T) {
@@ -824,7 +825,7 @@ func TestInvalidConfig(t *testing.T) {
 
 	t.Run("get operator details with invalid config", func(t *testing.T) {
 		// GetOperatorDetails needs a correct DelegationManagerAddress
-		_, err := chainReader.GetOperatorDetails(context.Background(), operator)
+		_, err := chainReader.GetOperatorDetails(context.Background(), nil, elcontracts.GetOperatorDetailsRequest{})
 		require.Error(t, err)
 	})
 
