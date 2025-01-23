@@ -108,16 +108,22 @@ func TestChainReader(t *testing.T) {
 		delegationApprover := common.Address{0x0}
 		approverSalt := [32]byte{}
 		expiry := big.NewInt(0)
-		digest, err := read_clients.ElChainReader.CalculateDelegationApprovalDigestHash(
+
+		request := elcontracts.CalculateDelegationApprovalDigestHashRequest{
+			StakerAddress:   staker,
+			OperatorAddress: common.HexToAddress(operator.Address),
+			ApproverAddress: delegationApprover,
+			ApproverSalt:    approverSalt,
+			Expiry:          expiry,
+		}
+
+		response, err := read_clients.ElChainReader.CalculateDelegationApprovalDigestHash(
 			ctx,
-			staker,
-			common.HexToAddress(operator.Address),
-			delegationApprover,
-			approverSalt,
-			expiry,
+			nil,
+			request,
 		)
 		assert.NoError(t, err)
-		assert.NotEmpty(t, digest)
+		assert.NotEmpty(t, response.DigestHash)
 	})
 
 	t.Run("calculate operator AVS registration digest hash", func(t *testing.T) {
@@ -898,14 +904,19 @@ func TestInvalidConfig(t *testing.T) {
 		approverSalt := [32]byte{}
 		expiry := big.NewInt(0)
 
+		request := elcontracts.CalculateDelegationApprovalDigestHashRequest{
+			StakerAddress:   staker,
+			OperatorAddress: common.HexToAddress(operatorAddr),
+			ApproverAddress: delegationApprover,
+			ApproverSalt:    approverSalt,
+			Expiry:          expiry,
+		}
+
 		// CalculateDelegationApprovalDigestHash needs a correct DelegationManagerAddress
 		_, err := chainReader.CalculateDelegationApprovalDigestHash(
 			context.Background(),
-			staker,
-			common.HexToAddress(operatorAddr),
-			delegationApprover,
-			approverSalt,
-			expiry,
+			nil,
+			request,
 		)
 		require.Error(t, err)
 

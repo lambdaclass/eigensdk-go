@@ -174,7 +174,8 @@ func (r *ChainReader) GetOperatorDetails(
 
 	isSet, delay, err := r.allocationManager.GetAllocationDelay(
 		&bind.CallOpts{
-			Context: ctx,
+			Context:     ctx,
+			BlockNumber: blockNumber,
 		},
 		request.OperatorAddress,
 	)
@@ -269,24 +270,29 @@ func (r *ChainReader) GetOperatorSharesInStrategy(
 
 func (r *ChainReader) CalculateDelegationApprovalDigestHash(
 	ctx context.Context,
-	staker gethcommon.Address,
-	operator gethcommon.Address,
-	delegationApprover gethcommon.Address,
-	approverSalt [32]byte,
-	expiry *big.Int,
-) ([32]byte, error) {
+	blockNumber *big.Int,
+	request CalculateDelegationApprovalDigestHashRequest,
+) (CalculateDelegationApprovalDigestHashResponse, error) {
 	if r.delegationManager == nil {
-		return [32]byte{}, errors.New("DelegationManager contract not provided")
+		return CalculateDelegationApprovalDigestHashResponse{}, errors.New("DelegationManager contract not provided")
 	}
 
-	return r.delegationManager.CalculateDelegationApprovalDigestHash(
-		&bind.CallOpts{Context: ctx},
-		staker,
-		operator,
-		delegationApprover,
-		approverSalt,
-		expiry,
+	digestHash, err := r.delegationManager.CalculateDelegationApprovalDigestHash(
+		&bind.CallOpts{Context: ctx, BlockNumber: blockNumber},
+		request.StakerAddress,
+		request.OperatorAddress,
+		request.ApproverAddress,
+		request.ApproverSalt,
+		request.Expiry,
 	)
+	if err != nil {
+		return CalculateDelegationApprovalDigestHashResponse{}, utils.WrapError(
+			"failed to calculate delegation approval digest hash",
+			err,
+		)
+	}
+
+	return CalculateDelegationApprovalDigestHashResponse{DigestHash: digestHash}, nil
 }
 
 func (r *ChainReader) CalculateOperatorAVSRegistrationDigestHash(

@@ -147,3 +147,15 @@ type GetOperatorSharesInStrategyRequest struct {
 type GetOperatorSharesInStrategyResponse struct {
 	Shares *big.Int
 }
+
+type CalculateDelegationApprovalDigestHashRequest struct {
+	OperatorAddress common.Address
+	StakerAddress   common.Address
+	ApproverAddress common.Address
+	ApproverSalt    [32]byte
+	Expiry          *big.Int
+}
+
+type CalculateDelegationApprovalDigestHashResponse struct {
+	DigestHash [32]byte
+}
