@@ -81,3 +81,12 @@ type RemovePendingAdminRequest struct {
 	AdminAddress   common.Address
 	WaitForReceipt bool
 }
+
+// Reader structs
+type IsOperatorRegisteredRequest struct {
+	OperatorAddress common.Address
+}
+
+type IsOperatorRegisteredResponse struct {
+	IsRegistered bool
+}
