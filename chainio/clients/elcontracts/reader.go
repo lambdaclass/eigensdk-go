@@ -93,13 +93,23 @@ func NewReaderFromConfig(
 
 func (r *ChainReader) IsOperatorRegistered(
 	ctx context.Context,
-	operator types.Operator,
-) (bool, error) {
+	blockNumber *big.Int,
+	request IsOperatorRegisteredRequest,
+) (IsOperatorRegisteredResponse, error) {
 	if r.delegationManager == nil {
-		return false, errors.New("DelegationManager contract not provided")
+		return IsOperatorRegisteredResponse{}, errors.New("DelegationManager contract not provided")
 	}
 
-	return r.delegationManager.IsOperator(&bind.CallOpts{Context: ctx}, gethcommon.HexToAddress(operator.Address))
+	isOperatorRegistered, err := r.delegationManager.IsOperator(
+		&bind.CallOpts{Context: ctx, BlockNumber: blockNumber},
+		request.OperatorAddress,
+	)
+
+	if err != nil {
+		return IsOperatorRegisteredResponse{}, err
+	}
+
+	return IsOperatorRegisteredResponse{IsRegistered: isOperatorRegistered}, nil
 }
 
 // GetStakerShares returns the amount of shares that a staker has in all of the strategies in which they have nonzero
