@@ -99,3 +99,11 @@ type GetStakerSharesResponse struct {
 	StrategiesAddresses []common.Address
 	Shares              []*big.Int
 }
+
+type GetDelegatedOperatorRequest struct {
+	StakerAddress common.Address
+}
+
+type GetDelegatedOperatorResponse struct {
+	OperatorAddress common.Address
+}

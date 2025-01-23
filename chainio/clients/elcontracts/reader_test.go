@@ -145,16 +145,17 @@ func TestChainReader(t *testing.T) {
 	})
 
 	t.Run("get delegated operator", func(t *testing.T) {
-		blockNumber := big.NewInt(0)
-		address, err := read_clients.ElChainReader.GetDelegatedOperator(
+		request := elcontracts.GetDelegatedOperatorRequest{StakerAddress: common.HexToAddress(operator.Address)}
+		t.Logf("Request: %+v", request)
+		response, err := read_clients.ElChainReader.GetDelegatedOperator(
 			ctx,
-			common.HexToAddress(operator.Address),
-			blockNumber,
+			nil,
+			request,
 		)
 
 		assert.NoError(t, err)
 		// The delegated operator of an operator is the operator itself
-		assert.Equal(t, address.String(), operator.Address)
+		assert.Equal(t, response.OperatorAddress.String(), operator.Address)
 	})
 
 	t.Run("GetOperatorShares", func(t *testing.T) {
@@ -951,8 +952,8 @@ func TestInvalidConfig(t *testing.T) {
 		// GetDelegatedOperator needs a correct DelegationManagerAddress
 		_, err := chainReader.GetDelegatedOperator(
 			context.Background(),
-			common.HexToAddress(operator.Address),
 			big.NewInt(0),
+			elcontracts.GetDelegatedOperatorRequest{},
 		)
 		require.Error(t, err)
 	})

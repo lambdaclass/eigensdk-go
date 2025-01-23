@@ -137,13 +137,23 @@ func (r *ChainReader) GetStakerShares(
 // GetDelegatedOperator returns the operator that a staker has delegated to
 func (r *ChainReader) GetDelegatedOperator(
 	ctx context.Context,
-	stakerAddress gethcommon.Address,
 	blockNumber *big.Int,
-) (gethcommon.Address, error) {
+	request GetDelegatedOperatorRequest,
+) (GetDelegatedOperatorResponse, error) {
 	if r.delegationManager == nil {
-		return gethcommon.Address{}, errors.New("DelegationManager contract not provided")
+		return GetDelegatedOperatorResponse{}, errors.New("DelegationManager contract not provided")
 	}
-	return r.delegationManager.DelegatedTo(&bind.CallOpts{Context: ctx}, stakerAddress)
+
+	operator, err := r.delegationManager.DelegatedTo(
+		&bind.CallOpts{Context: ctx, BlockNumber: blockNumber},
+		request.StakerAddress,
+	)
+
+	if err != nil {
+		return GetDelegatedOperatorResponse{}, utils.WrapError("failed to get delegated operator", err)
+	}
+
+	return GetDelegatedOperatorResponse{OperatorAddress: operator}, nil
 }
 
 func (r *ChainReader) GetOperatorDetails(
