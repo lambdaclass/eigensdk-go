@@ -234,3 +234,12 @@ type GetAllocationInfoRequest struct {
 type GetAllocationInfoResponse struct {
 	AllocationInfo []AllocationInfo
 }
+
+type GetOperatorSharesRequest struct {
+	OperatorAddress     common.Address
+	StrategiesAddresses []common.Address
+}
+
+type GetOperatorSharesResponse struct {
+	Shares []*big.Int
+}

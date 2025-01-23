@@ -544,16 +544,22 @@ func (r *ChainReader) GetAllocationInfo(
 
 func (r *ChainReader) GetOperatorShares(
 	ctx context.Context,
-	operatorAddress gethcommon.Address,
-	strategyAddresses []gethcommon.Address,
-) ([]*big.Int, error) {
+	blockNumber *big.Int,
+	request GetOperatorSharesRequest,
+) (GetOperatorSharesResponse, error) {
 	if r.delegationManager == nil {
-		return nil, errors.New("DelegationManager contract not provided")
+		return GetOperatorSharesResponse{}, errors.New("DelegationManager contract not provided")
 	}
 
-	return r.delegationManager.GetOperatorShares(&bind.CallOpts{
-		Context: ctx,
-	}, operatorAddress, strategyAddresses)
+	shares, err := r.delegationManager.GetOperatorShares(
+		&bind.CallOpts{Context: ctx, BlockNumber: blockNumber},
+		request.OperatorAddress,
+		request.StrategiesAddresses)
+	if err != nil {
+		return GetOperatorSharesResponse{}, utils.WrapError("failed to get operator shares", err)
+	}
+
+	return GetOperatorSharesResponse{Shares: shares}, nil
 }
 
 func (r *ChainReader) GetOperatorsShares(
