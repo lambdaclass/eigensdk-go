@@ -321,12 +321,22 @@ func (r *ChainReader) CalculateOperatorAVSRegistrationDigestHash(
 	return CalculateOperatorAVSRegistrationDigestHashResponse{DigestHash: digestHash}, nil
 }
 
-func (r *ChainReader) GetDistributionRootsLength(ctx context.Context) (*big.Int, error) {
+func (r *ChainReader) GetDistributionRootsLength(
+	ctx context.Context,
+	blockNumber *big.Int,
+) (GetDistributionRootsLengthResponse, error) {
 	if r.rewardsCoordinator == nil {
-		return nil, errors.New("RewardsCoordinator contract not provided")
+		return GetDistributionRootsLengthResponse{}, errors.New("RewardsCoordinator contract not provided")
 	}
 
-	return r.rewardsCoordinator.GetDistributionRootsLength(&bind.CallOpts{Context: ctx})
+	rootLength, err := r.rewardsCoordinator.GetDistributionRootsLength(
+		&bind.CallOpts{Context: ctx, BlockNumber: blockNumber},
+	)
+	if err != nil {
+		return GetDistributionRootsLengthResponse{}, utils.WrapError("failed to get distribution roots length", err)
+	}
+
+	return GetDistributionRootsLengthResponse{Length: rootLength}, nil
 }
 
 func (r *ChainReader) CurrRewardsCalculationEndTimestamp(ctx context.Context) (uint32, error) {

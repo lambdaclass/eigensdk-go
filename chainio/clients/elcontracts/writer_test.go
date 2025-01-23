@@ -1217,7 +1217,7 @@ func newTestClaim(
 	earnerTreeRoot := crypto.Keccak256(encodedEarnerLeaf)
 
 	// Fetch the next root index from contract
-	nextRootIndex, err := chainReader.GetDistributionRootsLength(context.Background())
+	response, err := chainReader.GetDistributionRootsLength(context.Background(), nil)
 	if err != nil {
 		return nil, utils.WrapError("Failed to call GetDistributionRootsLength", err)
 	}
@@ -1225,7 +1225,7 @@ func newTestClaim(
 	tokenLeaves := []rewardscoordinator.IRewardsCoordinatorTypesTokenTreeMerkleLeaf{tokenLeaf}
 	// Construct the claim
 	claim := rewardscoordinator.IRewardsCoordinatorTypesRewardsMerkleClaim{
-		RootIndex:   uint32(nextRootIndex.Uint64()),
+		RootIndex:   uint32(response.Length.Uint64()),
 		EarnerIndex: 0,
 		// Empty proof because leaf == root
 		EarnerTreeProof: []byte{},

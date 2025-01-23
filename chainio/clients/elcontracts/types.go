@@ -170,3 +170,7 @@ type CalculateOperatorAVSRegistrationDigestHashRequest struct {
 type CalculateOperatorAVSRegistrationDigestHashResponse struct {
 	DigestHash [32]byte
 }
+
+type GetDistributionRootsLengthResponse struct {
+	Length *big.Int
+}

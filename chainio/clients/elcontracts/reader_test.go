@@ -934,7 +934,7 @@ func TestInvalidConfig(t *testing.T) {
 
 	t.Run("get root with invalid config", func(t *testing.T) {
 		// GetDistributionRootsLength needs a correct RewardsCoordinatorAddress
-		_, err := chainReader.GetDistributionRootsLength(context.Background())
+		_, err := chainReader.GetDistributionRootsLength(context.Background(), nil)
 		require.Error(t, err)
 
 		// GetRootIndexFromHash needs a correct RewardsCoordinatorAddress
