@@ -90,13 +90,17 @@ func TestChainReader(t *testing.T) {
 	})
 
 	t.Run("get operator shares in strategy", func(t *testing.T) {
-		shares, err := read_clients.ElChainReader.GetOperatorSharesInStrategy(
+		request := elcontracts.GetOperatorSharesInStrategyRequest{
+			OperatorAddress: operatorAddrHex,
+			StrategyAddress: contractAddrs.Erc20MockStrategy,
+		}
+		response, err := read_clients.ElChainReader.GetOperatorSharesInStrategy(
 			ctx,
-			common.HexToAddress(operator.Address),
-			contractAddrs.Erc20MockStrategy,
+			nil,
+			request,
 		)
 		assert.NoError(t, err)
-		assert.NotZero(t, shares)
+		assert.NotZero(t, response.Shares)
 	})
 
 	t.Run("calculate delegation approval digest hash", func(t *testing.T) {
@@ -864,8 +868,13 @@ func TestInvalidConfig(t *testing.T) {
 		strategyAddr := common.HexToAddress(testutils.ANVIL_FIRST_ADDRESS)
 		operatorAddr := common.HexToAddress(testutils.ANVIL_SECOND_ADDRESS)
 
+		requestShares := elcontracts.GetOperatorSharesInStrategyRequest{
+			OperatorAddress: operatorAddr,
+			StrategyAddress: strategyAddr,
+		}
+
 		// GetOperatorSharesInStrategy needs a correct DelegationManagerAddress
-		_, err := chainReader.GetOperatorSharesInStrategy(context.Background(), operatorAddr, strategyAddr)
+		_, err := chainReader.GetOperatorSharesInStrategy(context.Background(), nil, requestShares)
 		require.Error(t, err)
 
 		// GetStrategyAndUnderlyingToken needs a correct StrategyAddress

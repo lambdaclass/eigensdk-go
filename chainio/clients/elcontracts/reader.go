@@ -103,7 +103,6 @@ func (r *ChainReader) IsOperatorRegistered(
 		&bind.CallOpts{Context: ctx, BlockNumber: blockNumber},
 		request.OperatorAddress,
 	)
-
 	if err != nil {
 		return IsOperatorRegisteredResponse{}, utils.WrapError("failed to check if operator is registered", err)
 	}
@@ -147,7 +146,6 @@ func (r *ChainReader) GetDelegatedOperator(
 		&bind.CallOpts{Context: ctx, BlockNumber: blockNumber},
 		request.StakerAddress,
 	)
-
 	if err != nil {
 		return GetDelegatedOperatorResponse{}, utils.WrapError("failed to get delegated operator", err)
 	}
@@ -166,7 +164,7 @@ func (r *ChainReader) GetOperatorDetails(
 	}
 
 	delegationManagerAddress, err := r.delegationManager.DelegationApprover(
-		&bind.CallOpts{Context: ctx},
+		&bind.CallOpts{Context: ctx, BlockNumber: blockNumber},
 		request.OperatorAddress,
 	)
 	// This call should not fail since it's a getter
@@ -210,7 +208,7 @@ func (r *ChainReader) GetStrategyAndUnderlyingToken(
 	if err != nil {
 		return GetStrategyAndUnderlyingTokenResponse{}, utils.WrapError("Failed to fetch strategy contract", err)
 	}
-	underlyingTokenAddr, err := contractStrategy.UnderlyingToken(&bind.CallOpts{Context: ctx})
+	underlyingTokenAddr, err := contractStrategy.UnderlyingToken(&bind.CallOpts{Context: ctx, BlockNumber: blockNumber})
 	if err != nil {
 		return GetStrategyAndUnderlyingTokenResponse{}, utils.WrapError("Failed to fetch token contract", err)
 	}
@@ -232,7 +230,7 @@ func (r *ChainReader) GetStrategyAndUnderlyingERC20Token(
 	if err != nil {
 		return GetStrategyAndUnderlyingERC20TokenResponse{}, utils.WrapError("Failed to fetch strategy contract", err)
 	}
-	underlyingTokenAddr, err := contractStrategy.UnderlyingToken(&bind.CallOpts{Context: ctx})
+	underlyingTokenAddr, err := contractStrategy.UnderlyingToken(&bind.CallOpts{Context: ctx, BlockNumber: blockNumber})
 	if err != nil {
 		return GetStrategyAndUnderlyingERC20TokenResponse{}, utils.WrapError("Failed to fetch token contract", err)
 	}
@@ -250,18 +248,23 @@ func (r *ChainReader) GetStrategyAndUnderlyingERC20Token(
 
 func (r *ChainReader) GetOperatorSharesInStrategy(
 	ctx context.Context,
-	operatorAddr gethcommon.Address,
-	strategyAddr gethcommon.Address,
-) (*big.Int, error) {
+	blockNumber *big.Int,
+	request GetOperatorSharesInStrategyRequest,
+) (GetOperatorSharesInStrategyResponse, error) {
 	if r.delegationManager == nil {
-		return &big.Int{}, errors.New("DelegationManager contract not provided")
+		return GetOperatorSharesInStrategyResponse{}, errors.New("DelegationManager contract not provided")
 	}
 
-	return r.delegationManager.OperatorShares(
-		&bind.CallOpts{Context: ctx},
-		operatorAddr,
-		strategyAddr,
+	shares, err := r.delegationManager.OperatorShares(
+		&bind.CallOpts{Context: ctx, BlockNumber: blockNumber},
+		request.OperatorAddress,
+		request.StrategyAddress,
 	)
+	if err != nil {
+		return GetOperatorSharesInStrategyResponse{}, utils.WrapError("failed to get operator shares in strategy", err)
+	}
+
+	return GetOperatorSharesInStrategyResponse{Shares: shares}, nil
 }
 
 func (r *ChainReader) CalculateDelegationApprovalDigestHash(

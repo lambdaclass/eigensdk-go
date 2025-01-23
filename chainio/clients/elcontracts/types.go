@@ -138,3 +138,12 @@ type GetStrategyAndUnderlyingERC20TokenResponse struct {
 	ERC20Bindings          erc20.ContractIERC20Methods
 	UnderlyingTokenAddress common.Address
 }
+
+type GetOperatorSharesInStrategyRequest struct {
+	OperatorAddress common.Address
+	StrategyAddress common.Address
+}
+
+type GetOperatorSharesInStrategyResponse struct {
+	Shares *big.Int
+}
