@@ -18,9 +18,7 @@ import (
 	avsdirectory "github.com/Layr-Labs/eigensdk-go/contracts/bindings/AVSDirectory"
 	allocationmanager "github.com/Layr-Labs/eigensdk-go/contracts/bindings/AllocationManager"
 	delegationmanager "github.com/Layr-Labs/eigensdk-go/contracts/bindings/DelegationManager"
-	erc20 "github.com/Layr-Labs/eigensdk-go/contracts/bindings/IERC20"
 	rewardscoordinator "github.com/Layr-Labs/eigensdk-go/contracts/bindings/IRewardsCoordinator"
-	strategy "github.com/Layr-Labs/eigensdk-go/contracts/bindings/IStrategy"
 	permissioncontroller "github.com/Layr-Labs/eigensdk-go/contracts/bindings/PermissionController"
 	regcoord "github.com/Layr-Labs/eigensdk-go/contracts/bindings/RegistryCoordinator"
 	strategymanager "github.com/Layr-Labs/eigensdk-go/contracts/bindings/StrategyManager"
@@ -33,8 +31,10 @@ import (
 
 type Reader interface {
 	GetStrategyAndUnderlyingERC20Token(
-		ctx context.Context, strategyAddr gethcommon.Address,
-	) (*strategy.ContractIStrategy, erc20.ContractIERC20Methods, gethcommon.Address, error)
+		ctx context.Context,
+		blockNumber *big.Int,
+		request GetStrategyAndUnderlyingERC20TokenRequest,
+	) (GetStrategyAndUnderlyingERC20TokenResponse, error)
 }
 
 type ChainWriter struct {
@@ -242,15 +242,22 @@ func (w *ChainWriter) DepositERC20IntoStrategy(
 	if err != nil {
 		return nil, err
 	}
-	_, underlyingTokenContract, underlyingTokenAddr, err := w.elChainReader.GetStrategyAndUnderlyingERC20Token(
+
+	request := GetStrategyAndUnderlyingERC20TokenRequest{
+		StrategyAddress: strategyAddr,
+	}
+
+	// TODO: Review this function after finishing the refactor of the ChainReader
+	response, err := w.elChainReader.GetStrategyAndUnderlyingERC20Token(
 		ctx,
-		strategyAddr,
+		nil,
+		request,
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	tx, err := underlyingTokenContract.Approve(noSendTxOpts, w.strategyManagerAddr, amount)
+	tx, err := response.ERC20Bindings.Approve(noSendTxOpts, w.strategyManagerAddr, amount)
 	if err != nil {
 		return nil, errors.Join(errors.New("failed to approve token transfer"), err)
 	}
@@ -259,7 +266,7 @@ func (w *ChainWriter) DepositERC20IntoStrategy(
 		return nil, errors.New("failed to send tx with err: " + err.Error())
 	}
 
-	tx, err = w.strategyManager.DepositIntoStrategy(noSendTxOpts, strategyAddr, underlyingTokenAddr, amount)
+	tx, err = w.strategyManager.DepositIntoStrategy(noSendTxOpts, strategyAddr, response.UnderlyingTokenAddress, amount)
 	if err != nil {
 		return nil, err
 	}

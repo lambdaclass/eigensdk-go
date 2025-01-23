@@ -4,6 +4,7 @@ import (
 	"math/big"
 
 	allocationmanager "github.com/Layr-Labs/eigensdk-go/contracts/bindings/AllocationManager"
+	erc20 "github.com/Layr-Labs/eigensdk-go/contracts/bindings/IERC20"
 	strategy "github.com/Layr-Labs/eigensdk-go/contracts/bindings/IStrategy"
 	"github.com/Layr-Labs/eigensdk-go/crypto/bls"
 
@@ -125,5 +126,15 @@ type GetStrategyAndUnderlyingTokenRequest struct {
 
 type GetStrategyAndUnderlyingTokenResponse struct {
 	StrategyContract       *strategy.ContractIStrategy
+	UnderlyingTokenAddress common.Address
+}
+
+type GetStrategyAndUnderlyingERC20TokenRequest struct {
+	StrategyAddress common.Address
+}
+
+type GetStrategyAndUnderlyingERC20TokenResponse struct {
+	StrategyContract       *strategy.ContractIStrategy
+	ERC20Bindings          erc20.ContractIERC20Methods
 	UnderlyingTokenAddress common.Address
 }

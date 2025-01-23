@@ -71,17 +71,20 @@ func TestChainReader(t *testing.T) {
 	})
 
 	t.Run("get strategy and underlying ERC20 token", func(t *testing.T) {
-		strategyAddr := contractAddrs.Erc20MockStrategy
-		strategy, contractUnderlyingToken, underlyingTokenAddr, err := read_clients.ElChainReader.GetStrategyAndUnderlyingERC20Token(
+		request := elcontracts.GetStrategyAndUnderlyingERC20TokenRequest{
+			StrategyAddress: contractAddrs.Erc20MockStrategy,
+		}
+		response, err := read_clients.ElChainReader.GetStrategyAndUnderlyingERC20Token(
 			ctx,
-			strategyAddr,
+			nil,
+			request,
 		)
 		assert.NoError(t, err)
-		assert.NotNil(t, strategy)
-		assert.NotEqual(t, common.Address{}, underlyingTokenAddr)
-		assert.NotNil(t, contractUnderlyingToken)
+		assert.NotNil(t, response.StrategyContract)
+		assert.NotEqual(t, common.Address{}, response.UnderlyingTokenAddress)
+		assert.NotNil(t, response.ERC20Bindings)
 
-		tokenName, err := contractUnderlyingToken.Name(&bind.CallOpts{})
+		tokenName, err := response.ERC20Bindings.Name(&bind.CallOpts{})
 		assert.NoError(t, err)
 		assert.NotEmpty(t, tokenName)
 	})
@@ -438,20 +441,23 @@ func TestGetCumulativeClaimedRewards(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, receipt.Status == gethtypes.ReceiptStatusSuccessful)
 
-	strategyAddr := contractAddrs.Erc20MockStrategy
-	strategy, contractUnderlyingToken, underlyingTokenAddr, err := clients.ElChainReader.GetStrategyAndUnderlyingERC20Token(
+	request := elcontracts.GetStrategyAndUnderlyingERC20TokenRequest{
+		StrategyAddress: contractAddrs.Erc20MockStrategy,
+	}
+	response, err := clients.ElChainReader.GetStrategyAndUnderlyingERC20Token(
 		ctx,
-		strategyAddr,
+		nil,
+		request,
 	)
 	assert.NoError(t, err)
-	assert.NotNil(t, strategy)
-	assert.NotEqual(t, common.Address{}, underlyingTokenAddr)
-	assert.NotNil(t, contractUnderlyingToken)
+	assert.NotNil(t, response.StrategyContract)
+	assert.NotEqual(t, common.Address{}, response.UnderlyingTokenAddress)
+	assert.NotNil(t, response.ERC20Bindings)
 
 	anvil_address := common.HexToAddress(testutils.ANVIL_FIRST_ADDRESS)
 
 	// This tests that without claims result is zero
-	claimed, err := chainReader.GetCumulativeClaimed(ctx, anvil_address, underlyingTokenAddr)
+	claimed, err := chainReader.GetCumulativeClaimed(ctx, anvil_address, response.UnderlyingTokenAddress)
 	assert.Zero(t, claimed.Cmp(big.NewInt(0)))
 	assert.NoError(t, err)
 
@@ -464,7 +470,7 @@ func TestGetCumulativeClaimedRewards(t *testing.T) {
 	require.True(t, receipt.Status == gethtypes.ReceiptStatusSuccessful)
 
 	// This tests that with a claim result is cumulativeEarnings
-	claimed, err = chainReader.GetCumulativeClaimed(ctx, anvil_address, underlyingTokenAddr)
+	claimed, err = chainReader.GetCumulativeClaimed(ctx, anvil_address, response.UnderlyingTokenAddress)
 	assert.Equal(t, claimed, big.NewInt(cumulativeEarnings))
 	assert.NoError(t, err)
 }
@@ -503,15 +509,18 @@ func TestCheckClaim(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, receipt.Status == gethtypes.ReceiptStatusSuccessful)
 
-	strategyAddr := contractAddrs.Erc20MockStrategy
-	strategy, contractUnderlyingToken, underlyingTokenAddr, err := clients.ElChainReader.GetStrategyAndUnderlyingERC20Token(
+	request := elcontracts.GetStrategyAndUnderlyingERC20TokenRequest{
+		StrategyAddress: contractAddrs.Erc20MockStrategy,
+	}
+	response, err := clients.ElChainReader.GetStrategyAndUnderlyingERC20Token(
 		ctx,
-		strategyAddr,
+		nil,
+		request,
 	)
 	assert.NoError(t, err)
-	assert.NotNil(t, strategy)
-	assert.NotEqual(t, common.Address{}, underlyingTokenAddr)
-	assert.NotNil(t, contractUnderlyingToken)
+	assert.NotNil(t, response.StrategyContract)
+	assert.NotEqual(t, common.Address{}, response.UnderlyingTokenAddress)
+	assert.NotNil(t, response.ERC20Bindings)
 
 	checked, err := chainReader.CheckClaim(ctx, *claim)
 	require.NoError(t, err)
@@ -794,7 +803,11 @@ func TestContractErrorCases(t *testing.T) {
 	})
 
 	t.Run("GetStrategyAndUnderlyingERC20Token", func(t *testing.T) {
-		_, _, _, err := chainReader.GetStrategyAndUnderlyingERC20Token(ctx, strategyAddr)
+		_, err := chainReader.GetStrategyAndUnderlyingERC20Token(
+			ctx,
+			nil,
+			elcontracts.GetStrategyAndUnderlyingERC20TokenRequest{StrategyAddress: strategyAddr},
+		)
 		assert.Error(t, err)
 		assert.Equal(t, err.Error(), "Failed to fetch token contract: no contract code at given address")
 	})
@@ -862,7 +875,11 @@ func TestInvalidConfig(t *testing.T) {
 		_, err = chainReader.GetStrategyAndUnderlyingToken(context.Background(), nil, request)
 		require.Error(t, err)
 
-		_, _, _, err = chainReader.GetStrategyAndUnderlyingERC20Token(context.Background(), strategyAddr)
+		_, err = chainReader.GetStrategyAndUnderlyingERC20Token(
+			context.Background(),
+			nil,
+			elcontracts.GetStrategyAndUnderlyingERC20TokenRequest{StrategyAddress: strategyAddr},
+		)
 		require.Error(t, err)
 	})
 

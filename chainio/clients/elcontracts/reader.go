@@ -224,23 +224,28 @@ func (r *ChainReader) GetStrategyAndUnderlyingToken(
 // and the underlying token address
 func (r *ChainReader) GetStrategyAndUnderlyingERC20Token(
 	ctx context.Context,
-	strategyAddr gethcommon.Address,
-) (*strategy.ContractIStrategy, erc20.ContractIERC20Methods, gethcommon.Address, error) {
-	contractStrategy, err := strategy.NewContractIStrategy(strategyAddr, r.ethClient)
+	blockNumber *big.Int,
+	request GetStrategyAndUnderlyingERC20TokenRequest,
+) (GetStrategyAndUnderlyingERC20TokenResponse, error) {
+	contractStrategy, err := strategy.NewContractIStrategy(request.StrategyAddress, r.ethClient)
 	// This call should not fail since it's an init
 	if err != nil {
-		return nil, nil, gethcommon.Address{}, utils.WrapError("Failed to fetch strategy contract", err)
+		return GetStrategyAndUnderlyingERC20TokenResponse{}, utils.WrapError("Failed to fetch strategy contract", err)
 	}
 	underlyingTokenAddr, err := contractStrategy.UnderlyingToken(&bind.CallOpts{Context: ctx})
 	if err != nil {
-		return nil, nil, gethcommon.Address{}, utils.WrapError("Failed to fetch token contract", err)
+		return GetStrategyAndUnderlyingERC20TokenResponse{}, utils.WrapError("Failed to fetch token contract", err)
 	}
 	contractUnderlyingToken, err := erc20.NewContractIERC20(underlyingTokenAddr, r.ethClient)
 	// This call should not fail, if the strategy does not have an underlying token then it would enter the if above
 	if err != nil {
-		return nil, nil, gethcommon.Address{}, utils.WrapError("Failed to fetch token contract", err)
+		return GetStrategyAndUnderlyingERC20TokenResponse{}, utils.WrapError("Failed to fetch token contract", err)
 	}
-	return contractStrategy, contractUnderlyingToken, underlyingTokenAddr, nil
+	return GetStrategyAndUnderlyingERC20TokenResponse{
+		StrategyContract:       contractStrategy,
+		ERC20Bindings:          contractUnderlyingToken,
+		UnderlyingTokenAddress: underlyingTokenAddr,
+	}, nil
 }
 
 func (r *ChainReader) GetOperatorSharesInStrategy(
