@@ -405,14 +405,23 @@ func (r *ChainReader) GetRootIndexFromHash(
 
 func (r *ChainReader) GetCumulativeClaimed(
 	ctx context.Context,
-	earner gethcommon.Address,
-	token gethcommon.Address,
-) (*big.Int, error) {
+	blockNumber *big.Int,
+	request GetCumulativeClaimedRequest,
+) (GetCumulativeClaimedResponse, error) {
 	if r.rewardsCoordinator == nil {
-		return nil, errors.New("RewardsCoordinator contract not provided")
+		return GetCumulativeClaimedResponse{}, errors.New("RewardsCoordinator contract not provided")
 	}
 
-	return r.rewardsCoordinator.CumulativeClaimed(&bind.CallOpts{Context: ctx}, earner, token)
+	cumulativeClaimed, err := r.rewardsCoordinator.CumulativeClaimed(
+		&bind.CallOpts{Context: ctx, BlockNumber: blockNumber},
+		request.ClaimerAddress,
+		request.TokenAddress,
+	)
+	if err != nil {
+		return GetCumulativeClaimedResponse{}, utils.WrapError("failed to get cumulative claimed", err)
+	}
+
+	return GetCumulativeClaimedResponse{CumulativeClaimed: cumulativeClaimed}, nil
 }
 
 func (r *ChainReader) CheckClaim(

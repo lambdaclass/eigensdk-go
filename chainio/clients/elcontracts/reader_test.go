@@ -476,11 +476,13 @@ func TestGetCumulativeClaimedRewards(t *testing.T) {
 	assert.NotEqual(t, common.Address{}, response.UnderlyingTokenAddress)
 	assert.NotNil(t, response.ERC20Bindings)
 
-	anvil_address := common.HexToAddress(testutils.ANVIL_FIRST_ADDRESS)
-
 	// This tests that without claims result is zero
-	claimed, err := chainReader.GetCumulativeClaimed(ctx, anvil_address, response.UnderlyingTokenAddress)
-	assert.Zero(t, claimed.Cmp(big.NewInt(0)))
+	requestClaimed := elcontracts.GetCumulativeClaimedRequest{
+		ClaimerAddress: common.HexToAddress(testutils.ANVIL_FIRST_ADDRESS),
+		TokenAddress:   response.UnderlyingTokenAddress,
+	}
+	responseClaimed, err := chainReader.GetCumulativeClaimed(ctx, nil, requestClaimed)
+	assert.Zero(t, responseClaimed.CumulativeClaimed.Cmp(big.NewInt(0)))
 	assert.NoError(t, err)
 
 	cumulativeEarnings := int64(45)
@@ -492,8 +494,8 @@ func TestGetCumulativeClaimedRewards(t *testing.T) {
 	require.True(t, receipt.Status == gethtypes.ReceiptStatusSuccessful)
 
 	// This tests that with a claim result is cumulativeEarnings
-	claimed, err = chainReader.GetCumulativeClaimed(ctx, anvil_address, response.UnderlyingTokenAddress)
-	assert.Equal(t, claimed, big.NewInt(cumulativeEarnings))
+	responseClaimed, err = chainReader.GetCumulativeClaimed(ctx, nil, requestClaimed)
+	assert.Equal(t, responseClaimed.CumulativeClaimed, big.NewInt(cumulativeEarnings))
 	assert.NoError(t, err)
 }
 
@@ -962,8 +964,8 @@ func TestInvalidConfig(t *testing.T) {
 
 		_, err := chainReader.GetCumulativeClaimed(
 			context.Background(),
-			common.HexToAddress(testutils.ANVIL_THIRD_ADDRESS),
-			common.HexToAddress(testutils.ANVIL_SECOND_ADDRESS),
+			nil,
+			elcontracts.GetCumulativeClaimedRequest{},
 		)
 		require.Error(t, err)
 

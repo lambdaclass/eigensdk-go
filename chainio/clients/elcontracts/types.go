@@ -191,3 +191,12 @@ type GetRootIndexFromHashRequest struct {
 type GetRootIndexFromHashResponse struct {
 	RootIndex uint32
 }
+
+type GetCumulativeClaimedRequest struct {
+	ClaimerAddress common.Address
+	TokenAddress   common.Address
+}
+
+type GetCumulativeClaimedResponse struct {
+	CumulativeClaimed *big.Int
+}
