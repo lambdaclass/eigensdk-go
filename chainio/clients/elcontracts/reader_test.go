@@ -546,9 +546,12 @@ func TestCheckClaim(t *testing.T) {
 	assert.NotEqual(t, common.Address{}, response.UnderlyingTokenAddress)
 	assert.NotNil(t, response.ERC20Bindings)
 
-	checked, err := chainReader.CheckClaim(ctx, *claim)
+	requestClaim := elcontracts.CheckClaimRequest{
+		Claim: *claim,
+	}
+	responseClaim, err := chainReader.CheckClaim(ctx, nil, requestClaim)
 	require.NoError(t, err)
-	assert.True(t, checked)
+	assert.True(t, responseClaim.IsValid)
 }
 
 func TestGetAllocatableMagnitudeAndGetMaxMagnitudes(t *testing.T) {
@@ -991,7 +994,8 @@ func TestInvalidConfig(t *testing.T) {
 
 		_, err = chainReader.CheckClaim(
 			context.Background(),
-			rewardscoordinator.IRewardsCoordinatorTypesRewardsMerkleClaim{},
+			nil,
+			elcontracts.CheckClaimRequest{},
 		)
 		require.Error(t, err)
 

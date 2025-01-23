@@ -200,3 +200,11 @@ type GetCumulativeClaimedRequest struct {
 type GetCumulativeClaimedResponse struct {
 	CumulativeClaimed *big.Int
 }
+
+type CheckClaimRequest struct {
+	Claim rewardscoordinator.IRewardsCoordinatorTypesRewardsMerkleClaim
+}
+
+type CheckClaimResponse struct {
+	IsValid bool
+}

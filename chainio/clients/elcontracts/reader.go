@@ -426,13 +426,22 @@ func (r *ChainReader) GetCumulativeClaimed(
 
 func (r *ChainReader) CheckClaim(
 	ctx context.Context,
-	claim rewardscoordinator.IRewardsCoordinatorTypesRewardsMerkleClaim,
-) (bool, error) {
+	blockNumber *big.Int,
+	request CheckClaimRequest,
+) (CheckClaimResponse, error) {
 	if r.rewardsCoordinator == nil {
-		return false, errors.New("RewardsCoordinator contract not provided")
+		return CheckClaimResponse{}, errors.New("RewardsCoordinator contract not provided")
 	}
 
-	return r.rewardsCoordinator.CheckClaim(&bind.CallOpts{Context: ctx}, claim)
+	isClaimed, err := r.rewardsCoordinator.CheckClaim(
+		&bind.CallOpts{Context: ctx, BlockNumber: blockNumber},
+		request.Claim,
+	)
+	if err != nil {
+		return CheckClaimResponse{}, utils.WrapError("failed to check claim", err)
+	}
+
+	return CheckClaimResponse{IsValid: isClaimed}, nil
 }
 
 func (r *ChainReader) GetOperatorAVSSplit(
