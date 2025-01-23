@@ -174,3 +174,7 @@ type CalculateOperatorAVSRegistrationDigestHashResponse struct {
 type GetDistributionRootsLengthResponse struct {
 	Length *big.Int
 }
+
+type CurrRewardsCalculationEndTimestampResponse struct {
+	Timestamp uint32
+}

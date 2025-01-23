@@ -309,10 +309,10 @@ func TestGetCurrentClaimableDistributionRoot(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Zero(t, distr_root.Root)
 
-	currRewardsCalculationEndTimestamp, err := chainReader.CurrRewardsCalculationEndTimestamp(context.Background())
+	response, err := chainReader.CurrRewardsCalculationEndTimestamp(context.Background(), nil)
 	require.NoError(t, err)
 
-	tx, err = rewardsCoordinator.SubmitRoot(noSendTxOpts, root, currRewardsCalculationEndTimestamp+1)
+	tx, err = rewardsCoordinator.SubmitRoot(noSendTxOpts, root, response.Timestamp+1)
 	require.NoError(t, err)
 
 	_, err = txManager.Send(context.Background(), tx, waitForReceipt)
@@ -387,10 +387,10 @@ func TestGetRootIndexFromRootHash(t *testing.T) {
 	)
 	assert.Zero(t, root_index)
 
-	currRewardsCalculationEndTimestamp, err := chainReader.CurrRewardsCalculationEndTimestamp(context.Background())
+	response, err := chainReader.CurrRewardsCalculationEndTimestamp(context.Background(), nil)
 	require.NoError(t, err)
 
-	tx, err = rewardsCoordinator.SubmitRoot(noSendTxOpts, root, currRewardsCalculationEndTimestamp+1)
+	tx, err = rewardsCoordinator.SubmitRoot(noSendTxOpts, root, response.Timestamp+1)
 	require.NoError(t, err)
 
 	_, err = txManager.Send(context.Background(), tx, waitForReceipt)
@@ -403,10 +403,10 @@ func TestGetRootIndexFromRootHash(t *testing.T) {
 		0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
 	}
 
-	currRewardsCalculationEndTimestamp2, err := chainReader.CurrRewardsCalculationEndTimestamp(context.Background())
+	response2, err := chainReader.CurrRewardsCalculationEndTimestamp(context.Background(), nil)
 	require.NoError(t, err)
 
-	tx, err = rewardsCoordinator.SubmitRoot(noSendTxOpts, root2, currRewardsCalculationEndTimestamp2+1)
+	tx, err = rewardsCoordinator.SubmitRoot(noSendTxOpts, root2, response2.Timestamp+1)
 	require.NoError(t, err)
 
 	_, err = txManager.Send(context.Background(), tx, waitForReceipt)
@@ -985,7 +985,7 @@ func TestInvalidConfig(t *testing.T) {
 		)
 		require.Error(t, err)
 
-		_, err = chainReader.CurrRewardsCalculationEndTimestamp(context.Background())
+		_, err = chainReader.CurrRewardsCalculationEndTimestamp(context.Background(), nil)
 		require.Error(t, err)
 	})
 

@@ -1238,7 +1238,7 @@ func newTestClaim(
 
 	root := [32]byte(earnerTreeRoot)
 	// Fetch the current timestamp to increase it
-	currRewardsCalculationEndTimestamp, err := chainReader.CurrRewardsCalculationEndTimestamp(context.Background())
+	responseTimestamp, err := chainReader.CurrRewardsCalculationEndTimestamp(context.Background(), nil)
 	if err != nil {
 		return nil, utils.WrapError("Failed to call CurrRewardsCalculationEndTimestamp", err)
 	}
@@ -1261,7 +1261,7 @@ func newTestClaim(
 		return nil, utils.WrapError("Failed to setRewardsUpdate", err)
 	}
 
-	tx, err = rewardsCoordinator.SubmitRoot(noSendTxOpts, root, currRewardsCalculationEndTimestamp+1)
+	tx, err = rewardsCoordinator.SubmitRoot(noSendTxOpts, root, responseTimestamp.Timestamp+1)
 	if err != nil {
 		return nil, utils.WrapError("Failed to create SubmitRoot tx", err)
 	}

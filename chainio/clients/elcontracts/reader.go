@@ -339,12 +339,25 @@ func (r *ChainReader) GetDistributionRootsLength(
 	return GetDistributionRootsLengthResponse{Length: rootLength}, nil
 }
 
-func (r *ChainReader) CurrRewardsCalculationEndTimestamp(ctx context.Context) (uint32, error) {
+func (r *ChainReader) CurrRewardsCalculationEndTimestamp(
+	ctx context.Context,
+	blockNumber *big.Int,
+) (CurrRewardsCalculationEndTimestampResponse, error) {
 	if r.rewardsCoordinator == nil {
-		return 0, errors.New("RewardsCoordinator contract not provided")
+		return CurrRewardsCalculationEndTimestampResponse{}, errors.New("RewardsCoordinator contract not provided")
 	}
 
-	return r.rewardsCoordinator.CurrRewardsCalculationEndTimestamp(&bind.CallOpts{Context: ctx})
+	timestamp, err := r.rewardsCoordinator.CurrRewardsCalculationEndTimestamp(
+		&bind.CallOpts{Context: ctx, BlockNumber: blockNumber},
+	)
+	if err != nil {
+		return CurrRewardsCalculationEndTimestampResponse{}, utils.WrapError(
+			"failed to get current rewards calculation end timestamp",
+			err,
+		)
+	}
+
+	return CurrRewardsCalculationEndTimestampResponse{Timestamp: timestamp}, nil
 }
 
 func (r *ChainReader) GetCurrentClaimableDistributionRoot(
