@@ -125,14 +125,23 @@ func TestChainReader(t *testing.T) {
 	})
 
 	t.Run("get staker shares", func(t *testing.T) {
-		strategies, shares, err := read_clients.ElChainReader.GetStakerShares(
+		request := elcontracts.GetStakerSharesRequest{
+			StakerAddress: common.HexToAddress(operator.Address),
+		}
+		response, err := read_clients.ElChainReader.GetStakerShares(
 			ctx,
-			common.HexToAddress(operator.Address),
+			nil,
+			request,
 		)
-		assert.NotZero(t, len(strategies), "Strategies has at least one element")
-		assert.NotZero(t, len(shares), "Shares has at least one element")
-		assert.Equal(t, len(strategies), len(shares), "Strategies has the same ammount of elements as shares")
 		assert.NoError(t, err)
+		assert.NotZero(t, len(response.StrategiesAddresses), "Strategies has at least one element")
+		assert.NotZero(t, len(response.Shares), "Shares has at least one element")
+		assert.Equal(
+			t,
+			len(response.StrategiesAddresses),
+			len(response.Shares),
+			"Strategies has the same ammount of elements as shares",
+		)
 	})
 
 	t.Run("get delegated operator", func(t *testing.T) {
@@ -931,7 +940,10 @@ func TestInvalidConfig(t *testing.T) {
 
 	t.Run("try to get a staker shares with invalid config", func(t *testing.T) {
 		// GetStakerShares needs a correct DelegationManagerAddress
-		_, _, err := chainReader.GetStakerShares(context.Background(), common.HexToAddress(operator.Address))
+		request := elcontracts.GetStakerSharesRequest{
+			StakerAddress: common.HexToAddress(operator.Address),
+		}
+		_, err := chainReader.GetStakerShares(context.Background(), nil, request)
 		require.Error(t, err)
 	})
 

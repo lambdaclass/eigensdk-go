@@ -90,3 +90,12 @@ type IsOperatorRegisteredRequest struct {
 type IsOperatorRegisteredResponse struct {
 	IsRegistered bool
 }
+
+type GetStakerSharesRequest struct {
+	StakerAddress common.Address
+}
+
+type GetStakerSharesResponse struct {
+	StrategiesAddresses []common.Address
+	Shares              []*big.Int
+}
