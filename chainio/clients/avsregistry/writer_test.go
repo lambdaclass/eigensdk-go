@@ -44,6 +44,9 @@ func TestWriterMethods(t *testing.T) {
 
 	quorumNumbers := types.QuorumNums{0}
 
+	subCtx, cancelFn := context.WithCancel(context.Background())
+	cancelFn()
+
 	t.Run("update socket without being registered", func(t *testing.T) {
 		receipt, err := chainWriter.UpdateSocket(
 			context.Background(),
@@ -122,8 +125,6 @@ func TestWriterMethods(t *testing.T) {
 
 	// Error cases
 	t.Run("fail register operator cancelling context", func(t *testing.T) {
-		subCtx, cancelFn := context.WithCancel(context.Background())
-		cancelFn()
 		receipt, err := chainWriter.RegisterOperator(
 			subCtx,
 			ecdsaPrivateKey,
@@ -137,8 +138,6 @@ func TestWriterMethods(t *testing.T) {
 	})
 
 	t.Run("fail update stake of operator subset cancelling context", func(t *testing.T) {
-		subCtx, cancelFn := context.WithCancel(context.Background())
-		cancelFn()
 		receipt, err := chainWriter.UpdateStakesOfOperatorSubsetForAllQuorums(
 			subCtx,
 			[]gethcommon.Address{addr},
@@ -149,8 +148,6 @@ func TestWriterMethods(t *testing.T) {
 	})
 
 	t.Run("fail update stake of entire operator set cancelling context", func(t *testing.T) {
-		subCtx, cancelFn := context.WithCancel(context.Background())
-		cancelFn()
 		receipt, err := chainWriter.UpdateStakesOfEntireOperatorSetForQuorums(
 			subCtx,
 			[][]gethcommon.Address{{addr}},
@@ -174,8 +171,6 @@ func TestWriterMethods(t *testing.T) {
 	})
 
 	t.Run("fail deregister operator cancelling context", func(t *testing.T) {
-		subCtx, cancelFn := context.WithCancel(context.Background())
-		cancelFn()
 		receipt, err := chainWriter.DeregisterOperator(
 			subCtx,
 			quorumNumbers,
@@ -199,9 +194,6 @@ func TestWriterMethods(t *testing.T) {
 	})
 
 	t.Run("fail update socket cancelling context", func(t *testing.T) {
-		subCtx, cancelFn := context.WithCancel(context.Background())
-
-		cancelFn()
 		receipt, err := chainWriter.UpdateSocket(
 			subCtx,
 			types.Socket(""),
