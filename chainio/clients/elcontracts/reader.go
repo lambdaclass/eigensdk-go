@@ -106,7 +106,7 @@ func (r *ChainReader) IsOperatorRegistered(
 	)
 
 	if err != nil {
-		return IsOperatorRegisteredResponse{}, err
+		return IsOperatorRegisteredResponse{}, utils.WrapError("failed to check if operator is registered", err)
 	}
 
 	return IsOperatorRegisteredResponse{IsRegistered: isOperatorRegistered}, nil
