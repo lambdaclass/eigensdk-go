@@ -225,3 +225,12 @@ type GetMaxMagnitudes0Request struct {
 type GetMaxMagnitudes0Response struct {
 	MaxMagnitudes []uint64
 }
+
+type GetAllocationInfoRequest struct {
+	OperatorAddress common.Address
+	StrategyAddress common.Address
+}
+
+type GetAllocationInfoResponse struct {
+	AllocationInfo []AllocationInfo
+}

@@ -511,21 +511,21 @@ func (r *ChainReader) GetMaxMagnitudes(
 
 func (r *ChainReader) GetAllocationInfo(
 	ctx context.Context,
-	operatorAddress gethcommon.Address,
-	strategyAddress gethcommon.Address,
-) ([]AllocationInfo, error) {
+	blockNumber *big.Int,
+	request GetAllocationInfoRequest,
+) (GetAllocationInfoResponse, error) {
 	if r.allocationManager == nil {
-		return nil, errors.New("AllocationManager contract not provided")
+		return GetAllocationInfoResponse{}, errors.New("AllocationManager contract not provided")
 	}
 
 	opSets, allocationInfo, err := r.allocationManager.GetStrategyAllocations(
 		&bind.CallOpts{Context: ctx},
-		operatorAddress,
-		strategyAddress,
+		request.OperatorAddress,
+		request.StrategyAddress,
 	)
 	// This call should not fail since it's a getter
 	if err != nil {
-		return nil, err
+		return GetAllocationInfoResponse{}, err
 	}
 
 	allocationsInfo := make([]AllocationInfo, len(opSets))
@@ -539,7 +539,7 @@ func (r *ChainReader) GetAllocationInfo(
 		}
 	}
 
-	return allocationsInfo, nil
+	return GetAllocationInfoResponse{AllocationInfo: allocationsInfo}, nil
 }
 
 func (r *ChainReader) GetOperatorShares(

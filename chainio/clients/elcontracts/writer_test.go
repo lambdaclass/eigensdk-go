@@ -647,11 +647,15 @@ func TestModifyAllocations(t *testing.T) {
 	require.Equal(t, gethtypes.ReceiptStatusSuccessful, receipt.Status)
 
 	// Check that the new allocation is pending and the current magnitude is zero
-	allocationInfo, err := chainReader.GetAllocationInfo(context.Background(), operatorAddr, strategyAddr)
+	request := elcontracts.GetAllocationInfoRequest{
+		OperatorAddress: operatorAddr,
+		StrategyAddress: strategyAddr,
+	}
+	response, err := chainReader.GetAllocationInfo(context.Background(), nil, request)
 	require.NoError(t, err)
-	pendingDiff := allocationInfo[0].PendingDiff
+	pendingDiff := response.AllocationInfo[0].PendingDiff
 	require.Equal(t, big.NewInt(int64(newAllocation)), pendingDiff)
-	require.Equal(t, allocationInfo[0].CurrentMagnitude, big.NewInt(0))
+	require.Equal(t, response.AllocationInfo[0].CurrentMagnitude, big.NewInt(0))
 
 	// Retrieve the allocation delay and advance the chain
 	allocationDelay, err := chainReader.GetAllocationDelay(context.Background(), operatorAddr)
@@ -659,10 +663,10 @@ func TestModifyAllocations(t *testing.T) {
 	testutils.AdvanceChainByNBlocksExecInContainer(context.Background(), int(allocationDelay), anvilC)
 
 	// Check the new allocation has been updated after the delay
-	allocationInfo, err = chainReader.GetAllocationInfo(context.Background(), operatorAddr, strategyAddr)
+	response, err = chainReader.GetAllocationInfo(context.Background(), nil, request)
 	require.NoError(t, err)
 
-	currentMagnitude := allocationInfo[0].CurrentMagnitude
+	currentMagnitude := response.AllocationInfo[0].CurrentMagnitude
 	require.Equal(t, big.NewInt(int64(newAllocation)), currentMagnitude)
 }
 

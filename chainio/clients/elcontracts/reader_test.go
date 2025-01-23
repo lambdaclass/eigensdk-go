@@ -990,7 +990,7 @@ func TestInvalidConfig(t *testing.T) {
 		)
 		require.Error(t, err)
 
-		_, err = chainReader.GetAllocationInfo(context.Background(), common.HexToAddress(operatorAddr), strategyAddr)
+		_, err = chainReader.GetAllocationInfo(context.Background(), nil, elcontracts.GetAllocationInfoRequest{})
 		require.Error(t, err)
 
 		_, err = chainReader.GetAllocationDelay(context.Background(), common.HexToAddress(operatorAddr))
