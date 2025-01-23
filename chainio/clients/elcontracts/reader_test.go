@@ -216,45 +216,61 @@ func TestChainReader(t *testing.T) {
 		operators := []common.Address{operatorAddr}
 		strategyAddr := contractAddrs.Erc20MockStrategy
 		strategies := []common.Address{strategyAddr}
-		shares, err := read_clients.ElChainReader.GetOperatorsShares(
+		request := elcontracts.GetOperatorsSharesRequest{
+			OperatorsAddresses:  operators,
+			StrategiesAddresses: strategies,
+		}
+		response, err := read_clients.ElChainReader.GetOperatorsShares(
 			ctx,
-			operators,
-			strategies,
+			nil,
+			request,
 		)
 		assert.NoError(t, err)
-		assert.Len(t, shares, 1)
+		assert.Len(t, response.Shares, 1)
 
 		// with n strategies, response's list length is [1][n]
 		mult_strategies := []common.Address{strategyAddr, strategyAddr, strategyAddr}
-		shares, err = read_clients.ElChainReader.GetOperatorsShares(
+		request = elcontracts.GetOperatorsSharesRequest{
+			OperatorsAddresses:  operators,
+			StrategiesAddresses: mult_strategies,
+		}
+		response, err = read_clients.ElChainReader.GetOperatorsShares(
 			ctx,
-			operators,
-			mult_strategies,
+			nil,
+			request,
 		)
 		assert.NoError(t, err)
-		assert.Len(t, shares, 1)
-		assert.Len(t, shares[0], 3)
+		assert.Len(t, response.Shares, 1)
+		assert.Len(t, response.Shares[0], 3)
 
 		// with n strategies, response's list length is [n][1]
 		mult_operators := []common.Address{operatorAddr, operatorAddr, operatorAddr}
-		shares, err = read_clients.ElChainReader.GetOperatorsShares(
+		request = elcontracts.GetOperatorsSharesRequest{
+			OperatorsAddresses:  mult_operators,
+			StrategiesAddresses: strategies,
+		}
+		response, err = read_clients.ElChainReader.GetOperatorsShares(
 			ctx,
-			mult_operators,
-			strategies,
+			nil,
+			request,
 		)
 		assert.NoError(t, err)
-		assert.Len(t, shares, 3)
-		assert.Len(t, shares[0], 1)
+		assert.Len(t, response.Shares, 3)
+		assert.Len(t, response.Shares[0], 1)
 
 		// with n strategies and n operators, response's list length is [n][n]
-		shares, err = read_clients.ElChainReader.GetOperatorsShares(
+		request = elcontracts.GetOperatorsSharesRequest{
+			OperatorsAddresses:  mult_operators,
+			StrategiesAddresses: mult_strategies,
+		}
+		response, err = read_clients.ElChainReader.GetOperatorsShares(
 			ctx,
-			mult_operators,
-			mult_strategies,
+			nil,
+			request,
 		)
 		assert.NoError(t, err)
-		assert.Len(t, shares, 3)
-		assert.Len(t, shares[2], 3)
+		assert.Len(t, response.Shares, 3)
+		assert.Len(t, response.Shares[2], 3)
 	})
 }
 

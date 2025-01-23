@@ -243,3 +243,12 @@ type GetOperatorSharesRequest struct {
 type GetOperatorSharesResponse struct {
 	Shares []*big.Int
 }
+
+type GetOperatorsSharesRequest struct {
+	OperatorsAddresses  []common.Address
+	StrategiesAddresses []common.Address
+}
+
+type GetOperatorsSharesResponse struct {
+	Shares [][]*big.Int
+}

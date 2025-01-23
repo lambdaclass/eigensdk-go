@@ -564,13 +564,23 @@ func (r *ChainReader) GetOperatorShares(
 
 func (r *ChainReader) GetOperatorsShares(
 	ctx context.Context,
-	operatorAddresses []gethcommon.Address,
-	strategyAddresses []gethcommon.Address,
-) ([][]*big.Int, error) {
+	blockNumber *big.Int,
+	request GetOperatorsSharesRequest,
+) (GetOperatorsSharesResponse, error) {
 	if r.delegationManager == nil {
-		return nil, errors.New("DelegationManager contract not provided")
+		return GetOperatorsSharesResponse{}, errors.New("DelegationManager contract not provided")
 	}
-	return r.delegationManager.GetOperatorsShares(&bind.CallOpts{Context: ctx}, operatorAddresses, strategyAddresses)
+
+	shares, err := r.delegationManager.GetOperatorsShares(
+		&bind.CallOpts{Context: ctx, BlockNumber: blockNumber},
+		request.OperatorsAddresses,
+		request.StrategiesAddresses,
+	)
+	if err != nil {
+		return GetOperatorsSharesResponse{}, utils.WrapError("failed to get operators shares", err)
+	}
+
+	return GetOperatorsSharesResponse{Shares: shares}, nil
 }
 
 // GetNumOperatorSetsForOperator returns the number of operator sets that an operator is part of
