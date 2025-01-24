@@ -32,8 +32,8 @@ import (
 type Reader interface {
 	GetStrategyAndUnderlyingERC20Token(
 		ctx context.Context,
-		request GetStrategyAndUnderlyingERC20TokenRequest,
-	) (GetStrategyAndUnderlyingERC20TokenResponse, error)
+		request StrategyAndUnderlyingERC20TokenRequest,
+	) (StrategyAndUnderlyingERC20TokenResponse, error)
 }
 
 type ChainWriter struct {
@@ -242,7 +242,7 @@ func (w *ChainWriter) DepositERC20IntoStrategy(
 		return nil, err
 	}
 
-	request := GetStrategyAndUnderlyingERC20TokenRequest{
+	request := StrategyAndUnderlyingERC20TokenRequest{
 		StrategyAddress: strategyAddr,
 	}
 

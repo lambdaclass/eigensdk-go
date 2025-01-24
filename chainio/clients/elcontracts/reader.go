@@ -113,10 +113,10 @@ func (r *ChainReader) IsOperatorRegistered(
 // shares
 func (r *ChainReader) GetStakerShares(
 	ctx context.Context,
-	request GetStakerSharesRequest,
-) (GetStakerSharesResponse, error) {
+	request StakerSharesRequest,
+) (StakerSharesResponse, error) {
 	if r.delegationManager == nil {
-		return GetStakerSharesResponse{}, errors.New("DelegationManager contract not provided")
+		return StakerSharesResponse{}, errors.New("DelegationManager contract not provided")
 	}
 
 	strategies, shares, err := r.delegationManager.GetDepositedShares(
@@ -124,19 +124,19 @@ func (r *ChainReader) GetStakerShares(
 		request.StakerAddress,
 	)
 	if err != nil {
-		return GetStakerSharesResponse{}, utils.WrapError("failed to get staker shares", err)
+		return StakerSharesResponse{}, utils.WrapError("failed to get staker shares", err)
 	}
 
-	return GetStakerSharesResponse{StrategiesAddresses: strategies, Shares: shares}, nil
+	return StakerSharesResponse{StrategiesAddresses: strategies, Shares: shares}, nil
 }
 
 // GetDelegatedOperator returns the operator that a staker has delegated to
 func (r *ChainReader) GetDelegatedOperator(
 	ctx context.Context,
-	request GetDelegatedOperatorRequest,
-) (GetDelegatedOperatorResponse, error) {
+	request DelegatedOperatorRequest,
+) (DelegatedOperatorResponse, error) {
 	if r.delegationManager == nil {
-		return GetDelegatedOperatorResponse{}, errors.New("DelegationManager contract not provided")
+		return DelegatedOperatorResponse{}, errors.New("DelegationManager contract not provided")
 	}
 
 	operator, err := r.delegationManager.DelegatedTo(
@@ -144,18 +144,18 @@ func (r *ChainReader) GetDelegatedOperator(
 		request.StakerAddress,
 	)
 	if err != nil {
-		return GetDelegatedOperatorResponse{}, utils.WrapError("failed to get delegated operator", err)
+		return DelegatedOperatorResponse{}, utils.WrapError("failed to get delegated operator", err)
 	}
 
-	return GetDelegatedOperatorResponse{OperatorAddress: operator}, nil
+	return DelegatedOperatorResponse{OperatorAddress: operator}, nil
 }
 
 func (r *ChainReader) GetOperatorDetails(
 	ctx context.Context,
-	request GetOperatorDetailsRequest,
-) (GetOperatorDetailsResponse, error) {
+	request OperatorDetailsRequest,
+) (OperatorDetailsResponse, error) {
 	if r.delegationManager == nil {
-		return GetOperatorDetailsResponse{}, errors.New("DelegationManager contract not provided")
+		return OperatorDetailsResponse{}, errors.New("DelegationManager contract not provided")
 	}
 
 	delegationManagerAddress, err := r.delegationManager.DelegationApprover(
@@ -164,7 +164,7 @@ func (r *ChainReader) GetOperatorDetails(
 	)
 	// This call should not fail since it's a getter
 	if err != nil {
-		return GetOperatorDetailsResponse{}, utils.WrapError("failed to get delegation approver", err)
+		return OperatorDetailsResponse{}, utils.WrapError("failed to get delegation approver", err)
 	}
 
 	isSet, delay, err := r.allocationManager.GetAllocationDelay(
@@ -176,7 +176,7 @@ func (r *ChainReader) GetOperatorDetails(
 	)
 	// This call should not fail
 	if err != nil {
-		return GetOperatorDetailsResponse{}, utils.WrapError("failed to get allocation delay", err)
+		return OperatorDetailsResponse{}, utils.WrapError("failed to get allocation delay", err)
 	}
 
 	var allocationDelay uint32
@@ -186,7 +186,7 @@ func (r *ChainReader) GetOperatorDetails(
 		allocationDelay = 0
 	}
 
-	return GetOperatorDetailsResponse{
+	return OperatorDetailsResponse{
 		OperatorAddress:           request.OperatorAddress,
 		DelegationApproverAddress: delegationManagerAddress,
 		AllocationDelay:           allocationDelay,
@@ -196,20 +196,20 @@ func (r *ChainReader) GetOperatorDetails(
 // GetStrategyAndUnderlyingToken returns the strategy contract and the underlying token address
 func (r *ChainReader) GetStrategyAndUnderlyingToken(
 	ctx context.Context,
-	request GetStrategyAndUnderlyingTokenRequest,
-) (GetStrategyAndUnderlyingTokenResponse, error) {
+	request StrategyAndUnderlyingTokenRequest,
+) (StrategyAndUnderlyingTokenResponse, error) {
 	contractStrategy, err := strategy.NewContractIStrategy(request.StrategyAddress, r.ethClient)
 	// This call should not fail since it's an init
 	if err != nil {
-		return GetStrategyAndUnderlyingTokenResponse{}, utils.WrapError("Failed to fetch strategy contract", err)
+		return StrategyAndUnderlyingTokenResponse{}, utils.WrapError("Failed to fetch strategy contract", err)
 	}
 	underlyingTokenAddr, err := contractStrategy.UnderlyingToken(
 		&bind.CallOpts{Context: ctx, BlockNumber: request.blockNumber},
 	)
 	if err != nil {
-		return GetStrategyAndUnderlyingTokenResponse{}, utils.WrapError("Failed to fetch token contract", err)
+		return StrategyAndUnderlyingTokenResponse{}, utils.WrapError("Failed to fetch token contract", err)
 	}
-	return GetStrategyAndUnderlyingTokenResponse{
+	return StrategyAndUnderlyingTokenResponse{
 		StrategyContract:       contractStrategy,
 		UnderlyingTokenAddress: underlyingTokenAddr,
 	}, nil
@@ -219,25 +219,25 @@ func (r *ChainReader) GetStrategyAndUnderlyingToken(
 // and the underlying token address
 func (r *ChainReader) GetStrategyAndUnderlyingERC20Token(
 	ctx context.Context,
-	request GetStrategyAndUnderlyingERC20TokenRequest,
-) (GetStrategyAndUnderlyingERC20TokenResponse, error) {
+	request StrategyAndUnderlyingERC20TokenRequest,
+) (StrategyAndUnderlyingERC20TokenResponse, error) {
 	contractStrategy, err := strategy.NewContractIStrategy(request.StrategyAddress, r.ethClient)
 	// This call should not fail since it's an init
 	if err != nil {
-		return GetStrategyAndUnderlyingERC20TokenResponse{}, utils.WrapError("Failed to fetch strategy contract", err)
+		return StrategyAndUnderlyingERC20TokenResponse{}, utils.WrapError("Failed to fetch strategy contract", err)
 	}
 	underlyingTokenAddr, err := contractStrategy.UnderlyingToken(
 		&bind.CallOpts{Context: ctx, BlockNumber: request.blockNumber},
 	)
 	if err != nil {
-		return GetStrategyAndUnderlyingERC20TokenResponse{}, utils.WrapError("Failed to fetch token contract", err)
+		return StrategyAndUnderlyingERC20TokenResponse{}, utils.WrapError("Failed to fetch token contract", err)
 	}
 	contractUnderlyingToken, err := erc20.NewContractIERC20(underlyingTokenAddr, r.ethClient)
 	// This call should not fail, if the strategy does not have an underlying token then it would enter the if above
 	if err != nil {
-		return GetStrategyAndUnderlyingERC20TokenResponse{}, utils.WrapError("Failed to fetch token contract", err)
+		return StrategyAndUnderlyingERC20TokenResponse{}, utils.WrapError("Failed to fetch token contract", err)
 	}
-	return GetStrategyAndUnderlyingERC20TokenResponse{
+	return StrategyAndUnderlyingERC20TokenResponse{
 		StrategyContract:       contractStrategy,
 		ERC20Bindings:          contractUnderlyingToken,
 		UnderlyingTokenAddress: underlyingTokenAddr,
@@ -246,10 +246,10 @@ func (r *ChainReader) GetStrategyAndUnderlyingERC20Token(
 
 func (r *ChainReader) GetOperatorSharesInStrategy(
 	ctx context.Context,
-	request GetOperatorSharesInStrategyRequest,
-) (GetOperatorSharesInStrategyResponse, error) {
+	request OperatorSharesInStrategyRequest,
+) (OperatorSharesInStrategyResponse, error) {
 	if r.delegationManager == nil {
-		return GetOperatorSharesInStrategyResponse{}, errors.New("DelegationManager contract not provided")
+		return OperatorSharesInStrategyResponse{}, errors.New("DelegationManager contract not provided")
 	}
 
 	shares, err := r.delegationManager.OperatorShares(
@@ -258,10 +258,10 @@ func (r *ChainReader) GetOperatorSharesInStrategy(
 		request.StrategyAddress,
 	)
 	if err != nil {
-		return GetOperatorSharesInStrategyResponse{}, utils.WrapError("failed to get operator shares in strategy", err)
+		return OperatorSharesInStrategyResponse{}, utils.WrapError("failed to get operator shares in strategy", err)
 	}
 
-	return GetOperatorSharesInStrategyResponse{Shares: shares}, nil
+	return OperatorSharesInStrategyResponse{Shares: shares}, nil
 }
 
 func (r *ChainReader) CalculateDelegationApprovalDigestHash(
@@ -317,20 +317,20 @@ func (r *ChainReader) CalculateOperatorAVSRegistrationDigestHash(
 
 func (r *ChainReader) GetDistributionRootsLength(
 	ctx context.Context,
-	request GetDistributionRootsLengthRequest,
-) (GetDistributionRootsLengthResponse, error) {
+	request DistributionRootsLengthRequest,
+) (DistributionRootsLengthResponse, error) {
 	if r.rewardsCoordinator == nil {
-		return GetDistributionRootsLengthResponse{}, errors.New("RewardsCoordinator contract not provided")
+		return DistributionRootsLengthResponse{}, errors.New("RewardsCoordinator contract not provided")
 	}
 
 	rootLength, err := r.rewardsCoordinator.GetDistributionRootsLength(
 		&bind.CallOpts{Context: ctx, BlockNumber: request.blockNumber},
 	)
 	if err != nil {
-		return GetDistributionRootsLengthResponse{}, utils.WrapError("failed to get distribution roots length", err)
+		return DistributionRootsLengthResponse{}, utils.WrapError("failed to get distribution roots length", err)
 	}
 
-	return GetDistributionRootsLengthResponse{Length: rootLength}, nil
+	return DistributionRootsLengthResponse{Length: rootLength}, nil
 }
 
 func (r *ChainReader) CurrRewardsCalculationEndTimestamp(
@@ -356,10 +356,10 @@ func (r *ChainReader) CurrRewardsCalculationEndTimestamp(
 
 func (r *ChainReader) GetCurrentClaimableDistributionRoot(
 	ctx context.Context,
-	request GetCurrentClaimableDistributionRootRequest,
-) (GetCurrentClaimableDistributionRootResponse, error) {
+	request CurrentClaimableDistributionRootRequest,
+) (CurrentClaimableDistributionRootResponse, error) {
 	if r.rewardsCoordinator == nil {
-		return GetCurrentClaimableDistributionRootResponse{}, errors.New(
+		return CurrentClaimableDistributionRootResponse{}, errors.New(
 			"RewardsCoordinator contract not provided",
 		)
 	}
@@ -368,21 +368,21 @@ func (r *ChainReader) GetCurrentClaimableDistributionRoot(
 		&bind.CallOpts{Context: ctx, BlockNumber: request.blockNumber},
 	)
 	if err != nil {
-		return GetCurrentClaimableDistributionRootResponse{}, utils.WrapError(
+		return CurrentClaimableDistributionRootResponse{}, utils.WrapError(
 			"failed to get current claimable distribution root",
 			err,
 		)
 	}
 
-	return GetCurrentClaimableDistributionRootResponse{DistributionRoot: root}, nil
+	return CurrentClaimableDistributionRootResponse{DistributionRoot: root}, nil
 }
 
 func (r *ChainReader) GetRootIndexFromHash(
 	ctx context.Context,
-	request GetRootIndexFromHashRequest,
-) (GetRootIndexFromHashResponse, error) {
+	request RootIndexFromHashRequest,
+) (RootIndexFromHashResponse, error) {
 	if r.rewardsCoordinator == nil {
-		return GetRootIndexFromHashResponse{}, errors.New("RewardsCoordinator contract not provided")
+		return RootIndexFromHashResponse{}, errors.New("RewardsCoordinator contract not provided")
 	}
 
 	rootIndex, err := r.rewardsCoordinator.GetRootIndexFromHash(
@@ -390,18 +390,18 @@ func (r *ChainReader) GetRootIndexFromHash(
 		request.RootHash,
 	)
 	if err != nil {
-		return GetRootIndexFromHashResponse{}, utils.WrapError("failed to get root index from hash", err)
+		return RootIndexFromHashResponse{}, utils.WrapError("failed to get root index from hash", err)
 	}
 
-	return GetRootIndexFromHashResponse{RootIndex: rootIndex}, nil
+	return RootIndexFromHashResponse{RootIndex: rootIndex}, nil
 }
 
 func (r *ChainReader) GetCumulativeClaimed(
 	ctx context.Context,
-	request GetCumulativeClaimedRequest,
-) (GetCumulativeClaimedResponse, error) {
+	request CumulativeClaimedRequest,
+) (CumulativeClaimedResponse, error) {
 	if r.rewardsCoordinator == nil {
-		return GetCumulativeClaimedResponse{}, errors.New("RewardsCoordinator contract not provided")
+		return CumulativeClaimedResponse{}, errors.New("RewardsCoordinator contract not provided")
 	}
 
 	cumulativeClaimed, err := r.rewardsCoordinator.CumulativeClaimed(
@@ -410,10 +410,10 @@ func (r *ChainReader) GetCumulativeClaimed(
 		request.TokenAddress,
 	)
 	if err != nil {
-		return GetCumulativeClaimedResponse{}, utils.WrapError("failed to get cumulative claimed", err)
+		return CumulativeClaimedResponse{}, utils.WrapError("failed to get cumulative claimed", err)
 	}
 
-	return GetCumulativeClaimedResponse{CumulativeClaimed: cumulativeClaimed}, nil
+	return CumulativeClaimedResponse{CumulativeClaimed: cumulativeClaimed}, nil
 }
 
 func (r *ChainReader) CheckClaim(
@@ -437,10 +437,10 @@ func (r *ChainReader) CheckClaim(
 
 func (r *ChainReader) GetOperatorAVSSplit(
 	ctx context.Context,
-	request GetOperatorAVSSplitRequest,
-) (GetOperatorAVSSplitResponse, error) {
+	request OperatorAVSSplitRequest,
+) (OperatorAVSSplitResponse, error) {
 	if r.rewardsCoordinator == nil {
-		return GetOperatorAVSSplitResponse{}, errors.New("RewardsCoordinator contract not provided")
+		return OperatorAVSSplitResponse{}, errors.New("RewardsCoordinator contract not provided")
 	}
 
 	split, err := r.rewardsCoordinator.GetOperatorAVSSplit(
@@ -449,18 +449,18 @@ func (r *ChainReader) GetOperatorAVSSplit(
 		request.AvsAddress,
 	)
 	if err != nil {
-		return GetOperatorAVSSplitResponse{}, utils.WrapError("failed to get operator AVS split", err)
+		return OperatorAVSSplitResponse{}, utils.WrapError("failed to get operator AVS split", err)
 	}
 
-	return GetOperatorAVSSplitResponse{Split: split}, nil
+	return OperatorAVSSplitResponse{Split: split}, nil
 }
 
 func (r *ChainReader) GetOperatorPISplit(
 	ctx context.Context,
-	request GetOperatorPISplitRequest,
-) (GetOperatorPISplitResponse, error) {
+	request OperatorPISplitRequest,
+) (OperatorPISplitResponse, error) {
 	if r.rewardsCoordinator == nil {
-		return GetOperatorPISplitResponse{}, errors.New("RewardsCoordinator contract not provided")
+		return OperatorPISplitResponse{}, errors.New("RewardsCoordinator contract not provided")
 	}
 
 	split, err := r.rewardsCoordinator.GetOperatorPISplit(
@@ -468,18 +468,18 @@ func (r *ChainReader) GetOperatorPISplit(
 		request.OperatorAddress,
 	)
 	if err != nil {
-		return GetOperatorPISplitResponse{}, utils.WrapError("failed to get operator PI split", err)
+		return OperatorPISplitResponse{}, utils.WrapError("failed to get operator PI split", err)
 	}
 
-	return GetOperatorPISplitResponse{Split: split}, nil
+	return OperatorPISplitResponse{Split: split}, nil
 }
 
 func (r *ChainReader) GetAllocatableMagnitude(
 	ctx context.Context,
-	request GetAllocatableMagnitudeRequest,
-) (GetAllocatableMagnitudeResponse, error) {
+	request AllocatableMagnitudeRequest,
+) (AllocatableMagnitudeResponse, error) {
 	if r.allocationManager == nil {
-		return GetAllocatableMagnitudeResponse{}, errors.New("AllocationManager contract not provided")
+		return AllocatableMagnitudeResponse{}, errors.New("AllocationManager contract not provided")
 	}
 
 	magnitude, err := r.allocationManager.GetAllocatableMagnitude(
@@ -488,18 +488,18 @@ func (r *ChainReader) GetAllocatableMagnitude(
 		request.StrategyAddress,
 	)
 	if err != nil {
-		return GetAllocatableMagnitudeResponse{}, utils.WrapError("failed to get allocatable magnitude", err)
+		return AllocatableMagnitudeResponse{}, utils.WrapError("failed to get allocatable magnitude", err)
 	}
 
-	return GetAllocatableMagnitudeResponse{AllocatableMagnitude: magnitude}, nil
+	return AllocatableMagnitudeResponse{AllocatableMagnitude: magnitude}, nil
 }
 
 func (r *ChainReader) GetMaxMagnitudes(
 	ctx context.Context,
-	request GetMaxMagnitudes0Request,
-) (GetMaxMagnitudes0Response, error) {
+	request MaxMagnitudes0Request,
+) (MaxMagnitudes0Response, error) {
 	if r.allocationManager == nil {
-		return GetMaxMagnitudes0Response{}, errors.New("AllocationManager contract not provided")
+		return MaxMagnitudes0Response{}, errors.New("AllocationManager contract not provided")
 	}
 
 	maxMagnitudes, err := r.allocationManager.GetMaxMagnitudes0(
@@ -508,18 +508,18 @@ func (r *ChainReader) GetMaxMagnitudes(
 		request.StrategiesAddresses,
 	)
 	if err != nil {
-		return GetMaxMagnitudes0Response{}, utils.WrapError("failed to get max magnitudes", err)
+		return MaxMagnitudes0Response{}, utils.WrapError("failed to get max magnitudes", err)
 	}
 
-	return GetMaxMagnitudes0Response{MaxMagnitudes: maxMagnitudes}, nil
+	return MaxMagnitudes0Response{MaxMagnitudes: maxMagnitudes}, nil
 }
 
 func (r *ChainReader) GetAllocationInfo(
 	ctx context.Context,
-	request GetAllocationInfoRequest,
-) (GetAllocationInfoResponse, error) {
+	request AllocationInfoRequest,
+) (AllocationInfoResponse, error) {
 	if r.allocationManager == nil {
-		return GetAllocationInfoResponse{}, errors.New("AllocationManager contract not provided")
+		return AllocationInfoResponse{}, errors.New("AllocationManager contract not provided")
 	}
 
 	opSets, allocationInfo, err := r.allocationManager.GetStrategyAllocations(
@@ -529,7 +529,7 @@ func (r *ChainReader) GetAllocationInfo(
 	)
 	// This call should not fail since it's a getter
 	if err != nil {
-		return GetAllocationInfoResponse{}, err
+		return AllocationInfoResponse{}, err
 	}
 
 	allocationsInfo := make([]AllocationInfo, len(opSets))
@@ -543,15 +543,15 @@ func (r *ChainReader) GetAllocationInfo(
 		}
 	}
 
-	return GetAllocationInfoResponse{AllocationInfo: allocationsInfo}, nil
+	return AllocationInfoResponse{AllocationInfo: allocationsInfo}, nil
 }
 
 func (r *ChainReader) GetOperatorShares(
 	ctx context.Context,
-	request GetOperatorSharesRequest,
-) (GetOperatorSharesResponse, error) {
+	request OperatorSharesRequest,
+) (OperatorSharesResponse, error) {
 	if r.delegationManager == nil {
-		return GetOperatorSharesResponse{}, errors.New("DelegationManager contract not provided")
+		return OperatorSharesResponse{}, errors.New("DelegationManager contract not provided")
 	}
 
 	shares, err := r.delegationManager.GetOperatorShares(
@@ -559,18 +559,18 @@ func (r *ChainReader) GetOperatorShares(
 		request.OperatorAddress,
 		request.StrategiesAddresses)
 	if err != nil {
-		return GetOperatorSharesResponse{}, utils.WrapError("failed to get operator shares", err)
+		return OperatorSharesResponse{}, utils.WrapError("failed to get operator shares", err)
 	}
 
-	return GetOperatorSharesResponse{Shares: shares}, nil
+	return OperatorSharesResponse{Shares: shares}, nil
 }
 
 func (r *ChainReader) GetOperatorsShares(
 	ctx context.Context,
-	request GetOperatorsSharesRequest,
-) (GetOperatorsSharesResponse, error) {
+	request OperatorsSharesRequest,
+) (OperatorsSharesResponse, error) {
 	if r.delegationManager == nil {
-		return GetOperatorsSharesResponse{}, errors.New("DelegationManager contract not provided")
+		return OperatorsSharesResponse{}, errors.New("DelegationManager contract not provided")
 	}
 
 	shares, err := r.delegationManager.GetOperatorsShares(
@@ -579,39 +579,39 @@ func (r *ChainReader) GetOperatorsShares(
 		request.StrategiesAddresses,
 	)
 	if err != nil {
-		return GetOperatorsSharesResponse{}, utils.WrapError("failed to get operators shares", err)
+		return OperatorsSharesResponse{}, utils.WrapError("failed to get operators shares", err)
 	}
 
-	return GetOperatorsSharesResponse{Shares: shares}, nil
+	return OperatorsSharesResponse{Shares: shares}, nil
 }
 
 // GetNumOperatorSetsForOperator returns the number of operator sets that an operator is part of
 // Doesn't include M2 AVSs
 func (r *ChainReader) GetNumOperatorSetsForOperator(
 	ctx context.Context,
-	request GetNumOperatorSetsForOperatorRequest,
-) (GetNumOperatorSetsForOperatorResponse, error) {
+	request NumOperatorSetsForOperatorRequest,
+) (NumOperatorSetsForOperatorResponse, error) {
 	if r.allocationManager == nil {
-		return GetNumOperatorSetsForOperatorResponse{}, errors.New("AllocationManager contract not provided")
+		return NumOperatorSetsForOperatorResponse{}, errors.New("AllocationManager contract not provided")
 	}
 	opSets, err := r.allocationManager.GetAllocatedSets(
 		&bind.CallOpts{Context: ctx, BlockNumber: request.blockNumber},
 		request.OperatorAddress,
 	)
 	if err != nil {
-		return GetNumOperatorSetsForOperatorResponse{}, err
+		return NumOperatorSetsForOperatorResponse{}, err
 	}
-	return GetNumOperatorSetsForOperatorResponse{NumOperatorSets: big.NewInt(int64(len(opSets)))}, nil
+	return NumOperatorSetsForOperatorResponse{NumOperatorSets: big.NewInt(int64(len(opSets)))}, nil
 }
 
 // GetOperatorSetsForOperator returns the list of operator sets that an operator is part of
 // Doesn't include M2 AVSs
 func (r *ChainReader) GetOperatorSetsForOperator(
 	ctx context.Context,
-	request GetOperatorSetsForOperatorRequest,
-) (GetOperatorSetsForOperatorResponse, error) {
+	request OperatorSetsForOperatorRequest,
+) (OperatorSetsForOperatorResponse, error) {
 	if r.allocationManager == nil {
-		return GetOperatorSetsForOperatorResponse{}, errors.New("AllocationManager contract not provided")
+		return OperatorSetsForOperatorResponse{}, errors.New("AllocationManager contract not provided")
 	}
 	// TODO: we're fetching max int64 operatorSets here. What's the practical limit for timeout by RPC? do we need to
 	// paginate?
@@ -620,10 +620,10 @@ func (r *ChainReader) GetOperatorSetsForOperator(
 		request.OperatorAddress,
 	)
 	if err != nil {
-		return GetOperatorSetsForOperatorResponse{}, err
+		return OperatorSetsForOperatorResponse{}, err
 	}
 
-	return GetOperatorSetsForOperatorResponse{OperatorSets: opSets}, nil
+	return OperatorSetsForOperatorResponse{OperatorSets: opSets}, nil
 }
 
 // IsOperatorRegisteredWithOperatorSet returns if an operator is registered with a specific operator set
@@ -676,41 +676,41 @@ func (r *ChainReader) IsOperatorRegisteredWithOperatorSet(
 // Not supported for M2 AVSs
 func (r *ChainReader) GetOperatorsForOperatorSet(
 	ctx context.Context,
-	request GetOperatorsForOperatorSetRequest,
-) (GetOperatorsForOperatorSetResponse, error) {
+	request OperatorsForOperatorSetRequest,
+) (OperatorsForOperatorSetResponse, error) {
 	if request.OperatorSet.Id == 0 {
-		return GetOperatorsForOperatorSetResponse{}, errLegacyAVSsNotSupported
+		return OperatorsForOperatorSetResponse{}, errLegacyAVSsNotSupported
 	} else {
 		if r.allocationManager == nil {
-			return GetOperatorsForOperatorSetResponse{}, errors.New("AllocationManager contract not provided")
+			return OperatorsForOperatorSetResponse{}, errors.New("AllocationManager contract not provided")
 		}
 		members, err := r.allocationManager.GetMembers(&bind.CallOpts{Context: ctx, BlockNumber: request.blockNumber}, request.OperatorSet)
 		if err != nil {
-			return GetOperatorsForOperatorSetResponse{}, utils.WrapError("failed to get members", err)
+			return OperatorsForOperatorSetResponse{}, utils.WrapError("failed to get members", err)
 		}
 
-		return GetOperatorsForOperatorSetResponse{Operators: members}, nil
+		return OperatorsForOperatorSetResponse{Operators: members}, nil
 	}
 }
 
 // GetNumOperatorsForOperatorSet returns the number of operators in a specific operator set
 func (r *ChainReader) GetNumOperatorsForOperatorSet(
 	ctx context.Context,
-	request GetNumOperatorsForOperatorSetRequest,
-) (GetNumOperatorsForOperatorSetResponse, error) {
+	request NumOperatorsForOperatorSetRequest,
+) (NumOperatorsForOperatorSetResponse, error) {
 	if request.OperatorSet.Id == 0 {
-		return GetNumOperatorsForOperatorSetResponse{}, errLegacyAVSsNotSupported
+		return NumOperatorsForOperatorSetResponse{}, errLegacyAVSsNotSupported
 	} else {
 		if r.allocationManager == nil {
-			return GetNumOperatorsForOperatorSetResponse{}, errors.New("AllocationManager contract not provided")
+			return NumOperatorsForOperatorSetResponse{}, errors.New("AllocationManager contract not provided")
 		}
 
 		memberCount, err := r.allocationManager.GetMemberCount(&bind.CallOpts{Context: ctx, BlockNumber: request.blockNumber}, request.OperatorSet)
 		if err != nil {
-			return GetNumOperatorsForOperatorSetResponse{}, utils.WrapError("failed to get member count", err)
+			return NumOperatorsForOperatorSetResponse{}, utils.WrapError("failed to get member count", err)
 		}
 
-		return GetNumOperatorsForOperatorSetResponse{NumOperators: memberCount}, nil
+		return NumOperatorsForOperatorSetResponse{NumOperators: memberCount}, nil
 	}
 }
 
@@ -718,13 +718,13 @@ func (r *ChainReader) GetNumOperatorsForOperatorSet(
 // Not supported for M2 AVSs
 func (r *ChainReader) GetStrategiesForOperatorSet(
 	ctx context.Context,
-	request GetStrategiesForOperatorSetRequest,
-) (GetStrategiesForOperatorSetResponse, error) {
+	request StrategiesForOperatorSetRequest,
+) (StrategiesForOperatorSetResponse, error) {
 	if request.OperatorSet.Id == 0 {
-		return GetStrategiesForOperatorSetResponse{}, errLegacyAVSsNotSupported
+		return StrategiesForOperatorSetResponse{}, errLegacyAVSsNotSupported
 	} else {
 		if r.allocationManager == nil {
-			return GetStrategiesForOperatorSetResponse{}, errors.New("AllocationManager contract not provided")
+			return StrategiesForOperatorSetResponse{}, errors.New("AllocationManager contract not provided")
 		}
 
 		strategies, err := r.allocationManager.GetStrategiesInOperatorSet(
@@ -732,26 +732,26 @@ func (r *ChainReader) GetStrategiesForOperatorSet(
 			request.OperatorSet,
 		)
 		if err != nil {
-			return GetStrategiesForOperatorSetResponse{}, utils.WrapError("failed to get strategies", err)
+			return StrategiesForOperatorSetResponse{}, utils.WrapError("failed to get strategies", err)
 		}
 
-		return GetStrategiesForOperatorSetResponse{StrategiesAddresses: strategies}, nil
+		return StrategiesForOperatorSetResponse{StrategiesAddresses: strategies}, nil
 	}
 }
 
 func (r *ChainReader) GetSlashableShares(
 	ctx context.Context,
-	request GetSlashableSharesRequest,
-) (GetSlashableSharesResponse, error) {
+	request SlashableSharesRequest,
+) (SlashableSharesResponse, error) {
 	if r.allocationManager == nil {
-		return GetSlashableSharesResponse{}, errors.New("AllocationManager contract not provided")
+		return SlashableSharesResponse{}, errors.New("AllocationManager contract not provided")
 	}
 
 	// TODO: Is necessary to get the block number here? Or should we use the one passed as argument?
 	currentBlock, err := r.ethClient.BlockNumber(ctx)
 	// This call should not fail since it's a getter
 	if err != nil {
-		return GetSlashableSharesResponse{}, err
+		return SlashableSharesResponse{}, err
 	}
 
 	slashableShares, err := r.allocationManager.GetMinimumSlashableStake(
@@ -763,10 +763,10 @@ func (r *ChainReader) GetSlashableShares(
 	)
 	// This call should not fail since it's a getter
 	if err != nil {
-		return GetSlashableSharesResponse{}, err
+		return SlashableSharesResponse{}, err
 	}
 	if len(slashableShares) == 0 {
-		return GetSlashableSharesResponse{}, errors.New("no slashable shares found for operator")
+		return SlashableSharesResponse{}, errors.New("no slashable shares found for operator")
 	}
 
 	slashableShareStrategyMap := make(map[gethcommon.Address]*big.Int)
@@ -775,7 +775,7 @@ func (r *ChainReader) GetSlashableShares(
 		slashableShareStrategyMap[strat] = slashableShares[0][i]
 	}
 
-	return GetSlashableSharesResponse{SlashableShares: slashableShareStrategyMap}, nil
+	return SlashableSharesResponse{SlashableShares: slashableShareStrategyMap}, nil
 }
 
 // GetSlashableSharesForOperatorSets returns the strategies the operatorSets take into account, their
@@ -783,15 +783,15 @@ func (r *ChainReader) GetSlashableShares(
 // Not supported for M2 AVSs
 func (r *ChainReader) GetSlashableSharesForOperatorSets(
 	ctx context.Context,
-	request GetSlashableSharesForOperatorSetsRequest,
-) (GetSlashableSharesForOperatorSetsResponse, error) {
+	request SlashableSharesForOperatorSetsRequest,
+) (SlashableSharesForOperatorSetsResponse, error) {
 	currentBlock, err := r.ethClient.BlockNumber(ctx)
 	// This call should not fail since it's a getter
 	if err != nil {
-		return GetSlashableSharesForOperatorSetsResponse{}, err
+		return SlashableSharesForOperatorSetsResponse{}, err
 	}
 
-	requestBefore := GetSlashableSharesForOperatorSetsBeforeRequest{
+	requestBefore := SlashableSharesForOperatorSetsBeforeRequest{
 		blockNumber:  request.blockNumber,
 		OperatorSets: request.OperatorSets,
 		FutureBlock:  uint32(currentBlock),
@@ -799,13 +799,13 @@ func (r *ChainReader) GetSlashableSharesForOperatorSets(
 
 	resp, err := r.GetSlashableSharesForOperatorSetsBefore(ctx, requestBefore)
 	if err != nil {
-		return GetSlashableSharesForOperatorSetsResponse{}, utils.WrapError(
+		return SlashableSharesForOperatorSetsResponse{}, utils.WrapError(
 			"failed to get slashable shares for operator sets",
 			err,
 		)
 	}
 
-	return GetSlashableSharesForOperatorSetsResponse{OperatorSetStakes: resp.OperatorSetStakes}, nil
+	return SlashableSharesForOperatorSetsResponse{OperatorSetStakes: resp.OperatorSetStakes}, nil
 }
 
 // GetSlashableSharesForOperatorSetsBefore returns the strategies the operatorSets take into account, their
@@ -815,30 +815,30 @@ func (r *ChainReader) GetSlashableSharesForOperatorSets(
 // Not supported for M2 AVSs
 func (r *ChainReader) GetSlashableSharesForOperatorSetsBefore(
 	ctx context.Context,
-	request GetSlashableSharesForOperatorSetsBeforeRequest,
-) (GetSlashableSharesForOperatorSetsBeforeResponse, error) {
+	request SlashableSharesForOperatorSetsBeforeRequest,
+) (SlashableSharesForOperatorSetsBeforeResponse, error) {
 	operatorSetStakes := make([]OperatorSetStakes, len(request.OperatorSets))
 	for i, operatorSet := range request.OperatorSets {
-		requestOperator := GetOperatorsForOperatorSetRequest{
+		requestOperator := OperatorsForOperatorSetRequest{
 			blockNumber: request.blockNumber,
 			OperatorSet: operatorSet,
 		}
 		responseOperators, err := r.GetOperatorsForOperatorSet(ctx, requestOperator)
 		if err != nil {
-			return GetSlashableSharesForOperatorSetsBeforeResponse{}, utils.WrapError(
+			return SlashableSharesForOperatorSetsBeforeResponse{}, utils.WrapError(
 				"failed to get operators for operator set",
 				err,
 			)
 		}
 
-		requestStrategies := GetStrategiesForOperatorSetRequest{
+		requestStrategies := StrategiesForOperatorSetRequest{
 			blockNumber: request.blockNumber,
 			OperatorSet: operatorSet,
 		}
 		responseStrategies, err := r.GetStrategiesForOperatorSet(ctx, requestStrategies)
 		// If operator setId is 0 will fail on if above
 		if err != nil {
-			return GetSlashableSharesForOperatorSetsBeforeResponse{}, utils.WrapError(
+			return SlashableSharesForOperatorSetsBeforeResponse{}, utils.WrapError(
 				"failed to get strategies for operator set",
 				err,
 			)
@@ -856,7 +856,7 @@ func (r *ChainReader) GetSlashableSharesForOperatorSetsBefore(
 		)
 		// This call should not fail since it's a getter
 		if err != nil {
-			return GetSlashableSharesForOperatorSetsBeforeResponse{}, utils.WrapError(
+			return SlashableSharesForOperatorSetsBeforeResponse{}, utils.WrapError(
 				"failed to get minimum slashable stake",
 				err,
 			)
@@ -870,15 +870,15 @@ func (r *ChainReader) GetSlashableSharesForOperatorSetsBefore(
 		}
 	}
 
-	return GetSlashableSharesForOperatorSetsBeforeResponse{OperatorSetStakes: operatorSetStakes}, nil
+	return SlashableSharesForOperatorSetsBeforeResponse{OperatorSetStakes: operatorSetStakes}, nil
 }
 
 func (r *ChainReader) GetAllocationDelay(
 	ctx context.Context,
-	request GetAllocationDelayRequest,
-) (GetAllocationDelayResponse, error) {
+	request AllocationDelayRequest,
+) (AllocationDelayResponse, error) {
 	if r.allocationManager == nil {
-		return GetAllocationDelayResponse{}, errors.New("AllocationManager contract not provided")
+		return AllocationDelayResponse{}, errors.New("AllocationManager contract not provided")
 	}
 	isSet, delay, err := r.allocationManager.GetAllocationDelay(
 		&bind.CallOpts{Context: ctx, BlockNumber: request.blockNumber},
@@ -886,30 +886,30 @@ func (r *ChainReader) GetAllocationDelay(
 	)
 	// This call should not fail since it's a getter
 	if err != nil {
-		return GetAllocationDelayResponse{}, utils.WrapError("failed to get allocation delay", err)
+		return AllocationDelayResponse{}, utils.WrapError("failed to get allocation delay", err)
 	}
 	if !isSet {
-		return GetAllocationDelayResponse{}, errors.New("allocation delay not set")
+		return AllocationDelayResponse{}, errors.New("allocation delay not set")
 	}
-	return GetAllocationDelayResponse{AllocationDelay: delay}, nil
+	return AllocationDelayResponse{AllocationDelay: delay}, nil
 }
 
 func (r *ChainReader) GetRegisteredSets(
 	ctx context.Context,
-	request GetRegisteredSetsRequest,
-) (GetRegisteredSetsResponse, error) {
+	request RegisteredSetsRequest,
+) (RegisteredSetsResponse, error) {
 	if r.allocationManager == nil {
-		return GetRegisteredSetsResponse{}, errors.New("AllocationManager contract not provided")
+		return RegisteredSetsResponse{}, errors.New("AllocationManager contract not provided")
 	}
 	reigsteredSets, err := r.allocationManager.GetRegisteredSets(
 		&bind.CallOpts{Context: ctx, BlockNumber: request.blockNumber},
 		request.OperatorAddress,
 	)
 	if err != nil {
-		return GetRegisteredSetsResponse{}, utils.WrapError("failed to get registered sets", err)
+		return RegisteredSetsResponse{}, utils.WrapError("failed to get registered sets", err)
 	}
 
-	return GetRegisteredSetsResponse{OperatorSets: reigsteredSets}, nil
+	return RegisteredSetsResponse{OperatorSets: reigsteredSets}, nil
 }
 
 func (r *ChainReader) CanCall(

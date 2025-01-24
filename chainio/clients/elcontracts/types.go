@@ -95,64 +95,64 @@ type IsOperatorRegisteredResponse struct {
 	IsRegistered bool
 }
 
-type GetStakerSharesRequest struct {
+type StakerSharesRequest struct {
 	blockNumber   *big.Int
 	StakerAddress common.Address
 }
 
-type GetStakerSharesResponse struct {
+type StakerSharesResponse struct {
 	StrategiesAddresses []common.Address
 	Shares              []*big.Int
 }
 
-type GetDelegatedOperatorRequest struct {
+type DelegatedOperatorRequest struct {
 	blockNumber   *big.Int
 	StakerAddress common.Address
 }
 
-type GetDelegatedOperatorResponse struct {
+type DelegatedOperatorResponse struct {
 	OperatorAddress common.Address
 }
 
-type GetOperatorDetailsRequest struct {
+type OperatorDetailsRequest struct {
 	blockNumber     *big.Int
 	OperatorAddress common.Address
 }
 
-type GetOperatorDetailsResponse struct {
+type OperatorDetailsResponse struct {
 	OperatorAddress           common.Address
 	DelegationApproverAddress common.Address
 	AllocationDelay           uint32
 }
 
-type GetStrategyAndUnderlyingTokenRequest struct {
+type StrategyAndUnderlyingTokenRequest struct {
 	blockNumber     *big.Int
 	StrategyAddress common.Address
 }
 
-type GetStrategyAndUnderlyingTokenResponse struct {
+type StrategyAndUnderlyingTokenResponse struct {
 	StrategyContract       *strategy.ContractIStrategy
 	UnderlyingTokenAddress common.Address
 }
 
-type GetStrategyAndUnderlyingERC20TokenRequest struct {
+type StrategyAndUnderlyingERC20TokenRequest struct {
 	blockNumber     *big.Int
 	StrategyAddress common.Address
 }
 
-type GetStrategyAndUnderlyingERC20TokenResponse struct {
+type StrategyAndUnderlyingERC20TokenResponse struct {
 	StrategyContract       *strategy.ContractIStrategy
 	ERC20Bindings          erc20.ContractIERC20Methods
 	UnderlyingTokenAddress common.Address
 }
 
-type GetOperatorSharesInStrategyRequest struct {
+type OperatorSharesInStrategyRequest struct {
 	blockNumber     *big.Int
 	OperatorAddress common.Address
 	StrategyAddress common.Address
 }
 
-type GetOperatorSharesInStrategyResponse struct {
+type OperatorSharesInStrategyResponse struct {
 	Shares *big.Int
 }
 
@@ -181,11 +181,11 @@ type CalculateOperatorAVSRegistrationDigestHashResponse struct {
 	DigestHash [32]byte
 }
 
-type GetDistributionRootsLengthRequest struct {
+type DistributionRootsLengthRequest struct {
 	blockNumber *big.Int
 }
 
-type GetDistributionRootsLengthResponse struct {
+type DistributionRootsLengthResponse struct {
 	Length *big.Int
 }
 
@@ -197,30 +197,30 @@ type CurrRewardsCalculationEndTimestampResponse struct {
 	Timestamp uint32
 }
 
-type GetCurrentClaimableDistributionRootRequest struct {
+type CurrentClaimableDistributionRootRequest struct {
 	blockNumber *big.Int
 }
 
-type GetCurrentClaimableDistributionRootResponse struct {
+type CurrentClaimableDistributionRootResponse struct {
 	DistributionRoot rewardscoordinator.IRewardsCoordinatorTypesDistributionRoot
 }
 
-type GetRootIndexFromHashRequest struct {
+type RootIndexFromHashRequest struct {
 	blockNumber *big.Int
 	RootHash    [32]byte
 }
 
-type GetRootIndexFromHashResponse struct {
+type RootIndexFromHashResponse struct {
 	RootIndex uint32
 }
 
-type GetCumulativeClaimedRequest struct {
+type CumulativeClaimedRequest struct {
 	blockNumber    *big.Int
 	ClaimerAddress common.Address
 	TokenAddress   common.Address
 }
 
-type GetCumulativeClaimedResponse struct {
+type CumulativeClaimedResponse struct {
 	CumulativeClaimed *big.Int
 }
 
@@ -233,80 +233,80 @@ type CheckClaimResponse struct {
 	IsValid bool
 }
 
-type GetOperatorAVSSplitRequest struct {
+type OperatorAVSSplitRequest struct {
 	blockNumber     *big.Int
 	OperatorAddress common.Address
 	AvsAddress      common.Address
 }
 
-type GetOperatorAVSSplitResponse struct {
+type OperatorAVSSplitResponse struct {
 	Split uint16
 }
 
-type GetOperatorPISplitRequest struct {
+type OperatorPISplitRequest struct {
 	blockNumber     *big.Int
 	OperatorAddress common.Address
 }
 
-type GetOperatorPISplitResponse struct {
+type OperatorPISplitResponse struct {
 	Split uint16
 }
 
-type GetMaxMagnitudes0Request struct {
+type MaxMagnitudes0Request struct {
 	blockNumber         *big.Int
 	OperatorAddress     common.Address
 	StrategiesAddresses []common.Address
 }
 
-type GetMaxMagnitudes0Response struct {
+type MaxMagnitudes0Response struct {
 	MaxMagnitudes []uint64
 }
 
-type GetAllocationInfoRequest struct {
+type AllocationInfoRequest struct {
 	blockNumber     *big.Int
 	OperatorAddress common.Address
 	StrategyAddress common.Address
 }
 
-type GetAllocationInfoResponse struct {
+type AllocationInfoResponse struct {
 	AllocationInfo []AllocationInfo
 }
 
-type GetOperatorSharesRequest struct {
+type OperatorSharesRequest struct {
 	blockNumber         *big.Int
 	OperatorAddress     common.Address
 	StrategiesAddresses []common.Address
 }
 
-type GetOperatorSharesResponse struct {
+type OperatorSharesResponse struct {
 	Shares []*big.Int
 }
 
-type GetOperatorsSharesRequest struct {
+type OperatorsSharesRequest struct {
 	blockNumber         *big.Int
 	OperatorsAddresses  []common.Address
 	StrategiesAddresses []common.Address
 }
 
-type GetOperatorsSharesResponse struct {
+type OperatorsSharesResponse struct {
 	Shares [][]*big.Int
 }
 
-type GetNumOperatorSetsForOperatorRequest struct {
+type NumOperatorSetsForOperatorRequest struct {
 	blockNumber     *big.Int
 	OperatorAddress common.Address
 }
 
-type GetNumOperatorSetsForOperatorResponse struct {
+type NumOperatorSetsForOperatorResponse struct {
 	NumOperatorSets *big.Int
 }
 
-type GetOperatorSetsForOperatorRequest struct {
+type OperatorSetsForOperatorRequest struct {
 	blockNumber     *big.Int
 	OperatorAddress common.Address
 }
 
-type GetOperatorSetsForOperatorResponse struct {
+type OperatorSetsForOperatorResponse struct {
 	OperatorSets []allocationmanager.OperatorSet
 }
 
@@ -320,89 +320,88 @@ type IsOperatorRegisteredWithOperatorSetResponse struct {
 	IsRegistered bool
 }
 
-type GetOperatorsForOperatorSetRequest struct {
+type OperatorsForOperatorSetRequest struct {
 	blockNumber *big.Int
 	OperatorSet allocationmanager.OperatorSet
 }
 
-type GetOperatorsForOperatorSetResponse struct {
+type OperatorsForOperatorSetResponse struct {
 	Operators []common.Address
 }
 
-type GetNumOperatorsForOperatorSetRequest struct {
+type NumOperatorsForOperatorSetRequest struct {
 	blockNumber *big.Int
 	OperatorSet allocationmanager.OperatorSet
 }
 
-type GetNumOperatorsForOperatorSetResponse struct {
+type NumOperatorsForOperatorSetResponse struct {
 	NumOperators *big.Int
 }
 
-type GetStrategiesForOperatorSetRequest struct {
+type StrategiesForOperatorSetRequest struct {
 	blockNumber *big.Int
 	OperatorSet allocationmanager.OperatorSet
 }
 
-type GetStrategiesForOperatorSetResponse struct {
+type StrategiesForOperatorSetResponse struct {
 	StrategiesAddresses []common.Address
 }
 
-type GetSlashableSharesRequest struct {
+type SlashableSharesRequest struct {
 	blockNumber         *big.Int
 	OperatorAddress     common.Address
 	OperatorSet         allocationmanager.OperatorSet
 	StrategiesAddresses []common.Address
 }
 
-type GetSlashableSharesResponse struct {
+type SlashableSharesResponse struct {
 	SlashableShares map[common.Address]*big.Int
 }
 
-type GetAllocatableMagnitudeRequest struct {
+type AllocatableMagnitudeRequest struct {
 	blockNumber     *big.Int
 	OperatorAddress common.Address
 	StrategyAddress common.Address
 }
 
-type GetAllocatableMagnitudeResponse struct {
+type AllocatableMagnitudeResponse struct {
 	AllocatableMagnitude uint64
 }
 
-type GetSlashableSharesForOperatorSetsRequest struct {
+type SlashableSharesForOperatorSetsRequest struct {
 	blockNumber  *big.Int
 	OperatorSets []allocationmanager.OperatorSet
 }
 
-// Original struct was OperatorSetStakes
-type GetSlashableSharesForOperatorSetsResponse struct {
+type SlashableSharesForOperatorSetsResponse struct {
 	OperatorSetStakes []OperatorSetStakes
 }
 
-type GetSlashableSharesForOperatorSetsBeforeRequest struct {
+type SlashableSharesForOperatorSetsBeforeRequest struct {
 	blockNumber  *big.Int
 	OperatorSets []allocationmanager.OperatorSet
 	FutureBlock  uint32
 }
 
-type GetSlashableSharesForOperatorSetsBeforeResponse struct {
+type SlashableSharesForOperatorSetsBeforeResponse struct {
 	OperatorSetStakes []OperatorSetStakes
 }
 
-type GetAllocationDelayRequest struct {
+type AllocationDelayRequest struct {
 	blockNumber     *big.Int
 	OperatorAddress common.Address
 }
 
-type GetAllocationDelayResponse struct {
+type AllocationDelayResponse struct {
 	AllocationDelay uint32
 }
 
-type GetRegisteredSetsRequest struct {
+type RegisteredSetsRequest struct {
 	blockNumber     *big.Int
 	OperatorAddress common.Address
 }
 
-type GetRegisteredSetsResponse struct {
+type RegisteredSetsResponse struct {
 	OperatorSets []allocationmanager.OperatorSet
 }
 

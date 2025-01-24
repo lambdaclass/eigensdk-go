@@ -379,7 +379,7 @@ func TestSetOperatorPISplit(t *testing.T) {
 	require.NoError(t, err)
 
 	expectedInitialSplit := uint16(1000)
-	request := elcontracts.GetOperatorPISplitRequest{
+	request := elcontracts.OperatorPISplitRequest{
 		OperatorAddress: operatorAddr,
 	}
 	response, err := chainReader.GetOperatorPISplit(context.Background(), request)
@@ -438,7 +438,7 @@ func TestSetOperatorAVSSplit(t *testing.T) {
 	require.NoError(t, err)
 
 	expectedInitialSplit := uint16(1000)
-	request := elcontracts.GetOperatorAVSSplitRequest{
+	request := elcontracts.OperatorAVSSplitRequest{
 		OperatorAddress: operatorAddr,
 		AvsAddress:      avsAddr,
 	}
@@ -658,7 +658,7 @@ func TestModifyAllocations(t *testing.T) {
 	testutils.AdvanceChainByNBlocksExecInContainer(context.Background(), allocationConfigurationDelay+1, anvilC)
 
 	// Retrieve the allocation delay so that the delay is applied
-	request := elcontracts.GetAllocationDelayRequest{
+	request := elcontracts.AllocationDelayRequest{
 		OperatorAddress: operatorAddr,
 	}
 	_, err = chainReader.GetAllocationDelay(context.Background(), request)
@@ -672,7 +672,7 @@ func TestModifyAllocations(t *testing.T) {
 	require.Equal(t, gethtypes.ReceiptStatusSuccessful, receipt.Status)
 
 	// Check that the new allocation is pending and the current magnitude is zero
-	requestAllocInfo := elcontracts.GetAllocationInfoRequest{
+	requestAllocInfo := elcontracts.AllocationInfoRequest{
 		OperatorAddress: operatorAddr,
 		StrategyAddress: strategyAddr,
 	}
@@ -1267,7 +1267,7 @@ func newTestClaim(
 	// Fetch the next root index from contract
 	response, err := chainReader.GetDistributionRootsLength(
 		context.Background(),
-		elcontracts.GetDistributionRootsLengthRequest{},
+		elcontracts.DistributionRootsLengthRequest{},
 	)
 	if err != nil {
 		return nil, utils.WrapError("Failed to call GetDistributionRootsLength", err)

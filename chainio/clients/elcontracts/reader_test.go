@@ -44,7 +44,7 @@ func TestChainReader(t *testing.T) {
 	})
 
 	t.Run("get operator details", func(t *testing.T) {
-		request := elcontracts.GetOperatorDetailsRequest{OperatorAddress: operatorAddrHex}
+		request := elcontracts.OperatorDetailsRequest{OperatorAddress: operatorAddrHex}
 		response, err := read_clients.ElChainReader.GetOperatorDetails(ctx, request)
 		assert.NoError(t, err)
 		assert.NotNil(t, response)
@@ -52,7 +52,7 @@ func TestChainReader(t *testing.T) {
 	})
 
 	t.Run("get strategy and underlying token", func(t *testing.T) {
-		request := elcontracts.GetStrategyAndUnderlyingTokenRequest{StrategyAddress: contractAddrs.Erc20MockStrategy}
+		request := elcontracts.StrategyAndUnderlyingTokenRequest{StrategyAddress: contractAddrs.Erc20MockStrategy}
 		response, err := read_clients.ElChainReader.GetStrategyAndUnderlyingToken(
 			ctx,
 			request,
@@ -70,7 +70,7 @@ func TestChainReader(t *testing.T) {
 	})
 
 	t.Run("get strategy and underlying ERC20 token", func(t *testing.T) {
-		request := elcontracts.GetStrategyAndUnderlyingERC20TokenRequest{
+		request := elcontracts.StrategyAndUnderlyingERC20TokenRequest{
 			StrategyAddress: contractAddrs.Erc20MockStrategy,
 		}
 		response, err := read_clients.ElChainReader.GetStrategyAndUnderlyingERC20Token(
@@ -88,7 +88,7 @@ func TestChainReader(t *testing.T) {
 	})
 
 	t.Run("get operator shares in strategy", func(t *testing.T) {
-		request := elcontracts.GetOperatorSharesInStrategyRequest{
+		request := elcontracts.OperatorSharesInStrategyRequest{
 			OperatorAddress: operatorAddrHex,
 			StrategyAddress: contractAddrs.Erc20MockStrategy,
 		}
@@ -141,7 +141,7 @@ func TestChainReader(t *testing.T) {
 	})
 
 	t.Run("get staker shares", func(t *testing.T) {
-		request := elcontracts.GetStakerSharesRequest{
+		request := elcontracts.StakerSharesRequest{
 			StakerAddress: common.HexToAddress(operator.Address),
 		}
 		response, err := read_clients.ElChainReader.GetStakerShares(
@@ -160,7 +160,7 @@ func TestChainReader(t *testing.T) {
 	})
 
 	t.Run("get delegated operator", func(t *testing.T) {
-		request := elcontracts.GetDelegatedOperatorRequest{StakerAddress: common.HexToAddress(operator.Address)}
+		request := elcontracts.DelegatedOperatorRequest{StakerAddress: common.HexToAddress(operator.Address)}
 		t.Logf("Request: %+v", request)
 		response, err := read_clients.ElChainReader.GetDelegatedOperator(
 			ctx,
@@ -175,7 +175,7 @@ func TestChainReader(t *testing.T) {
 	t.Run("GetOperatorShares", func(t *testing.T) {
 		strategyAddr := contractAddrs.Erc20MockStrategy
 		strategies := []common.Address{strategyAddr}
-		request := elcontracts.GetOperatorSharesRequest{
+		request := elcontracts.OperatorSharesRequest{
 			OperatorAddress:     operatorAddrHex,
 			StrategiesAddresses: strategies,
 		}
@@ -188,7 +188,7 @@ func TestChainReader(t *testing.T) {
 
 		// with n strategies, response's list length is n
 		strategies = []common.Address{strategyAddr, strategyAddr, strategyAddr}
-		request = elcontracts.GetOperatorSharesRequest{
+		request = elcontracts.OperatorSharesRequest{
 			OperatorAddress:     operatorAddrHex,
 			StrategiesAddresses: strategies,
 		}
@@ -207,7 +207,7 @@ func TestChainReader(t *testing.T) {
 		operators := []common.Address{operatorAddr}
 		strategyAddr := contractAddrs.Erc20MockStrategy
 		strategies := []common.Address{strategyAddr}
-		request := elcontracts.GetOperatorsSharesRequest{
+		request := elcontracts.OperatorsSharesRequest{
 			OperatorsAddresses:  operators,
 			StrategiesAddresses: strategies,
 		}
@@ -220,7 +220,7 @@ func TestChainReader(t *testing.T) {
 
 		// with n strategies, response's list length is [1][n]
 		mult_strategies := []common.Address{strategyAddr, strategyAddr, strategyAddr}
-		request = elcontracts.GetOperatorsSharesRequest{
+		request = elcontracts.OperatorsSharesRequest{
 			OperatorsAddresses:  operators,
 			StrategiesAddresses: mult_strategies,
 		}
@@ -233,7 +233,7 @@ func TestChainReader(t *testing.T) {
 
 		// with n strategies, response's list length is [n][1]
 		mult_operators := []common.Address{operatorAddr, operatorAddr, operatorAddr}
-		request = elcontracts.GetOperatorsSharesRequest{
+		request = elcontracts.OperatorsSharesRequest{
 			OperatorsAddresses:  mult_operators,
 			StrategiesAddresses: strategies,
 		}
@@ -245,7 +245,7 @@ func TestChainReader(t *testing.T) {
 		assert.Len(t, response.Shares[0], 1)
 
 		// with n strategies and n operators, response's list length is [n][n]
-		request = elcontracts.GetOperatorsSharesRequest{
+		request = elcontracts.OperatorsSharesRequest{
 			OperatorsAddresses:  mult_operators,
 			StrategiesAddresses: mult_strategies,
 		}
@@ -312,7 +312,7 @@ func TestGetCurrentClaimableDistributionRoot(t *testing.T) {
 
 	// Check that if there is no root submitted the result is zero
 	response, err := chainReader.GetCurrentClaimableDistributionRoot(
-		ctx, elcontracts.GetCurrentClaimableDistributionRootRequest{},
+		ctx, elcontracts.CurrentClaimableDistributionRootRequest{},
 	)
 	assert.NoError(t, err)
 	assert.Zero(t, response.DistributionRoot.Root)
@@ -332,7 +332,7 @@ func TestGetCurrentClaimableDistributionRoot(t *testing.T) {
 	// Check that if there is a root submitted the result is that root
 	response, err = chainReader.GetCurrentClaimableDistributionRoot(
 		ctx,
-		elcontracts.GetCurrentClaimableDistributionRootRequest{},
+		elcontracts.CurrentClaimableDistributionRootRequest{},
 	)
 	assert.NoError(t, err)
 	assert.Equal(t, response.DistributionRoot.Root, root)
@@ -392,7 +392,7 @@ func TestGetRootIndexFromRootHash(t *testing.T) {
 	root_index, err := chainReader.GetRootIndexFromHash(
 		ctx,
 
-		elcontracts.GetRootIndexFromHashRequest{
+		elcontracts.RootIndexFromHashRequest{
 			RootHash: root,
 		},
 	)
@@ -434,7 +434,7 @@ func TestGetRootIndexFromRootHash(t *testing.T) {
 	responseHash, err := chainReader.GetRootIndexFromHash(
 		ctx,
 
-		elcontracts.GetRootIndexFromHashRequest{
+		elcontracts.RootIndexFromHashRequest{
 			RootHash: root,
 		},
 	)
@@ -445,7 +445,7 @@ func TestGetRootIndexFromRootHash(t *testing.T) {
 	responseHash, err = chainReader.GetRootIndexFromHash(
 		ctx,
 
-		elcontracts.GetRootIndexFromHashRequest{
+		elcontracts.RootIndexFromHashRequest{
 			RootHash: root2,
 		},
 	)
@@ -479,7 +479,7 @@ func TestGetCumulativeClaimedRewards(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, receipt.Status == gethtypes.ReceiptStatusSuccessful)
 
-	request := elcontracts.GetStrategyAndUnderlyingERC20TokenRequest{
+	request := elcontracts.StrategyAndUnderlyingERC20TokenRequest{
 		StrategyAddress: contractAddrs.Erc20MockStrategy,
 	}
 	response, err := clients.ElChainReader.GetStrategyAndUnderlyingERC20Token(
@@ -493,7 +493,7 @@ func TestGetCumulativeClaimedRewards(t *testing.T) {
 	assert.NotNil(t, response.ERC20Bindings)
 
 	// This tests that without claims result is zero
-	requestClaimed := elcontracts.GetCumulativeClaimedRequest{
+	requestClaimed := elcontracts.CumulativeClaimedRequest{
 		ClaimerAddress: common.HexToAddress(testutils.ANVIL_FIRST_ADDRESS),
 		TokenAddress:   response.UnderlyingTokenAddress,
 	}
@@ -549,7 +549,7 @@ func TestCheckClaim(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, receipt.Status == gethtypes.ReceiptStatusSuccessful)
 
-	request := elcontracts.GetStrategyAndUnderlyingERC20TokenRequest{
+	request := elcontracts.StrategyAndUnderlyingERC20TokenRequest{
 		StrategyAddress: contractAddrs.Erc20MockStrategy,
 	}
 	response, err := clients.ElChainReader.GetStrategyAndUnderlyingERC20Token(
@@ -597,7 +597,7 @@ func TestGetAllocatableMagnitudeAndGetMaxMagnitudes(t *testing.T) {
 	operatorSetId := uint32(1)
 
 	strategies := []common.Address{strategyAddr}
-	request := elcontracts.GetMaxMagnitudes0Request{
+	request := elcontracts.MaxMagnitudes0Request{
 		OperatorAddress:     operatorAddr,
 		StrategiesAddresses: strategies,
 	}
@@ -605,7 +605,7 @@ func TestGetAllocatableMagnitudeAndGetMaxMagnitudes(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Assert that at the beginning, Allocatable Magnitude is Max allocatable magnitude
-	requestMag := elcontracts.GetAllocatableMagnitudeRequest{
+	requestMag := elcontracts.AllocatableMagnitudeRequest{
 		OperatorAddress: testAddr,
 		StrategyAddress: strategyAddr,
 	}
@@ -630,7 +630,7 @@ func TestGetAllocatableMagnitudeAndGetMaxMagnitudes(t *testing.T) {
 	testutils.AdvanceChainByNBlocksExecInContainer(context.Background(), allocationConfigurationDelay+1, anvilC)
 
 	// Check that Allocation delay has been applied
-	requestDelay := elcontracts.GetAllocationDelayRequest{OperatorAddress: operatorAddr}
+	requestDelay := elcontracts.AllocationDelayRequest{OperatorAddress: operatorAddr}
 	_, err = chainReader.GetAllocationDelay(context.Background(), requestDelay)
 	require.NoError(t, err)
 
@@ -661,7 +661,7 @@ func TestGetAllocatableMagnitudeAndGetMaxMagnitudes(t *testing.T) {
 	assert.Equal(t, response.MaxMagnitudes[0], responseMag.AllocatableMagnitude+allocatable_reduction)
 
 	// Check that the new allocationDelay is equal to delay
-	requestOp := elcontracts.GetOperatorDetailsRequest{OperatorAddress: operatorAddr}
+	requestOp := elcontracts.OperatorDetailsRequest{OperatorAddress: operatorAddr}
 
 	responseOp, err := chainReader.GetOperatorDetails(ctx, requestOp)
 	assert.NoError(t, err)
@@ -890,7 +890,7 @@ func TestContractErrorCases(t *testing.T) {
 
 	t.Run("GetStrategyAndUnderlyingToken", func(t *testing.T) {
 		_, err := chainReader.GetStrategyAndUnderlyingToken(
-			ctx, elcontracts.GetStrategyAndUnderlyingTokenRequest{},
+			ctx, elcontracts.StrategyAndUnderlyingTokenRequest{},
 		)
 		assert.Error(t, err)
 		assert.Equal(t, err.Error(), "Failed to fetch token contract: no contract code at given address")
@@ -898,7 +898,7 @@ func TestContractErrorCases(t *testing.T) {
 
 	t.Run("GetStrategyAndUnderlyingERC20Token", func(t *testing.T) {
 		_, err := chainReader.GetStrategyAndUnderlyingERC20Token(
-			ctx, elcontracts.GetStrategyAndUnderlyingERC20TokenRequest{StrategyAddress: strategyAddr},
+			ctx, elcontracts.StrategyAndUnderlyingERC20TokenRequest{StrategyAddress: strategyAddr},
 		)
 		assert.Error(t, err)
 		assert.Equal(t, err.Error(), "Failed to fetch token contract: no contract code at given address")
@@ -935,12 +935,12 @@ func TestInvalidConfig(t *testing.T) {
 
 	t.Run("get operator details with invalid config", func(t *testing.T) {
 		// GetOperatorDetails needs a correct DelegationManagerAddress
-		_, err := chainReader.GetOperatorDetails(context.Background(), elcontracts.GetOperatorDetailsRequest{})
+		_, err := chainReader.GetOperatorDetails(context.Background(), elcontracts.OperatorDetailsRequest{})
 		require.Error(t, err)
 	})
 
 	t.Run("get operator avs", func(t *testing.T) {
-		request := elcontracts.GetOperatorAVSSplitRequest{
+		request := elcontracts.OperatorAVSSplitRequest{
 			OperatorAddress: common.HexToAddress(operatorAddr),
 			AvsAddress:      common.MaxAddress,
 		}
@@ -949,7 +949,7 @@ func TestInvalidConfig(t *testing.T) {
 		)
 		require.Error(t, err)
 
-		_, err = chainReader.GetOperatorPISplit(context.Background(), elcontracts.GetOperatorPISplitRequest{})
+		_, err = chainReader.GetOperatorPISplit(context.Background(), elcontracts.OperatorPISplitRequest{})
 		require.Error(t, err)
 	})
 
@@ -958,7 +958,7 @@ func TestInvalidConfig(t *testing.T) {
 		strategyAddr := common.HexToAddress(testutils.ANVIL_FIRST_ADDRESS)
 		operatorAddr := common.HexToAddress(testutils.ANVIL_SECOND_ADDRESS)
 
-		requestShares := elcontracts.GetOperatorSharesInStrategyRequest{
+		requestShares := elcontracts.OperatorSharesInStrategyRequest{
 			OperatorAddress: operatorAddr,
 			StrategyAddress: strategyAddr,
 		}
@@ -968,14 +968,14 @@ func TestInvalidConfig(t *testing.T) {
 		require.Error(t, err)
 
 		// GetStrategyAndUnderlyingToken needs a correct StrategyAddress
-		request := elcontracts.GetStrategyAndUnderlyingTokenRequest{
+		request := elcontracts.StrategyAndUnderlyingTokenRequest{
 			StrategyAddress: strategyAddr,
 		}
 		_, err = chainReader.GetStrategyAndUnderlyingToken(context.Background(), request)
 		require.Error(t, err)
 
 		_, err = chainReader.GetStrategyAndUnderlyingERC20Token(
-			context.Background(), elcontracts.GetStrategyAndUnderlyingERC20TokenRequest{StrategyAddress: strategyAddr},
+			context.Background(), elcontracts.StrategyAndUnderlyingERC20TokenRequest{StrategyAddress: strategyAddr},
 		)
 		require.Error(t, err)
 	})
@@ -1012,17 +1012,17 @@ func TestInvalidConfig(t *testing.T) {
 		// GetDistributionRootsLength needs a correct RewardsCoordinatorAddress
 		_, err := chainReader.GetDistributionRootsLength(
 			context.Background(),
-			elcontracts.GetDistributionRootsLengthRequest{},
+			elcontracts.DistributionRootsLengthRequest{},
 		)
 		require.Error(t, err)
 
 		// GetRootIndexFromHash needs a correct RewardsCoordinatorAddress
-		_, err = chainReader.GetRootIndexFromHash(context.Background(), elcontracts.GetRootIndexFromHashRequest{})
+		_, err = chainReader.GetRootIndexFromHash(context.Background(), elcontracts.RootIndexFromHashRequest{})
 		require.Error(t, err)
 
 		_, err = chainReader.GetCurrentClaimableDistributionRoot(
 			context.Background(),
-			elcontracts.GetCurrentClaimableDistributionRootRequest{},
+			elcontracts.CurrentClaimableDistributionRootRequest{},
 		)
 		require.Error(t, err)
 	})
@@ -1033,29 +1033,29 @@ func TestInvalidConfig(t *testing.T) {
 
 		_, err = chainReader.GetCurrentClaimableDistributionRoot(
 			context.Background(),
-			elcontracts.GetCurrentClaimableDistributionRootRequest{},
+			elcontracts.CurrentClaimableDistributionRootRequest{},
 		)
 		require.Error(t, err)
 
 		_, err := chainReader.GetCumulativeClaimed(
-			context.Background(), elcontracts.GetCumulativeClaimedRequest{},
+			context.Background(), elcontracts.CumulativeClaimedRequest{},
 		)
 		require.Error(t, err)
 
 		_, err = chainReader.GetMaxMagnitudes(
-			context.Background(), elcontracts.GetMaxMagnitudes0Request{},
+			context.Background(), elcontracts.MaxMagnitudes0Request{},
 		)
 		require.Error(t, err)
 
 		_, err = chainReader.GetAllocatableMagnitude(
-			context.Background(), elcontracts.GetAllocatableMagnitudeRequest{},
+			context.Background(), elcontracts.AllocatableMagnitudeRequest{},
 		)
 		require.Error(t, err)
 
-		_, err = chainReader.GetAllocationInfo(context.Background(), elcontracts.GetAllocationInfoRequest{})
+		_, err = chainReader.GetAllocationInfo(context.Background(), elcontracts.AllocationInfoRequest{})
 		require.Error(t, err)
 
-		_, err = chainReader.GetAllocationDelay(context.Background(), elcontracts.GetAllocationDelayRequest{})
+		_, err = chainReader.GetAllocationDelay(context.Background(), elcontracts.AllocationDelayRequest{})
 		require.Error(t, err)
 
 		_, err = chainReader.CheckClaim(
@@ -1072,7 +1072,7 @@ func TestInvalidConfig(t *testing.T) {
 
 	t.Run("try to get a staker shares with invalid config", func(t *testing.T) {
 		// GetStakerShares needs a correct DelegationManagerAddress
-		request := elcontracts.GetStakerSharesRequest{
+		request := elcontracts.StakerSharesRequest{
 			StakerAddress: common.HexToAddress(operator.Address),
 		}
 		_, err := chainReader.GetStakerShares(context.Background(), request)
@@ -1083,7 +1083,7 @@ func TestInvalidConfig(t *testing.T) {
 		// GetDelegatedOperator needs a correct DelegationManagerAddress
 		_, err := chainReader.GetDelegatedOperator(
 			context.Background(),
-			elcontracts.GetDelegatedOperatorRequest{},
+			elcontracts.DelegatedOperatorRequest{},
 		)
 		require.Error(t, err)
 	})
@@ -1091,14 +1091,14 @@ func TestInvalidConfig(t *testing.T) {
 	t.Run("try to get the number of operator sets for an operator with invalid config", func(t *testing.T) {
 		// GetNumOperatorSetsForOperator needs a correct AllocationManagerAddress
 		_, err := chainReader.GetNumOperatorSetsForOperator(
-			context.Background(), elcontracts.GetNumOperatorSetsForOperatorRequest{},
+			context.Background(), elcontracts.NumOperatorSetsForOperatorRequest{},
 		)
 		require.Error(t, err)
 	})
 
 	t.Run("try to get the operator sets for an operator with invalid config", func(t *testing.T) {
 		// GetOperatorSetsForOperator needs a correct AllocationManagerAddress
-		request := elcontracts.GetOperatorSetsForOperatorRequest{
+		request := elcontracts.OperatorSetsForOperatorRequest{
 			OperatorAddress: common.HexToAddress(operatorAddr),
 		}
 		_, err := chainReader.GetOperatorSetsForOperator(context.Background(), request)
@@ -1158,7 +1158,7 @@ func TestInvalidConfig(t *testing.T) {
 				Avs: testAddr,
 				Id:  operatorSetId,
 			}
-			request := elcontracts.GetOperatorsForOperatorSetRequest{
+			request := elcontracts.OperatorsForOperatorSetRequest{
 				OperatorSet: operatorSet,
 			}
 			_, err := chainReader.GetOperatorsForOperatorSet(
@@ -1179,7 +1179,7 @@ func TestInvalidConfig(t *testing.T) {
 				Avs: testAddr,
 				Id:  operatorSetId,
 			}
-			request := elcontracts.GetNumOperatorsForOperatorSetRequest{
+			request := elcontracts.NumOperatorsForOperatorSetRequest{
 				OperatorSet: operatorSet,
 			}
 			_, err := chainReader.GetNumOperatorsForOperatorSet(
@@ -1200,7 +1200,7 @@ func TestInvalidConfig(t *testing.T) {
 				Avs: testAddr,
 				Id:  operatorSetId,
 			}
-			request := elcontracts.GetStrategiesForOperatorSetRequest{
+			request := elcontracts.StrategiesForOperatorSetRequest{
 				OperatorSet: operatorSet,
 			}
 			_, err := chainReader.GetStrategiesForOperatorSet(
@@ -1305,7 +1305,7 @@ func TestOperatorSetsAndSlashableShares(t *testing.T) {
 
 	t.Run("get operators and operator sets", func(t *testing.T) {
 		t.Run("validate strategies for operatorSet", func(t *testing.T) {
-			request := elcontracts.GetStrategiesForOperatorSetRequest{
+			request := elcontracts.StrategiesForOperatorSetRequest{
 				OperatorSet: operatorSet,
 			}
 			response, err := chainReader.GetStrategiesForOperatorSet(context.Background(), request)
@@ -1315,7 +1315,7 @@ func TestOperatorSetsAndSlashableShares(t *testing.T) {
 		})
 
 		t.Run("get registered sets", func(t *testing.T) {
-			request := elcontracts.GetRegisteredSetsRequest{
+			request := elcontracts.RegisteredSetsRequest{
 				OperatorAddress: operatorAddr,
 			}
 			response, err := chainReader.GetRegisteredSets(context.Background(), request)
@@ -1324,7 +1324,7 @@ func TestOperatorSetsAndSlashableShares(t *testing.T) {
 		})
 
 		t.Run("get operator sets for operator", func(t *testing.T) {
-			request := elcontracts.GetOperatorSetsForOperatorRequest{
+			request := elcontracts.OperatorSetsForOperatorRequest{
 				OperatorAddress: operatorAddr,
 			}
 			response, err := chainReader.GetOperatorSetsForOperator(context.Background(), request)
@@ -1333,7 +1333,7 @@ func TestOperatorSetsAndSlashableShares(t *testing.T) {
 		})
 
 		t.Run("get amount operatorSets for operator", func(t *testing.T) {
-			request := elcontracts.GetNumOperatorSetsForOperatorRequest{
+			request := elcontracts.NumOperatorSetsForOperatorRequest{
 				OperatorAddress: operatorAddr,
 			}
 			response, err := chainReader.GetNumOperatorSetsForOperator(
@@ -1346,7 +1346,7 @@ func TestOperatorSetsAndSlashableShares(t *testing.T) {
 		})
 
 		t.Run("get operator for operatorsets", func(t *testing.T) {
-			request := elcontracts.GetOperatorsForOperatorSetRequest{
+			request := elcontracts.OperatorsForOperatorSetRequest{
 				OperatorSet: operatorSet,
 			}
 			response, err := chainReader.GetOperatorsForOperatorSet(context.Background(), request)
@@ -1355,7 +1355,7 @@ func TestOperatorSetsAndSlashableShares(t *testing.T) {
 		})
 
 		t.Run("get amount of operators for operatorsets", func(t *testing.T) {
-			request := elcontracts.GetNumOperatorsForOperatorSetRequest{
+			request := elcontracts.NumOperatorsForOperatorSetRequest{
 				OperatorSet: operatorSet,
 			}
 			response, err := chainReader.GetNumOperatorsForOperatorSet(context.Background(), request)
@@ -1365,7 +1365,7 @@ func TestOperatorSetsAndSlashableShares(t *testing.T) {
 	})
 
 	t.Run("slashable shares tests", func(t *testing.T) {
-		request := elcontracts.GetSlashableSharesRequest{
+		request := elcontracts.SlashableSharesRequest{
 			OperatorAddress:     operatorAddr,
 			OperatorSet:         operatorSet,
 			StrategiesAddresses: strategies,
@@ -1381,7 +1381,7 @@ func TestOperatorSetsAndSlashableShares(t *testing.T) {
 		})
 
 		t.Run("get slashable shares for multiple operatorSets", func(t *testing.T) {
-			request := elcontracts.GetSlashableSharesForOperatorSetsRequest{
+			request := elcontracts.SlashableSharesForOperatorSetsRequest{
 				OperatorSets: []allocationmanager.OperatorSet{operatorSet},
 			}
 			response, err := chainReader.GetSlashableSharesForOperatorSets(
@@ -1394,7 +1394,7 @@ func TestOperatorSetsAndSlashableShares(t *testing.T) {
 		})
 
 		t.Run("get slashable shares before specific block", func(t *testing.T) {
-			request := elcontracts.GetSlashableSharesForOperatorSetsBeforeRequest{
+			request := elcontracts.SlashableSharesForOperatorSetsBeforeRequest{
 				OperatorSets: []allocationmanager.OperatorSet{operatorSet},
 			}
 			response, err := chainReader.GetSlashableSharesForOperatorSetsBefore(
@@ -1425,26 +1425,26 @@ func TestOperatorSetsWithWrongInput(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Run("test operator set with invalid id", func(t *testing.T) {
-		request := elcontracts.GetOperatorsForOperatorSetRequest{
+		request := elcontracts.OperatorsForOperatorSetRequest{
 			OperatorSet: operatorSet,
 		}
 		_, err := chainReader.GetOperatorsForOperatorSet(ctx, request)
 		require.Error(t, err)
 
-		requestNumOps := elcontracts.GetNumOperatorsForOperatorSetRequest{
+		requestNumOps := elcontracts.NumOperatorsForOperatorSetRequest{
 			OperatorSet: operatorSet,
 		}
 		_, err = chainReader.GetNumOperatorsForOperatorSet(ctx, requestNumOps)
 		require.Error(t, err)
 
-		requestStr := elcontracts.GetStrategiesForOperatorSetRequest{
+		requestStr := elcontracts.StrategiesForOperatorSetRequest{
 			OperatorSet: operatorSet,
 		}
 		_, err = chainReader.GetStrategiesForOperatorSet(ctx, requestStr)
 		require.Error(t, err)
 
 		strategies := []common.Address{contractAddrs.Erc20MockStrategy}
-		requestSlashable := elcontracts.GetSlashableSharesRequest{
+		requestSlashable := elcontracts.SlashableSharesRequest{
 			OperatorAddress:     operatorAddr,
 			OperatorSet:         operatorSet,
 			StrategiesAddresses: strategies,
@@ -1464,7 +1464,7 @@ func TestOperatorSetsWithWrongInput(t *testing.T) {
 		require.NoError(t, err)
 
 		operatorSets := []allocationmanager.OperatorSet{operatorSet}
-		request := elcontracts.GetSlashableSharesForOperatorSetsBeforeRequest{
+		request := elcontracts.SlashableSharesForOperatorSetsBeforeRequest{
 			OperatorSets: operatorSets,
 		}
 
