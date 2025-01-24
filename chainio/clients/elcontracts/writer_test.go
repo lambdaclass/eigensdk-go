@@ -379,7 +379,7 @@ func TestSetOperatorPISplit(t *testing.T) {
 	require.NoError(t, err)
 
 	expectedInitialSplit := uint16(1000)
-	request := elcontracts.GetOperatorAVSSplitRequest{
+	request := elcontracts.GetOperatorPISplitRequest{
 		OperatorAddress: operatorAddr,
 	}
 	response, err := chainReader.GetOperatorPISplit(context.Background(), nil, request)
@@ -438,11 +438,15 @@ func TestSetOperatorAVSSplit(t *testing.T) {
 	require.NoError(t, err)
 
 	expectedInitialSplit := uint16(1000)
-	initialSplit, err := chainReader.GetOperatorAVSSplit(context.Background(), operatorAddr, avsAddr)
+	request := elcontracts.GetOperatorAVSSplitRequest{
+		OperatorAddress: operatorAddr,
+		AvsAddress:      avsAddr,
+	}
+	response, err := chainReader.GetOperatorAVSSplit(context.Background(), nil, request)
 	require.NoError(t, err)
-	require.Equal(t, expectedInitialSplit, initialSplit)
+	require.Equal(t, expectedInitialSplit, response.Split)
 
-	newSplit := initialSplit + 1
+	newSplit := response.Split + 1
 	// Set a new operator AVS split
 	receipt, err = chainWriter.SetOperatorAVSSplit(
 		context.Background(),
@@ -455,9 +459,9 @@ func TestSetOperatorAVSSplit(t *testing.T) {
 	require.Equal(t, gethtypes.ReceiptStatusSuccessful, receipt.Status)
 
 	// Retrieve the operator AVS split to check it has been set
-	updatedSplit, err := chainReader.GetOperatorAVSSplit(context.Background(), operatorAddr, avsAddr)
+	response, err = chainReader.GetOperatorAVSSplit(context.Background(), nil, request)
 	require.NoError(t, err)
-	require.Equal(t, newSplit, updatedSplit)
+	require.Equal(t, newSplit, response.Split)
 
 	// Set a invalid operator AVS split
 	invalidSplit := uint16(10001)

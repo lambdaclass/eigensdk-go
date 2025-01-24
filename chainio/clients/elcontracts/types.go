@@ -211,9 +211,18 @@ type CheckClaimResponse struct {
 
 type GetOperatorAVSSplitRequest struct {
 	OperatorAddress common.Address
+	AvsAddress      common.Address
 }
 
 type GetOperatorAVSSplitResponse struct {
+	Split uint16
+}
+
+type GetOperatorPISplitRequest struct {
+	OperatorAddress common.Address
+}
+
+type GetOperatorPISplitResponse struct {
 	Split uint16
 }
 

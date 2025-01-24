@@ -903,14 +903,18 @@ func TestInvalidConfig(t *testing.T) {
 	})
 
 	t.Run("get operator avs", func(t *testing.T) {
+		request := elcontracts.GetOperatorAVSSplitRequest{
+			OperatorAddress: common.HexToAddress(operatorAddr),
+			AvsAddress:      common.MaxAddress,
+		}
 		_, err = chainReader.GetOperatorAVSSplit(
 			context.Background(),
-			common.HexToAddress(operatorAddr),
-			common.MaxAddress,
+			nil,
+			request,
 		)
 		require.Error(t, err)
 
-		_, err = chainReader.GetOperatorPISplit(context.Background(), nil, elcontracts.GetOperatorAVSSplitRequest{})
+		_, err = chainReader.GetOperatorPISplit(context.Background(), nil, elcontracts.GetOperatorPISplitRequest{})
 		require.Error(t, err)
 	})
 

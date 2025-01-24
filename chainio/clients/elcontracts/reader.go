@@ -446,18 +446,6 @@ func (r *ChainReader) CheckClaim(
 
 func (r *ChainReader) GetOperatorAVSSplit(
 	ctx context.Context,
-	operator gethcommon.Address,
-	avs gethcommon.Address,
-) (uint16, error) {
-	if r.rewardsCoordinator == nil {
-		return 0, errors.New("RewardsCoordinator contract not provided")
-	}
-
-	return r.rewardsCoordinator.GetOperatorAVSSplit(&bind.CallOpts{Context: ctx}, operator, avs)
-}
-
-func (r *ChainReader) GetOperatorPISplit(
-	ctx context.Context,
 	blockNumber *big.Int,
 	request GetOperatorAVSSplitRequest,
 ) (GetOperatorAVSSplitResponse, error) {
@@ -465,15 +453,36 @@ func (r *ChainReader) GetOperatorPISplit(
 		return GetOperatorAVSSplitResponse{}, errors.New("RewardsCoordinator contract not provided")
 	}
 
+	split, err := r.rewardsCoordinator.GetOperatorAVSSplit(
+		&bind.CallOpts{Context: ctx, BlockNumber: blockNumber},
+		request.OperatorAddress,
+		request.AvsAddress,
+	)
+	if err != nil {
+		return GetOperatorAVSSplitResponse{}, utils.WrapError("failed to get operator AVS split", err)
+	}
+
+	return GetOperatorAVSSplitResponse{Split: split}, nil
+}
+
+func (r *ChainReader) GetOperatorPISplit(
+	ctx context.Context,
+	blockNumber *big.Int,
+	request GetOperatorPISplitRequest,
+) (GetOperatorPISplitResponse, error) {
+	if r.rewardsCoordinator == nil {
+		return GetOperatorPISplitResponse{}, errors.New("RewardsCoordinator contract not provided")
+	}
+
 	split, err := r.rewardsCoordinator.GetOperatorPISplit(
 		&bind.CallOpts{Context: ctx, BlockNumber: blockNumber},
 		request.OperatorAddress,
 	)
 	if err != nil {
-		return GetOperatorAVSSplitResponse{}, utils.WrapError("failed to get operator PI split", err)
+		return GetOperatorPISplitResponse{}, utils.WrapError("failed to get operator PI split", err)
 	}
 
-	return GetOperatorAVSSplitResponse{Split: split}, nil
+	return GetOperatorPISplitResponse{Split: split}, nil
 }
 
 func (r *ChainReader) GetAllocatableMagnitude(
@@ -786,6 +795,7 @@ func (r *ChainReader) GetSlashableShares(
 // GetSlashableSharesForOperatorSets returns the strategies the operatorSets take into account, their
 // operators, and the minimum amount of shares that are slashable by the operatorSets.
 // Not supported for M2 AVSs
+// VOY X ACAAAA
 func (r *ChainReader) GetSlashableSharesForOperatorSets(
 	ctx context.Context,
 	operatorSets []allocationmanager.OperatorSet,
