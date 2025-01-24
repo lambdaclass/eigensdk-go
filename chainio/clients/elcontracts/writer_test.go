@@ -566,9 +566,15 @@ func TestSetAndRemovePermission(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, gethtypes.ReceiptStatusSuccessful, receipt.Status)
 
-		canCall, err := chainReader.CanCall(context.Background(), accountAddress, appointeeAddress, target, selector)
+		request := elcontracts.CanCallRequest{
+			AccountAddress:   accountAddress,
+			AppointeeAddress: appointeeAddress,
+			Target:           target,
+			Selector:         selector,
+		}
+		response, err := chainReader.CanCall(context.Background(), nil, request)
 		require.NoError(t, err)
-		require.True(t, canCall)
+		require.True(t, response.CanCall)
 	})
 
 	t.Run("set permission to account when already set", func(t *testing.T) {
@@ -581,9 +587,15 @@ func TestSetAndRemovePermission(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, gethtypes.ReceiptStatusSuccessful, receipt.Status)
 
-		canCall, err := chainReader.CanCall(context.Background(), accountAddress, appointeeAddress, target, selector)
+		request := elcontracts.CanCallRequest{
+			AccountAddress:   accountAddress,
+			AppointeeAddress: appointeeAddress,
+			Target:           target,
+			Selector:         selector,
+		}
+		response, err := chainReader.CanCall(context.Background(), nil, request)
 		require.NoError(t, err)
-		require.False(t, canCall)
+		require.False(t, response.CanCall)
 	})
 
 	t.Run("remove permission from account when not set", func(t *testing.T) {

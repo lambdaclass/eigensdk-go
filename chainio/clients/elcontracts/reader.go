@@ -929,23 +929,25 @@ func (r *ChainReader) GetRegisteredSets(
 
 func (r *ChainReader) CanCall(
 	ctx context.Context,
-	accountAddress gethcommon.Address,
-	appointeeAddress gethcommon.Address,
-	target gethcommon.Address,
-	selector [4]byte,
-) (bool, error) {
+	blockNumber *big.Int,
+	request CanCallRequest,
+) (CanCallResponse, error) {
+	if r.permissionController == nil {
+		return CanCallResponse{}, errors.New("PermissionController contract not provided")
+	}
+
 	canCall, err := r.permissionController.CanCall(
-		&bind.CallOpts{Context: ctx},
-		accountAddress,
-		appointeeAddress,
-		target,
-		selector,
+		&bind.CallOpts{Context: ctx, BlockNumber: blockNumber},
+		request.AccountAddress,
+		request.AppointeeAddress,
+		request.Target,
+		request.Selector,
 	)
 	// This call should not fail since it's a getter
 	if err != nil {
-		return false, utils.WrapError("call to permission controller failed", err)
+		return CanCallResponse{}, utils.WrapError("call to permission controller failed", err)
 	}
-	return canCall, nil
+	return CanCallResponse{CanCall: canCall}, nil
 }
 
 func (r *ChainReader) ListAppointees(

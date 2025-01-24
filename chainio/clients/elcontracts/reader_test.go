@@ -812,9 +812,15 @@ func TestAppointeesFunctions(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, receipt.Status, gethtypes.ReceiptStatusSuccessful)
 
-		canCall, err := chainReader.CanCall(context.Background(), accountAddress, appointeeAddress, target, selector)
+		request := elcontracts.CanCallRequest{
+			AccountAddress:   accountAddress,
+			AppointeeAddress: appointeeAddress,
+			Target:           target,
+			Selector:         selector,
+		}
+		response, err := chainReader.CanCall(context.Background(), nil, request)
 		require.NoError(t, err)
-		require.True(t, canCall)
+		require.True(t, response.CanCall)
 
 		appointees, err := chainReader.ListAppointees(context.Background(), accountAddress, target, selector)
 		assert.NoError(t, err)
