@@ -974,19 +974,23 @@ func (r *ChainReader) ListAppointees(
 
 func (r *ChainReader) ListAppointeePermissions(
 	ctx context.Context,
-	accountAddress gethcommon.Address,
-	appointeeAddress gethcommon.Address,
-) ([]gethcommon.Address, [][4]byte, error) {
+	blockNumber *big.Int,
+	request ListAppointeePermissionsRequest,
+) (ListAppointeePermissionsResponse, error) {
+	if r.permissionController == nil {
+		return ListAppointeePermissionsResponse{}, errors.New("PermissionController contract not provided")
+	}
+
 	targets, selectors, err := r.permissionController.GetAppointeePermissions(
-		&bind.CallOpts{Context: ctx},
-		accountAddress,
-		appointeeAddress,
+		&bind.CallOpts{Context: ctx, BlockNumber: blockNumber},
+		request.AccountAddress,
+		request.AppointeeAddress,
 	)
 	// This call should not fail since it's a getter
 	if err != nil {
-		return nil, nil, utils.WrapError("call to permission controller failed", err)
+		return ListAppointeePermissionsResponse{}, utils.WrapError("call to permission controller failed", err)
 	}
-	return targets, selectors, nil
+	return ListAppointeePermissionsResponse{AppinteeAddress: targets, Selector: selectors}, nil
 }
 
 func (r *ChainReader) ListPendingAdmins(

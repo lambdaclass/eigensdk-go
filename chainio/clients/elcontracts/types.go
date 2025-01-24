@@ -375,3 +375,13 @@ type ListAppointeesRequest struct {
 type ListAppointeesResponse struct {
 	Appointees []common.Address
 }
+
+type ListAppointeePermissionsRequest struct {
+	AccountAddress   common.Address
+	AppointeeAddress common.Address
+}
+
+type ListAppointeePermissionsResponse struct {
+	AppinteeAddress []common.Address
+	Selector        [][4]byte
+}

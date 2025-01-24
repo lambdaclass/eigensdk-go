@@ -838,13 +838,17 @@ func TestAppointeesFunctions(t *testing.T) {
 	})
 
 	t.Run("list appointees permissions", func(t *testing.T) {
-		appointeesPermission, _, err := chainReader.ListAppointeePermissions(
+		request := elcontracts.ListAppointeePermissionsRequest{
+			AccountAddress:   accountAddress,
+			AppointeeAddress: appointeeAddress,
+		}
+		response, err := chainReader.ListAppointeePermissions(
 			context.Background(),
-			accountAddress,
-			appointeeAddress,
+			nil,
+			request,
 		)
 		assert.NoError(t, err)
-		assert.NotEmpty(t, appointeesPermission)
+		assert.NotEmpty(t, response.AppinteeAddress)
 	})
 }
 
