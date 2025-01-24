@@ -740,9 +740,13 @@ func TestAddAndRemovePendingAdmin(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, gethtypes.ReceiptStatusSuccessful, receipt.Status)
 
-		isPendingAdmin, err := chainReader.IsPendingAdmin(context.Background(), operatorAddr, pendingAdmin)
+		request := elcontracts.IsPendingAdminRequest{
+			AccountAddress:      operatorAddr,
+			PendingAdminAddress: pendingAdmin,
+		}
+		response, err := chainReader.IsPendingAdmin(context.Background(), nil, request)
 		require.NoError(t, err)
-		require.True(t, isPendingAdmin)
+		require.True(t, response.IsPendingAdmin)
 	})
 
 	t.Run("add pending admin when already added", func(t *testing.T) {
@@ -755,9 +759,13 @@ func TestAddAndRemovePendingAdmin(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, gethtypes.ReceiptStatusSuccessful, receipt.Status)
 
-		isPendingAdmin, err := chainReader.IsPendingAdmin(context.Background(), operatorAddr, pendingAdmin)
+		request := elcontracts.IsPendingAdminRequest{
+			AccountAddress:      operatorAddr,
+			PendingAdminAddress: pendingAdmin,
+		}
+		response, err := chainReader.IsPendingAdmin(context.Background(), nil, request)
 		require.NoError(t, err)
-		require.False(t, isPendingAdmin)
+		require.False(t, response.IsPendingAdmin)
 	})
 }
 

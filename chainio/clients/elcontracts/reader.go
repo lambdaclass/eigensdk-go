@@ -1036,19 +1036,23 @@ func (r *ChainReader) ListAdmins(
 
 func (r *ChainReader) IsPendingAdmin(
 	ctx context.Context,
-	accountAddress gethcommon.Address,
-	pendingAdminAddress gethcommon.Address,
-) (bool, error) {
+	blockNumber *big.Int,
+	request IsPendingAdminRequest,
+) (IsPendingAdminResponse, error) {
+	if r.permissionController == nil {
+		return IsPendingAdminResponse{}, errors.New("PermissionController contract not provided")
+	}
+
 	isPendingAdmin, err := r.permissionController.IsPendingAdmin(
-		&bind.CallOpts{Context: ctx},
-		accountAddress,
-		pendingAdminAddress,
+		&bind.CallOpts{Context: ctx, BlockNumber: blockNumber},
+		request.AccountAddress,
+		request.PendingAdminAddress,
 	)
 	// This call should not fail since it's a getter
 	if err != nil {
-		return false, utils.WrapError("call to permission controller failed", err)
+		return IsPendingAdminResponse{}, utils.WrapError("call to permission controller failed", err)
 	}
-	return isPendingAdmin, nil
+	return IsPendingAdminResponse{IsPendingAdmin: isPendingAdmin}, nil
 }
 
 func (r *ChainReader) IsAdmin(

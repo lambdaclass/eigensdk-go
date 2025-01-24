@@ -401,3 +401,12 @@ type ListAdminsRequest struct {
 type ListAdminsResponse struct {
 	Admins []common.Address
 }
+
+type IsPendingAdminRequest struct {
+	AccountAddress      common.Address
+	PendingAdminAddress common.Address
+}
+
+type IsPendingAdminResponse struct {
+	IsPendingAdmin bool
+}

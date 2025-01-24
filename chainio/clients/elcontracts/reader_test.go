@@ -709,9 +709,13 @@ func TestAdminFunctions(t *testing.T) {
 	assert.NoError(t, err)
 
 	t.Run("non-existent pending admin", func(t *testing.T) {
-		isPendingAdmin, err := chainReader.IsPendingAdmin(context.Background(), operatorAddr, pendingAdminAddr)
+		request := elcontracts.IsPendingAdminRequest{
+			AccountAddress:      operatorAddr,
+			PendingAdminAddress: pendingAdminAddr,
+		}
+		response, err := chainReader.IsPendingAdmin(context.Background(), nil, request)
 		assert.NoError(t, err)
-		assert.False(t, isPendingAdmin)
+		assert.False(t, response.IsPendingAdmin)
 	})
 
 	t.Run("list pending admins when empty", func(t *testing.T) {
@@ -734,9 +738,13 @@ func TestAdminFunctions(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, receipt.Status, gethtypes.ReceiptStatusSuccessful)
 
-		isPendingAdmin, err := chainReader.IsPendingAdmin(context.Background(), operatorAddr, pendingAdminAddr)
+		requestPending := elcontracts.IsPendingAdminRequest{
+			AccountAddress:      operatorAddr,
+			PendingAdminAddress: pendingAdminAddr,
+		}
+		responsePending, err := chainReader.IsPendingAdmin(context.Background(), nil, requestPending)
 		assert.NoError(t, err)
-		assert.True(t, isPendingAdmin)
+		assert.True(t, responsePending.IsPendingAdmin)
 
 		requestListPending := elcontracts.ListPendingAdminsRequest{
 			AccountAddress: operatorAddr,
