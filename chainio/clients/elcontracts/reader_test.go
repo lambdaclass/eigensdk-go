@@ -1289,9 +1289,12 @@ func TestOperatorSetsAndSlashableShares(t *testing.T) {
 		})
 
 		t.Run("get registered sets", func(t *testing.T) {
-			registeredSets, err := chainReader.GetRegisteredSets(context.Background(), operatorAddr)
+			request := elcontracts.GetRegisteredSetsRequest{
+				OperatorAddress: operatorAddr,
+			}
+			response, err := chainReader.GetRegisteredSets(context.Background(), nil, request)
 			require.NoError(t, err)
-			require.NotEmpty(t, registeredSets)
+			require.NotEmpty(t, response.OperatorSets)
 		})
 
 		t.Run("get operator sets for operator", func(t *testing.T) {

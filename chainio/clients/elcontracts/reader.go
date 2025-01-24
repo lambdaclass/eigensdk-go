@@ -900,7 +900,7 @@ func (r *ChainReader) GetAllocationDelay(
 	)
 	// This call should not fail since it's a getter
 	if err != nil {
-		return GetAllocationDelayResponse{}, err
+		return GetAllocationDelayResponse{}, utils.WrapError("failed to get allocation delay", err)
 	}
 	if !isSet {
 		return GetAllocationDelayResponse{}, errors.New("allocation delay not set")
@@ -910,12 +910,21 @@ func (r *ChainReader) GetAllocationDelay(
 
 func (r *ChainReader) GetRegisteredSets(
 	ctx context.Context,
-	operatorAddress gethcommon.Address,
-) ([]allocationmanager.OperatorSet, error) {
+	blockNumber *big.Int,
+	request GetRegisteredSetsRequest,
+) (GetRegisteredSetsResponse, error) {
 	if r.allocationManager == nil {
-		return nil, errors.New("AllocationManager contract not provided")
+		return GetRegisteredSetsResponse{}, errors.New("AllocationManager contract not provided")
 	}
-	return r.allocationManager.GetRegisteredSets(&bind.CallOpts{Context: ctx}, operatorAddress)
+	reigsteredSets, err := r.allocationManager.GetRegisteredSets(
+		&bind.CallOpts{Context: ctx, BlockNumber: blockNumber},
+		request.OperatorAddress,
+	)
+	if err != nil {
+		return GetRegisteredSetsResponse{}, utils.WrapError("failed to get registered sets", err)
+	}
+
+	return GetRegisteredSetsResponse{OperatorSets: reigsteredSets}, nil
 }
 
 func (r *ChainReader) CanCall(

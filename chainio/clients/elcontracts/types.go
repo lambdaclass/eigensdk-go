@@ -346,3 +346,22 @@ type GetAllocationDelayRequest struct {
 type GetAllocationDelayResponse struct {
 	AllocationDelay uint32
 }
+
+type GetRegisteredSetsRequest struct {
+	OperatorAddress common.Address
+}
+
+type GetRegisteredSetsResponse struct {
+	OperatorSets []allocationmanager.OperatorSet
+}
+
+type CanCallRequest struct {
+	AccountAddress   common.Address
+	AppointeeAddress common.Address
+	Target           common.Address
+	Selector         [4]byte
+}
+
+type CanCallResponse struct {
+	CanCall bool
+}
