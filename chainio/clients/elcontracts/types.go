@@ -382,6 +382,14 @@ type ListAppointeePermissionsRequest struct {
 }
 
 type ListAppointeePermissionsResponse struct {
-	AppinteeAddress []common.Address
-	Selector        [][4]byte
+	AppointeeAddress []common.Address
+	Selector         [][4]byte
+}
+
+type ListPendingAdminsRequest struct {
+	AccountAddress common.Address
+}
+
+type ListPendingAdminsResponse struct {
+	PendingAdmins []common.Address
 }

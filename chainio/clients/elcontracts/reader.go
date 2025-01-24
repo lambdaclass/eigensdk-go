@@ -990,19 +990,28 @@ func (r *ChainReader) ListAppointeePermissions(
 	if err != nil {
 		return ListAppointeePermissionsResponse{}, utils.WrapError("call to permission controller failed", err)
 	}
-	return ListAppointeePermissionsResponse{AppinteeAddress: targets, Selector: selectors}, nil
+	return ListAppointeePermissionsResponse{AppointeeAddress: targets, Selector: selectors}, nil
 }
 
 func (r *ChainReader) ListPendingAdmins(
 	ctx context.Context,
-	accountAddress gethcommon.Address,
-) ([]gethcommon.Address, error) {
-	pendingAdmins, err := r.permissionController.GetPendingAdmins(&bind.CallOpts{Context: ctx}, accountAddress)
+	blockNumber *big.Int,
+	request ListPendingAdminsRequest,
+) (ListPendingAdminsResponse, error) {
+	if r.permissionController == nil {
+		return ListPendingAdminsResponse{}, errors.New("PermissionController contract not provided")
+	}
+
+	pendingAdmins, err := r.permissionController.GetPendingAdmins(
+		&bind.CallOpts{Context: ctx, BlockNumber: blockNumber},
+		request.AccountAddress,
+	)
 	// This call should not fail since it's a getter
 	if err != nil {
-		return nil, utils.WrapError("call to permission controller failed", err)
+		return ListPendingAdminsResponse{}, utils.WrapError("call to permission controller failed", err)
 	}
-	return pendingAdmins, nil
+
+	return ListPendingAdminsResponse{PendingAdmins: pendingAdmins}, nil
 }
 
 func (r *ChainReader) ListAdmins(
