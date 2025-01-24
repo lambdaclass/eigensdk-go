@@ -338,3 +338,11 @@ type GetSlashableSharesForOperatorSetsRequest struct {
 type GetSlashableSharesForOperatorSetsResponse struct {
 	OperatorSetStakes []OperatorSetStakes
 }
+
+type GetAllocationDelayRequest struct {
+	OperatorAddress common.Address
+}
+
+type GetAllocationDelayResponse struct {
+	AllocationDelay uint32
+}

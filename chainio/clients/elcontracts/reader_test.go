@@ -638,7 +638,8 @@ func TestGetAllocatableMagnitudeAndGetMaxMagnitudes(t *testing.T) {
 	testutils.AdvanceChainByNBlocksExecInContainer(context.Background(), allocationConfigurationDelay+1, anvilC)
 
 	// Check that Allocation delay has been applied
-	_, err = chainReader.GetAllocationDelay(context.Background(), operatorAddr)
+	requestDelay := elcontracts.GetAllocationDelayRequest{OperatorAddress: operatorAddr}
+	_, err = chainReader.GetAllocationDelay(context.Background(), nil, requestDelay)
 	require.NoError(t, err)
 
 	err = createOperatorSet(anvilHttpEndpoint, privateKeyHex, testAddr, operatorSetId, strategyAddr)
@@ -1026,7 +1027,7 @@ func TestInvalidConfig(t *testing.T) {
 		_, err = chainReader.GetAllocationInfo(context.Background(), nil, elcontracts.GetAllocationInfoRequest{})
 		require.Error(t, err)
 
-		_, err = chainReader.GetAllocationDelay(context.Background(), common.HexToAddress(operatorAddr))
+		_, err = chainReader.GetAllocationDelay(context.Background(), nil, elcontracts.GetAllocationDelayRequest{})
 		require.Error(t, err)
 
 		_, err = chainReader.CheckClaim(

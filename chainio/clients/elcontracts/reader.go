@@ -888,20 +888,24 @@ func (r *ChainReader) GetSlashableSharesForOperatorSetsBefore(
 
 func (r *ChainReader) GetAllocationDelay(
 	ctx context.Context,
-	operatorAddress gethcommon.Address,
-) (uint32, error) {
+	blockNumber *big.Int,
+	request GetAllocationDelayRequest,
+) (GetAllocationDelayResponse, error) {
 	if r.allocationManager == nil {
-		return 0, errors.New("AllocationManager contract not provided")
+		return GetAllocationDelayResponse{}, errors.New("AllocationManager contract not provided")
 	}
-	isSet, delay, err := r.allocationManager.GetAllocationDelay(&bind.CallOpts{Context: ctx}, operatorAddress)
+	isSet, delay, err := r.allocationManager.GetAllocationDelay(
+		&bind.CallOpts{Context: ctx, BlockNumber: blockNumber},
+		request.OperatorAddress,
+	)
 	// This call should not fail since it's a getter
 	if err != nil {
-		return 0, err
+		return GetAllocationDelayResponse{}, err
 	}
 	if !isSet {
-		return 0, errors.New("allocation delay not set")
+		return GetAllocationDelayResponse{}, errors.New("allocation delay not set")
 	}
-	return delay, nil
+	return GetAllocationDelayResponse{AllocationDelay: delay}, nil
 }
 
 func (r *ChainReader) GetRegisteredSets(

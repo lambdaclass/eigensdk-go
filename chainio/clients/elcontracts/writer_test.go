@@ -646,7 +646,10 @@ func TestModifyAllocations(t *testing.T) {
 	testutils.AdvanceChainByNBlocksExecInContainer(context.Background(), allocationConfigurationDelay+1, anvilC)
 
 	// Retrieve the allocation delay so that the delay is applied
-	_, err = chainReader.GetAllocationDelay(context.Background(), operatorAddr)
+	request := elcontracts.GetAllocationDelayRequest{
+		OperatorAddress: operatorAddr,
+	}
+	_, err = chainReader.GetAllocationDelay(context.Background(), nil, request)
 	require.NoError(t, err)
 
 	err = createOperatorSet(anvilHttpEndpoint, privateKeyHex, avsAddr, operatorSetId, strategyAddr)
@@ -657,23 +660,23 @@ func TestModifyAllocations(t *testing.T) {
 	require.Equal(t, gethtypes.ReceiptStatusSuccessful, receipt.Status)
 
 	// Check that the new allocation is pending and the current magnitude is zero
-	request := elcontracts.GetAllocationInfoRequest{
+	requestAllocInfo := elcontracts.GetAllocationInfoRequest{
 		OperatorAddress: operatorAddr,
 		StrategyAddress: strategyAddr,
 	}
-	response, err := chainReader.GetAllocationInfo(context.Background(), nil, request)
+	response, err := chainReader.GetAllocationInfo(context.Background(), nil, requestAllocInfo)
 	require.NoError(t, err)
 	pendingDiff := response.AllocationInfo[0].PendingDiff
 	require.Equal(t, big.NewInt(int64(newAllocation)), pendingDiff)
 	require.Equal(t, response.AllocationInfo[0].CurrentMagnitude, big.NewInt(0))
 
 	// Retrieve the allocation delay and advance the chain
-	allocationDelay, err := chainReader.GetAllocationDelay(context.Background(), operatorAddr)
+	responseDelay, err := chainReader.GetAllocationDelay(context.Background(), nil, request)
 	require.NoError(t, err)
-	testutils.AdvanceChainByNBlocksExecInContainer(context.Background(), int(allocationDelay), anvilC)
+	testutils.AdvanceChainByNBlocksExecInContainer(context.Background(), int(responseDelay.AllocationDelay), anvilC)
 
 	// Check the new allocation has been updated after the delay
-	response, err = chainReader.GetAllocationInfo(context.Background(), nil, request)
+	response, err = chainReader.GetAllocationInfo(context.Background(), nil, requestAllocInfo)
 	require.NoError(t, err)
 
 	currentMagnitude := response.AllocationInfo[0].CurrentMagnitude
