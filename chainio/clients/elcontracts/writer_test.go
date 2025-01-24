@@ -818,9 +818,13 @@ func TestAcceptAdmin(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, gethtypes.ReceiptStatusSuccessful, receipt.Status)
 
-		isAdmin, err := chainReader.IsAdmin(context.Background(), accountAddr, pendingAdminAddr)
+		request := elcontracts.IsAdminRequest{
+			AccountAddress: accountAddr,
+			AdminAddress:   pendingAdminAddr,
+		}
+		response, err := chainReader.IsAdmin(context.Background(), nil, request)
 		require.NoError(t, err)
-		require.True(t, isAdmin)
+		require.True(t, response.IsAdmin)
 	})
 
 	t.Run("accept admin when already accepted", func(t *testing.T) {
@@ -909,9 +913,13 @@ func TestRemoveAdmin(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, gethtypes.ReceiptStatusSuccessful, receipt.Status)
 
-		isAdmin, err := chainReader.IsAdmin(context.Background(), accountAddr, admin2)
+		request := elcontracts.IsAdminRequest{
+			AccountAddress: accountAddr,
+			AdminAddress:   admin2,
+		}
+		response, err := chainReader.IsAdmin(context.Background(), nil, request)
 		require.NoError(t, err)
-		require.False(t, isAdmin)
+		require.False(t, response.IsAdmin)
 	})
 
 	t.Run("remove admin 2 when already removed", func(t *testing.T) {

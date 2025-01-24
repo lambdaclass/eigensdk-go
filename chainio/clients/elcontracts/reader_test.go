@@ -755,9 +755,13 @@ func TestAdminFunctions(t *testing.T) {
 	})
 
 	t.Run("non-existent admin", func(t *testing.T) {
-		isAdmin, err := chainReader.IsAdmin(context.Background(), operatorAddr, pendingAdminAddr)
+		request := elcontracts.IsAdminRequest{
+			AccountAddress: operatorAddr,
+			AdminAddress:   pendingAdminAddr,
+		}
+		response, err := chainReader.IsAdmin(context.Background(), nil, request)
 		assert.NoError(t, err)
-		assert.False(t, isAdmin)
+		assert.False(t, response.IsAdmin)
 	})
 
 	t.Run("list admins", func(t *testing.T) {
@@ -770,17 +774,21 @@ func TestAdminFunctions(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, receipt.Status, gethtypes.ReceiptStatusSuccessful)
 
-		requestAdmin := elcontracts.ListAdminsRequest{
+		requestListAdmin := elcontracts.ListAdminsRequest{
 			AccountAddress: operatorAddr,
 		}
-		response, err := chainReader.ListAdmins(context.Background(), nil, requestAdmin)
+		response, err := chainReader.ListAdmins(context.Background(), nil, requestListAdmin)
 		assert.NoError(t, err)
 		assert.Len(t, response.Admins, 1)
 
 		admin := response.Admins[0]
-		isAdmin, err := chainReader.IsAdmin(context.Background(), operatorAddr, admin)
+		requestAdmin := elcontracts.IsAdminRequest{
+			AccountAddress: operatorAddr,
+			AdminAddress:   admin,
+		}
+		responseAdmin, err := chainReader.IsAdmin(context.Background(), nil, requestAdmin)
 		assert.NoError(t, err)
-		assert.True(t, isAdmin)
+		assert.True(t, responseAdmin.IsAdmin)
 	})
 }
 

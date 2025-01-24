@@ -410,3 +410,12 @@ type IsPendingAdminRequest struct {
 type IsPendingAdminResponse struct {
 	IsPendingAdmin bool
 }
+
+type IsAdminRequest struct {
+	AccountAddress common.Address
+	AdminAddress   common.Address
+}
+
+type IsAdminResponse struct {
+	IsAdmin bool
+}
