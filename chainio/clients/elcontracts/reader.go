@@ -90,6 +90,7 @@ func NewReaderFromConfig(
 	), nil
 }
 
+// IsOperatorRegistered checks if an operator is registered
 func (r *ChainReader) IsOperatorRegistered(
 	ctx context.Context,
 	request IsOperatorRegisteredRequest,
@@ -150,6 +151,7 @@ func (r *ChainReader) GetDelegatedOperator(
 	return DelegatedOperatorResponse{OperatorAddress: operator}, nil
 }
 
+// GetOperatorDetails returns the delegation approver address and allocation delay for a specified operator
 func (r *ChainReader) GetOperatorDetails(
 	ctx context.Context,
 	request OperatorDetailsRequest,
@@ -244,6 +246,7 @@ func (r *ChainReader) GetStrategyAndUnderlyingERC20Token(
 	}, nil
 }
 
+// GetOperatorSharesInStrategy returns the amount of shares that an operator has in a specific strategy
 func (r *ChainReader) GetOperatorSharesInStrategy(
 	ctx context.Context,
 	request OperatorSharesInStrategyRequest,
@@ -264,6 +267,7 @@ func (r *ChainReader) GetOperatorSharesInStrategy(
 	return OperatorSharesInStrategyResponse{Shares: shares}, nil
 }
 
+// CalculateDelegationApprovalDigestHash computes the digest hash required for delegation approval
 func (r *ChainReader) CalculateDelegationApprovalDigestHash(
 	ctx context.Context,
 	request CalculateDelegationApprovalDigestHashRequest,
@@ -290,6 +294,7 @@ func (r *ChainReader) CalculateDelegationApprovalDigestHash(
 	return CalculateDelegationApprovalDigestHashResponse{DigestHash: digestHash}, nil
 }
 
+// CalculateOperatorAVSRegistrationDigestHash computes the digest hash required for operator AVS registration
 func (r *ChainReader) CalculateOperatorAVSRegistrationDigestHash(
 	ctx context.Context,
 	request CalculateOperatorAVSRegistrationDigestHashRequest,
@@ -315,6 +320,7 @@ func (r *ChainReader) CalculateOperatorAVSRegistrationDigestHash(
 	return CalculateOperatorAVSRegistrationDigestHashResponse{DigestHash: digestHash}, nil
 }
 
+// GetDistributionRootsLength returns the total number of distribution roots
 func (r *ChainReader) GetDistributionRootsLength(
 	ctx context.Context,
 	request DistributionRootsLengthRequest,
@@ -333,6 +339,7 @@ func (r *ChainReader) GetDistributionRootsLength(
 	return DistributionRootsLengthResponse{Length: rootLength}, nil
 }
 
+// CurrRewardsCalculationEndTimestamp returns the timestamp when the current rewards calculation ends
 func (r *ChainReader) CurrRewardsCalculationEndTimestamp(
 	ctx context.Context,
 	request CurrRewardsCalculationEndTimestampRequest,
@@ -354,6 +361,7 @@ func (r *ChainReader) CurrRewardsCalculationEndTimestamp(
 	return CurrRewardsCalculationEndTimestampResponse{Timestamp: timestamp}, nil
 }
 
+// GetCurrentClaimableDistributionRoot returns the current claimable distribution root
 func (r *ChainReader) GetCurrentClaimableDistributionRoot(
 	ctx context.Context,
 	request CurrentClaimableDistributionRootRequest,
@@ -377,6 +385,7 @@ func (r *ChainReader) GetCurrentClaimableDistributionRoot(
 	return CurrentClaimableDistributionRootResponse{DistributionRoot: root}, nil
 }
 
+// GetRootIndexFromHash returns the root index from a given root hash
 func (r *ChainReader) GetRootIndexFromHash(
 	ctx context.Context,
 	request RootIndexFromHashRequest,
@@ -396,6 +405,7 @@ func (r *ChainReader) GetRootIndexFromHash(
 	return RootIndexFromHashResponse{RootIndex: rootIndex}, nil
 }
 
+// GetCumulativeClaimed
 func (r *ChainReader) GetCumulativeClaimed(
 	ctx context.Context,
 	request CumulativeClaimedRequest,
@@ -416,6 +426,7 @@ func (r *ChainReader) GetCumulativeClaimed(
 	return CumulativeClaimedResponse{CumulativeClaimed: cumulativeClaimed}, nil
 }
 
+// CheckClaim returns if a clam is valid
 func (r *ChainReader) CheckClaim(
 	ctx context.Context,
 	request CheckClaimRequest,
@@ -435,6 +446,7 @@ func (r *ChainReader) CheckClaim(
 	return CheckClaimResponse{IsValid: isClaimed}, nil
 }
 
+// GetOperatorAVSSplit returns the AVS split for an operator
 func (r *ChainReader) GetOperatorAVSSplit(
 	ctx context.Context,
 	request OperatorAVSSplitRequest,
@@ -455,6 +467,7 @@ func (r *ChainReader) GetOperatorAVSSplit(
 	return OperatorAVSSplitResponse{Split: split}, nil
 }
 
+// GetOperatorPISplit returns the PI split for an operator
 func (r *ChainReader) GetOperatorPISplit(
 	ctx context.Context,
 	request OperatorPISplitRequest,
@@ -474,6 +487,7 @@ func (r *ChainReader) GetOperatorPISplit(
 	return OperatorPISplitResponse{Split: split}, nil
 }
 
+// GetAllocatableMagnitude returns the allocatable magnitude for an operator and strategy
 func (r *ChainReader) GetAllocatableMagnitude(
 	ctx context.Context,
 	request AllocatableMagnitudeRequest,
@@ -494,6 +508,7 @@ func (r *ChainReader) GetAllocatableMagnitude(
 	return AllocatableMagnitudeResponse{AllocatableMagnitude: magnitude}, nil
 }
 
+// GetMaxMagnitudes returns the max magnitudes for an operator and strategies
 func (r *ChainReader) GetMaxMagnitudes(
 	ctx context.Context,
 	request MaxMagnitudes0Request,
@@ -514,6 +529,7 @@ func (r *ChainReader) GetMaxMagnitudes(
 	return MaxMagnitudes0Response{MaxMagnitudes: maxMagnitudes}, nil
 }
 
+// GetAllocationInfo returns the allocation information for an operator and strategy
 func (r *ChainReader) GetAllocationInfo(
 	ctx context.Context,
 	request AllocationInfoRequest,
@@ -546,6 +562,7 @@ func (r *ChainReader) GetAllocationInfo(
 	return AllocationInfoResponse{AllocationInfo: allocationsInfo}, nil
 }
 
+// GetOperatorShares returns the amount of shares that an operator has in all of the strategies
 func (r *ChainReader) GetOperatorShares(
 	ctx context.Context,
 	request OperatorSharesRequest,
@@ -565,6 +582,7 @@ func (r *ChainReader) GetOperatorShares(
 	return OperatorSharesResponse{Shares: shares}, nil
 }
 
+// GetOperatorsShares returns the amount of shares that operators have in all of the strategies
 func (r *ChainReader) GetOperatorsShares(
 	ctx context.Context,
 	request OperatorsSharesRequest,
@@ -739,6 +757,7 @@ func (r *ChainReader) GetStrategiesForOperatorSet(
 	}
 }
 
+// GetSlashableShares returns the slashable share amounts for an operator in each specified strategy
 func (r *ChainReader) GetSlashableShares(
 	ctx context.Context,
 	request SlashableSharesRequest,
@@ -873,6 +892,7 @@ func (r *ChainReader) GetSlashableSharesForOperatorSetsBefore(
 	return SlashableSharesForOperatorSetsBeforeResponse{OperatorSetStakes: operatorSetStakes}, nil
 }
 
+// GetAllocationDelay returns the current allocation delay for an operator
 func (r *ChainReader) GetAllocationDelay(
 	ctx context.Context,
 	request AllocationDelayRequest,
@@ -894,6 +914,7 @@ func (r *ChainReader) GetAllocationDelay(
 	return AllocationDelayResponse{AllocationDelay: delay}, nil
 }
 
+// GetRegisteredSets returns the operator sets that an operator is registered with
 func (r *ChainReader) GetRegisteredSets(
 	ctx context.Context,
 	request RegisteredSetsRequest,
@@ -912,6 +933,7 @@ func (r *ChainReader) GetRegisteredSets(
 	return RegisteredSetsResponse{OperatorSets: reigsteredSets}, nil
 }
 
+// CanCall checks if an appointee can call a target on behalf of an account
 func (r *ChainReader) CanCall(
 	ctx context.Context,
 	request CanCallRequest,
@@ -934,6 +956,7 @@ func (r *ChainReader) CanCall(
 	return CanCallResponse{CanCall: canCall}, nil
 }
 
+// ListAppointees returns the list of appointees for a target that an account has
 func (r *ChainReader) ListAppointees(
 	ctx context.Context,
 	request ListAppointeesRequest,
@@ -955,6 +978,7 @@ func (r *ChainReader) ListAppointees(
 	return ListAppointeesResponse{Appointees: appointees}, nil
 }
 
+// ListAppointeePermissions returns the list of permissions that an appointee has for a target that an account has
 func (r *ChainReader) ListAppointeePermissions(
 	ctx context.Context,
 	request ListAppointeePermissionsRequest,
@@ -975,6 +999,7 @@ func (r *ChainReader) ListAppointeePermissions(
 	return ListAppointeePermissionsResponse{AppointeeAddress: targets, Selector: selectors}, nil
 }
 
+// ListPendingAdmins returns the list of pending admins for an account
 func (r *ChainReader) ListPendingAdmins(
 	ctx context.Context,
 	request ListPendingAdminsRequest,
@@ -995,6 +1020,7 @@ func (r *ChainReader) ListPendingAdmins(
 	return ListPendingAdminsResponse{PendingAdmins: pendingAdmins}, nil
 }
 
+// ListAdmins returns the list of admins for an account
 func (r *ChainReader) ListAdmins(
 	ctx context.Context,
 	request ListAdminsRequest,
@@ -1014,6 +1040,7 @@ func (r *ChainReader) ListAdmins(
 	return ListAdminsResponse{Admins: admins}, nil
 }
 
+// IsPendingAdmin checks if an address is a pending admin for an account
 func (r *ChainReader) IsPendingAdmin(
 	ctx context.Context,
 	request IsPendingAdminRequest,
@@ -1034,6 +1061,7 @@ func (r *ChainReader) IsPendingAdmin(
 	return IsPendingAdminResponse{IsPendingAdmin: isPendingAdmin}, nil
 }
 
+// IsAdmin checks if an address is an admin for an account
 func (r *ChainReader) IsAdmin(
 	ctx context.Context,
 	request IsAdminRequest,
