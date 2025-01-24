@@ -613,10 +613,14 @@ func TestGetAllocatableMagnitudeAndGetMaxMagnitudes(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Assert that at the beginning, Allocatable Magnitude is Max allocatable magnitude
-	allocable, err := chainReader.GetAllocatableMagnitude(ctx, testAddr, strategyAddr)
+	requestMag := elcontracts.GetAllocatableMagnitudeRequest{
+		OperatorAddress: testAddr,
+		StrategyAddress: strategyAddr,
+	}
+	responseMag, err := chainReader.GetAllocatableMagnitude(ctx, nil, requestMag)
 	assert.NoError(t, err)
 
-	assert.Equal(t, response.MaxMagnitudes[0], allocable)
+	assert.Equal(t, response.MaxMagnitudes[0], responseMag.AllocatableMagnitude)
 
 	// Reduce allocatable magnitude for testAddr
 	privateKeyHex := testutils.ANVIL_FIRST_PRIVATE_KEY
@@ -658,9 +662,10 @@ func TestGetAllocatableMagnitudeAndGetMaxMagnitudes(t *testing.T) {
 	require.Equal(t, gethtypes.ReceiptStatusSuccessful, receipt.Status)
 
 	// Assert that after stake reduction, Allocatable Magnitude + reduction ammount equals Max allocatable magnitude
-	allocable, err = chainReader.GetAllocatableMagnitude(ctx, testAddr, strategyAddr)
+
+	responseMag, err = chainReader.GetAllocatableMagnitude(ctx, nil, requestMag)
 	assert.NoError(t, err)
-	assert.Equal(t, response.MaxMagnitudes[0], allocable+allocatable_reduction)
+	assert.Equal(t, response.MaxMagnitudes[0], responseMag.AllocatableMagnitude+allocatable_reduction)
 
 	// Check that the new allocationDelay is equal to delay
 	requestOp := elcontracts.GetOperatorDetailsRequest{OperatorAddress: operatorAddr}
@@ -991,8 +996,8 @@ func TestInvalidConfig(t *testing.T) {
 	})
 
 	t.Run("get magnitudes, rewards and claims with invalid config", func(t *testing.T) {
-		contractAddrs := testutils.GetContractAddressesFromContractRegistry(anvilHttpEndpoint)
-		strategyAddr := contractAddrs.Erc20MockStrategy
+		// contractAddrs := testutils.GetContractAddressesFromContractRegistry(anvilHttpEndpoint)
+		// strategyAddr := contractAddrs.Erc20MockStrategy
 
 		_, err = chainReader.GetCurrentClaimableDistributionRoot(context.Background(), nil)
 		require.Error(t, err)
@@ -1013,8 +1018,8 @@ func TestInvalidConfig(t *testing.T) {
 
 		_, err = chainReader.GetAllocatableMagnitude(
 			context.Background(),
-			common.HexToAddress(operatorAddr),
-			strategyAddr,
+			nil,
+			elcontracts.GetAllocatableMagnitudeRequest{},
 		)
 		require.Error(t, err)
 

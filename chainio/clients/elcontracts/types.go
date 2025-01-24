@@ -320,3 +320,12 @@ type GetSlashableSharesRequest struct {
 type GetSlashableSharesResponse struct {
 	SlashableShares map[common.Address]*big.Int
 }
+
+type GetAllocatableMagnitudeRequest struct {
+	OperatorAddress common.Address
+	StrategyAddress common.Address
+}
+
+type GetAllocatableMagnitudeResponse struct {
+	AllocatableMagnitude uint64
+}

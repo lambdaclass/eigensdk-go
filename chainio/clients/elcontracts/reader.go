@@ -487,14 +487,23 @@ func (r *ChainReader) GetOperatorPISplit(
 
 func (r *ChainReader) GetAllocatableMagnitude(
 	ctx context.Context,
-	operatorAddress gethcommon.Address,
-	strategyAddress gethcommon.Address,
-) (uint64, error) {
+	blockNumber *big.Int,
+	request GetAllocatableMagnitudeRequest,
+) (GetAllocatableMagnitudeResponse, error) {
 	if r.allocationManager == nil {
-		return 0, errors.New("AllocationManager contract not provided")
+		return GetAllocatableMagnitudeResponse{}, errors.New("AllocationManager contract not provided")
 	}
 
-	return r.allocationManager.GetAllocatableMagnitude(&bind.CallOpts{Context: ctx}, operatorAddress, strategyAddress)
+	magnitude, err := r.allocationManager.GetAllocatableMagnitude(
+		&bind.CallOpts{Context: ctx, BlockNumber: blockNumber},
+		request.OperatorAddress,
+		request.StrategyAddress,
+	)
+	if err != nil {
+		return GetAllocatableMagnitudeResponse{}, utils.WrapError("failed to get allocatable magnitude", err)
+	}
+
+	return GetAllocatableMagnitudeResponse{AllocatableMagnitude: magnitude}, nil
 }
 
 func (r *ChainReader) GetMaxMagnitudes(
