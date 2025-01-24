@@ -192,7 +192,7 @@ func TestRegisterAndDeregisterFromOperatorSets(t *testing.T) {
 			OperatorSet:     operatorSet,
 		}
 		response, err := chainReader.IsOperatorRegisteredWithOperatorSet(
-			context.Background(), nil, request,
+			context.Background(), request,
 		)
 		require.NoError(t, err)
 		require.Equal(t, true, response.IsRegistered)
@@ -229,7 +229,7 @@ func TestRegisterAndDeregisterFromOperatorSets(t *testing.T) {
 		}
 		response, err := chainReader.IsOperatorRegisteredWithOperatorSet(
 			context.Background(),
-			nil,
+
 			request,
 		)
 		require.NoError(t, err)
@@ -382,7 +382,7 @@ func TestSetOperatorPISplit(t *testing.T) {
 	request := elcontracts.GetOperatorPISplitRequest{
 		OperatorAddress: operatorAddr,
 	}
-	response, err := chainReader.GetOperatorPISplit(context.Background(), nil, request)
+	response, err := chainReader.GetOperatorPISplit(context.Background(), request)
 	require.NoError(t, err)
 	require.Equal(t, expectedInitialSplit, response.Split)
 
@@ -393,7 +393,7 @@ func TestSetOperatorPISplit(t *testing.T) {
 	require.Equal(t, gethtypes.ReceiptStatusSuccessful, receipt.Status)
 
 	// Retrieve the operator PI split to check it has been set
-	response, err = chainReader.GetOperatorPISplit(context.Background(), nil, request)
+	response, err = chainReader.GetOperatorPISplit(context.Background(), request)
 	require.NoError(t, err)
 	require.Equal(t, newSplit, response.Split)
 
@@ -442,7 +442,7 @@ func TestSetOperatorAVSSplit(t *testing.T) {
 		OperatorAddress: operatorAddr,
 		AvsAddress:      avsAddr,
 	}
-	response, err := chainReader.GetOperatorAVSSplit(context.Background(), nil, request)
+	response, err := chainReader.GetOperatorAVSSplit(context.Background(), request)
 	require.NoError(t, err)
 	require.Equal(t, expectedInitialSplit, response.Split)
 
@@ -459,7 +459,7 @@ func TestSetOperatorAVSSplit(t *testing.T) {
 	require.Equal(t, gethtypes.ReceiptStatusSuccessful, receipt.Status)
 
 	// Retrieve the operator AVS split to check it has been set
-	response, err = chainReader.GetOperatorAVSSplit(context.Background(), nil, request)
+	response, err = chainReader.GetOperatorAVSSplit(context.Background(), request)
 	require.NoError(t, err)
 	require.Equal(t, newSplit, response.Split)
 
@@ -572,7 +572,7 @@ func TestSetAndRemovePermission(t *testing.T) {
 			Target:           target,
 			Selector:         selector,
 		}
-		response, err := chainReader.CanCall(context.Background(), nil, request)
+		response, err := chainReader.CanCall(context.Background(), request)
 		require.NoError(t, err)
 		require.True(t, response.CanCall)
 	})
@@ -593,7 +593,7 @@ func TestSetAndRemovePermission(t *testing.T) {
 			Target:           target,
 			Selector:         selector,
 		}
-		response, err := chainReader.CanCall(context.Background(), nil, request)
+		response, err := chainReader.CanCall(context.Background(), request)
 		require.NoError(t, err)
 		require.False(t, response.CanCall)
 	})
@@ -661,7 +661,7 @@ func TestModifyAllocations(t *testing.T) {
 	request := elcontracts.GetAllocationDelayRequest{
 		OperatorAddress: operatorAddr,
 	}
-	_, err = chainReader.GetAllocationDelay(context.Background(), nil, request)
+	_, err = chainReader.GetAllocationDelay(context.Background(), request)
 	require.NoError(t, err)
 
 	err = createOperatorSet(anvilHttpEndpoint, privateKeyHex, avsAddr, operatorSetId, strategyAddr)
@@ -676,19 +676,19 @@ func TestModifyAllocations(t *testing.T) {
 		OperatorAddress: operatorAddr,
 		StrategyAddress: strategyAddr,
 	}
-	response, err := chainReader.GetAllocationInfo(context.Background(), nil, requestAllocInfo)
+	response, err := chainReader.GetAllocationInfo(context.Background(), requestAllocInfo)
 	require.NoError(t, err)
 	pendingDiff := response.AllocationInfo[0].PendingDiff
 	require.Equal(t, big.NewInt(int64(newAllocation)), pendingDiff)
 	require.Equal(t, response.AllocationInfo[0].CurrentMagnitude, big.NewInt(0))
 
 	// Retrieve the allocation delay and advance the chain
-	responseDelay, err := chainReader.GetAllocationDelay(context.Background(), nil, request)
+	responseDelay, err := chainReader.GetAllocationDelay(context.Background(), request)
 	require.NoError(t, err)
 	testutils.AdvanceChainByNBlocksExecInContainer(context.Background(), int(responseDelay.AllocationDelay), anvilC)
 
 	// Check the new allocation has been updated after the delay
-	response, err = chainReader.GetAllocationInfo(context.Background(), nil, requestAllocInfo)
+	response, err = chainReader.GetAllocationInfo(context.Background(), requestAllocInfo)
 	require.NoError(t, err)
 
 	currentMagnitude := response.AllocationInfo[0].CurrentMagnitude
@@ -744,7 +744,7 @@ func TestAddAndRemovePendingAdmin(t *testing.T) {
 			AccountAddress:      operatorAddr,
 			PendingAdminAddress: pendingAdmin,
 		}
-		response, err := chainReader.IsPendingAdmin(context.Background(), nil, request)
+		response, err := chainReader.IsPendingAdmin(context.Background(), request)
 		require.NoError(t, err)
 		require.True(t, response.IsPendingAdmin)
 	})
@@ -763,7 +763,7 @@ func TestAddAndRemovePendingAdmin(t *testing.T) {
 			AccountAddress:      operatorAddr,
 			PendingAdminAddress: pendingAdmin,
 		}
-		response, err := chainReader.IsPendingAdmin(context.Background(), nil, request)
+		response, err := chainReader.IsPendingAdmin(context.Background(), request)
 		require.NoError(t, err)
 		require.False(t, response.IsPendingAdmin)
 	})
@@ -822,7 +822,7 @@ func TestAcceptAdmin(t *testing.T) {
 			AccountAddress: accountAddr,
 			AdminAddress:   pendingAdminAddr,
 		}
-		response, err := chainReader.IsAdmin(context.Background(), nil, request)
+		response, err := chainReader.IsAdmin(context.Background(), request)
 		require.NoError(t, err)
 		require.True(t, response.IsAdmin)
 	})
@@ -917,7 +917,7 @@ func TestRemoveAdmin(t *testing.T) {
 			AccountAddress: accountAddr,
 			AdminAddress:   admin2,
 		}
-		response, err := chainReader.IsAdmin(context.Background(), nil, request)
+		response, err := chainReader.IsAdmin(context.Background(), request)
 		require.NoError(t, err)
 		require.False(t, response.IsAdmin)
 	})
@@ -1265,7 +1265,10 @@ func newTestClaim(
 	earnerTreeRoot := crypto.Keccak256(encodedEarnerLeaf)
 
 	// Fetch the next root index from contract
-	response, err := chainReader.GetDistributionRootsLength(context.Background(), nil)
+	response, err := chainReader.GetDistributionRootsLength(
+		context.Background(),
+		elcontracts.GetDistributionRootsLengthRequest{},
+	)
 	if err != nil {
 		return nil, utils.WrapError("Failed to call GetDistributionRootsLength", err)
 	}
@@ -1286,7 +1289,10 @@ func newTestClaim(
 
 	root := [32]byte(earnerTreeRoot)
 	// Fetch the current timestamp to increase it
-	responseTimestamp, err := chainReader.CurrRewardsCalculationEndTimestamp(context.Background(), nil)
+	responseTimestamp, err := chainReader.CurrRewardsCalculationEndTimestamp(
+		context.Background(),
+		elcontracts.CurrRewardsCalculationEndTimestampRequest{},
+	)
 	if err != nil {
 		return nil, utils.WrapError("Failed to call CurrRewardsCalculationEndTimestamp", err)
 	}

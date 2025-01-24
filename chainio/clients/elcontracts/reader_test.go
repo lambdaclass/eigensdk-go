@@ -38,14 +38,14 @@ func TestChainReader(t *testing.T) {
 		operatorRequest := elcontracts.IsOperatorRegisteredRequest{
 			OperatorAddress: operatorAddrHex,
 		}
-		response, err := read_clients.ElChainReader.IsOperatorRegistered(ctx, nil, operatorRequest)
+		response, err := read_clients.ElChainReader.IsOperatorRegistered(ctx, operatorRequest)
 		assert.NoError(t, err)
 		assert.Equal(t, response.IsRegistered, true)
 	})
 
 	t.Run("get operator details", func(t *testing.T) {
 		request := elcontracts.GetOperatorDetailsRequest{OperatorAddress: operatorAddrHex}
-		response, err := read_clients.ElChainReader.GetOperatorDetails(ctx, nil, request)
+		response, err := read_clients.ElChainReader.GetOperatorDetails(ctx, request)
 		assert.NoError(t, err)
 		assert.NotNil(t, response)
 		assert.Equal(t, operator.Address, response.OperatorAddress.String())
@@ -55,7 +55,6 @@ func TestChainReader(t *testing.T) {
 		request := elcontracts.GetStrategyAndUnderlyingTokenRequest{StrategyAddress: contractAddrs.Erc20MockStrategy}
 		response, err := read_clients.ElChainReader.GetStrategyAndUnderlyingToken(
 			ctx,
-			nil,
 			request,
 		)
 		assert.NoError(t, err)
@@ -76,7 +75,6 @@ func TestChainReader(t *testing.T) {
 		}
 		response, err := read_clients.ElChainReader.GetStrategyAndUnderlyingERC20Token(
 			ctx,
-			nil,
 			request,
 		)
 		assert.NoError(t, err)
@@ -96,7 +94,6 @@ func TestChainReader(t *testing.T) {
 		}
 		response, err := read_clients.ElChainReader.GetOperatorSharesInStrategy(
 			ctx,
-			nil,
 			request,
 		)
 		assert.NoError(t, err)
@@ -119,7 +116,6 @@ func TestChainReader(t *testing.T) {
 
 		response, err := read_clients.ElChainReader.CalculateDelegationApprovalDigestHash(
 			ctx,
-			nil,
 			request,
 		)
 		assert.NoError(t, err)
@@ -138,7 +134,6 @@ func TestChainReader(t *testing.T) {
 		}
 		response, err := read_clients.ElChainReader.CalculateOperatorAVSRegistrationDigestHash(
 			ctx,
-			nil,
 			request,
 		)
 		assert.NoError(t, err)
@@ -151,7 +146,6 @@ func TestChainReader(t *testing.T) {
 		}
 		response, err := read_clients.ElChainReader.GetStakerShares(
 			ctx,
-			nil,
 			request,
 		)
 		assert.NoError(t, err)
@@ -170,7 +164,6 @@ func TestChainReader(t *testing.T) {
 		t.Logf("Request: %+v", request)
 		response, err := read_clients.ElChainReader.GetDelegatedOperator(
 			ctx,
-			nil,
 			request,
 		)
 
@@ -188,7 +181,6 @@ func TestChainReader(t *testing.T) {
 		}
 		response, err := read_clients.ElChainReader.GetOperatorShares(
 			ctx,
-			nil,
 			request,
 		)
 		assert.NoError(t, err)
@@ -202,7 +194,6 @@ func TestChainReader(t *testing.T) {
 		}
 		response, err = read_clients.ElChainReader.GetOperatorShares(
 			ctx,
-			nil,
 			request,
 		)
 		assert.NoError(t, err)
@@ -222,7 +213,6 @@ func TestChainReader(t *testing.T) {
 		}
 		response, err := read_clients.ElChainReader.GetOperatorsShares(
 			ctx,
-			nil,
 			request,
 		)
 		assert.NoError(t, err)
@@ -235,9 +225,7 @@ func TestChainReader(t *testing.T) {
 			StrategiesAddresses: mult_strategies,
 		}
 		response, err = read_clients.ElChainReader.GetOperatorsShares(
-			ctx,
-			nil,
-			request,
+			ctx, request,
 		)
 		assert.NoError(t, err)
 		assert.Len(t, response.Shares, 1)
@@ -250,9 +238,7 @@ func TestChainReader(t *testing.T) {
 			StrategiesAddresses: strategies,
 		}
 		response, err = read_clients.ElChainReader.GetOperatorsShares(
-			ctx,
-			nil,
-			request,
+			ctx, request,
 		)
 		assert.NoError(t, err)
 		assert.Len(t, response.Shares, 3)
@@ -264,9 +250,7 @@ func TestChainReader(t *testing.T) {
 			StrategiesAddresses: mult_strategies,
 		}
 		response, err = read_clients.ElChainReader.GetOperatorsShares(
-			ctx,
-			nil,
-			request,
+			ctx, request,
 		)
 		assert.NoError(t, err)
 		assert.Len(t, response.Shares, 3)
@@ -328,13 +312,15 @@ func TestGetCurrentClaimableDistributionRoot(t *testing.T) {
 
 	// Check that if there is no root submitted the result is zero
 	response, err := chainReader.GetCurrentClaimableDistributionRoot(
-		ctx,
-		nil,
+		ctx, elcontracts.GetCurrentClaimableDistributionRootRequest{},
 	)
 	assert.NoError(t, err)
 	assert.Zero(t, response.DistributionRoot.Root)
 
-	responseTimestamp, err := chainReader.CurrRewardsCalculationEndTimestamp(context.Background(), nil)
+	responseTimestamp, err := chainReader.CurrRewardsCalculationEndTimestamp(
+		context.Background(),
+		elcontracts.CurrRewardsCalculationEndTimestampRequest{},
+	)
 	require.NoError(t, err)
 
 	tx, err = rewardsCoordinator.SubmitRoot(noSendTxOpts, root, responseTimestamp.Timestamp+1)
@@ -346,7 +332,7 @@ func TestGetCurrentClaimableDistributionRoot(t *testing.T) {
 	// Check that if there is a root submitted the result is that root
 	response, err = chainReader.GetCurrentClaimableDistributionRoot(
 		ctx,
-		nil,
+		elcontracts.GetCurrentClaimableDistributionRootRequest{},
 	)
 	assert.NoError(t, err)
 	assert.Equal(t, response.DistributionRoot.Root, root)
@@ -405,7 +391,7 @@ func TestGetRootIndexFromRootHash(t *testing.T) {
 	// Check that if there is no root submitted the result is an InvalidRoot error
 	root_index, err := chainReader.GetRootIndexFromHash(
 		ctx,
-		nil,
+
 		elcontracts.GetRootIndexFromHashRequest{
 			RootHash: root,
 		},
@@ -413,7 +399,10 @@ func TestGetRootIndexFromRootHash(t *testing.T) {
 	assert.Error(t, err)
 	assert.Zero(t, root_index)
 
-	response, err := chainReader.CurrRewardsCalculationEndTimestamp(context.Background(), nil)
+	response, err := chainReader.CurrRewardsCalculationEndTimestamp(
+		context.Background(),
+		elcontracts.CurrRewardsCalculationEndTimestampRequest{},
+	)
 	require.NoError(t, err)
 
 	tx, err = rewardsCoordinator.SubmitRoot(noSendTxOpts, root, response.Timestamp+1)
@@ -429,7 +418,10 @@ func TestGetRootIndexFromRootHash(t *testing.T) {
 		0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
 	}
 
-	response2, err := chainReader.CurrRewardsCalculationEndTimestamp(context.Background(), nil)
+	response2, err := chainReader.CurrRewardsCalculationEndTimestamp(
+		context.Background(),
+		elcontracts.CurrRewardsCalculationEndTimestampRequest{},
+	)
 	require.NoError(t, err)
 
 	tx, err = rewardsCoordinator.SubmitRoot(noSendTxOpts, root2, response2.Timestamp+1)
@@ -441,7 +433,7 @@ func TestGetRootIndexFromRootHash(t *testing.T) {
 	// Check that the first root inserted is the first indexed (zero)
 	responseHash, err := chainReader.GetRootIndexFromHash(
 		ctx,
-		nil,
+
 		elcontracts.GetRootIndexFromHashRequest{
 			RootHash: root,
 		},
@@ -452,7 +444,7 @@ func TestGetRootIndexFromRootHash(t *testing.T) {
 	// Check that the second root inserted is the second indexed (zero)
 	responseHash, err = chainReader.GetRootIndexFromHash(
 		ctx,
-		nil,
+
 		elcontracts.GetRootIndexFromHashRequest{
 			RootHash: root2,
 		},
@@ -492,7 +484,7 @@ func TestGetCumulativeClaimedRewards(t *testing.T) {
 	}
 	response, err := clients.ElChainReader.GetStrategyAndUnderlyingERC20Token(
 		ctx,
-		nil,
+
 		request,
 	)
 	assert.NoError(t, err)
@@ -505,7 +497,7 @@ func TestGetCumulativeClaimedRewards(t *testing.T) {
 		ClaimerAddress: common.HexToAddress(testutils.ANVIL_FIRST_ADDRESS),
 		TokenAddress:   response.UnderlyingTokenAddress,
 	}
-	responseClaimed, err := chainReader.GetCumulativeClaimed(ctx, nil, requestClaimed)
+	responseClaimed, err := chainReader.GetCumulativeClaimed(ctx, requestClaimed)
 	assert.Zero(t, responseClaimed.CumulativeClaimed.Cmp(big.NewInt(0)))
 	assert.NoError(t, err)
 
@@ -518,7 +510,7 @@ func TestGetCumulativeClaimedRewards(t *testing.T) {
 	require.True(t, receipt.Status == gethtypes.ReceiptStatusSuccessful)
 
 	// This tests that with a claim result is cumulativeEarnings
-	responseClaimed, err = chainReader.GetCumulativeClaimed(ctx, nil, requestClaimed)
+	responseClaimed, err = chainReader.GetCumulativeClaimed(ctx, requestClaimed)
 	assert.Equal(t, responseClaimed.CumulativeClaimed, big.NewInt(cumulativeEarnings))
 	assert.NoError(t, err)
 }
@@ -562,7 +554,7 @@ func TestCheckClaim(t *testing.T) {
 	}
 	response, err := clients.ElChainReader.GetStrategyAndUnderlyingERC20Token(
 		ctx,
-		nil,
+
 		request,
 	)
 	assert.NoError(t, err)
@@ -573,7 +565,7 @@ func TestCheckClaim(t *testing.T) {
 	requestClaim := elcontracts.CheckClaimRequest{
 		Claim: *claim,
 	}
-	responseClaim, err := chainReader.CheckClaim(ctx, nil, requestClaim)
+	responseClaim, err := chainReader.CheckClaim(ctx, requestClaim)
 	require.NoError(t, err)
 	assert.True(t, responseClaim.IsValid)
 }
@@ -609,7 +601,7 @@ func TestGetAllocatableMagnitudeAndGetMaxMagnitudes(t *testing.T) {
 		OperatorAddress:     operatorAddr,
 		StrategiesAddresses: strategies,
 	}
-	response, err := chainReader.GetMaxMagnitudes(ctx, nil, request)
+	response, err := chainReader.GetMaxMagnitudes(ctx, request)
 	assert.NoError(t, err)
 
 	// Assert that at the beginning, Allocatable Magnitude is Max allocatable magnitude
@@ -617,7 +609,7 @@ func TestGetAllocatableMagnitudeAndGetMaxMagnitudes(t *testing.T) {
 		OperatorAddress: testAddr,
 		StrategyAddress: strategyAddr,
 	}
-	responseMag, err := chainReader.GetAllocatableMagnitude(ctx, nil, requestMag)
+	responseMag, err := chainReader.GetAllocatableMagnitude(ctx, requestMag)
 	assert.NoError(t, err)
 
 	assert.Equal(t, response.MaxMagnitudes[0], responseMag.AllocatableMagnitude)
@@ -639,7 +631,7 @@ func TestGetAllocatableMagnitudeAndGetMaxMagnitudes(t *testing.T) {
 
 	// Check that Allocation delay has been applied
 	requestDelay := elcontracts.GetAllocationDelayRequest{OperatorAddress: operatorAddr}
-	_, err = chainReader.GetAllocationDelay(context.Background(), nil, requestDelay)
+	_, err = chainReader.GetAllocationDelay(context.Background(), requestDelay)
 	require.NoError(t, err)
 
 	err = createOperatorSet(anvilHttpEndpoint, privateKeyHex, testAddr, operatorSetId, strategyAddr)
@@ -664,14 +656,14 @@ func TestGetAllocatableMagnitudeAndGetMaxMagnitudes(t *testing.T) {
 
 	// Assert that after stake reduction, Allocatable Magnitude + reduction ammount equals Max allocatable magnitude
 
-	responseMag, err = chainReader.GetAllocatableMagnitude(ctx, nil, requestMag)
+	responseMag, err = chainReader.GetAllocatableMagnitude(ctx, requestMag)
 	assert.NoError(t, err)
 	assert.Equal(t, response.MaxMagnitudes[0], responseMag.AllocatableMagnitude+allocatable_reduction)
 
 	// Check that the new allocationDelay is equal to delay
 	requestOp := elcontracts.GetOperatorDetailsRequest{OperatorAddress: operatorAddr}
 
-	responseOp, err := chainReader.GetOperatorDetails(ctx, nil, requestOp)
+	responseOp, err := chainReader.GetOperatorDetails(ctx, requestOp)
 	assert.NoError(t, err)
 	assert.NotNil(t, responseOp)
 	assert.Equal(t, request.OperatorAddress, responseOp.OperatorAddress)
@@ -713,7 +705,7 @@ func TestAdminFunctions(t *testing.T) {
 			AccountAddress:      operatorAddr,
 			PendingAdminAddress: pendingAdminAddr,
 		}
-		response, err := chainReader.IsPendingAdmin(context.Background(), nil, request)
+		response, err := chainReader.IsPendingAdmin(context.Background(), request)
 		assert.NoError(t, err)
 		assert.False(t, response.IsPendingAdmin)
 	})
@@ -722,7 +714,7 @@ func TestAdminFunctions(t *testing.T) {
 		request := elcontracts.ListPendingAdminsRequest{
 			AccountAddress: operatorAddr,
 		}
-		response, err := chainReader.ListPendingAdmins(context.Background(), nil, request)
+		response, err := chainReader.ListPendingAdmins(context.Background(), request)
 		assert.NoError(t, err)
 		assert.Empty(t, response.PendingAdmins)
 	})
@@ -742,14 +734,14 @@ func TestAdminFunctions(t *testing.T) {
 			AccountAddress:      operatorAddr,
 			PendingAdminAddress: pendingAdminAddr,
 		}
-		responsePending, err := chainReader.IsPendingAdmin(context.Background(), nil, requestPending)
+		responsePending, err := chainReader.IsPendingAdmin(context.Background(), requestPending)
 		assert.NoError(t, err)
 		assert.True(t, responsePending.IsPendingAdmin)
 
 		requestListPending := elcontracts.ListPendingAdminsRequest{
 			AccountAddress: operatorAddr,
 		}
-		responseList, err := chainReader.ListPendingAdmins(context.Background(), nil, requestListPending)
+		responseList, err := chainReader.ListPendingAdmins(context.Background(), requestListPending)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, responseList.PendingAdmins)
 	})
@@ -759,7 +751,7 @@ func TestAdminFunctions(t *testing.T) {
 			AccountAddress: operatorAddr,
 			AdminAddress:   pendingAdminAddr,
 		}
-		response, err := chainReader.IsAdmin(context.Background(), nil, request)
+		response, err := chainReader.IsAdmin(context.Background(), request)
 		assert.NoError(t, err)
 		assert.False(t, response.IsAdmin)
 	})
@@ -777,7 +769,7 @@ func TestAdminFunctions(t *testing.T) {
 		requestListAdmin := elcontracts.ListAdminsRequest{
 			AccountAddress: operatorAddr,
 		}
-		response, err := chainReader.ListAdmins(context.Background(), nil, requestListAdmin)
+		response, err := chainReader.ListAdmins(context.Background(), requestListAdmin)
 		assert.NoError(t, err)
 		assert.Len(t, response.Admins, 1)
 
@@ -786,7 +778,7 @@ func TestAdminFunctions(t *testing.T) {
 			AccountAddress: operatorAddr,
 			AdminAddress:   admin,
 		}
-		responseAdmin, err := chainReader.IsAdmin(context.Background(), nil, requestAdmin)
+		responseAdmin, err := chainReader.IsAdmin(context.Background(), requestAdmin)
 		assert.NoError(t, err)
 		assert.True(t, responseAdmin.IsAdmin)
 	})
@@ -824,7 +816,7 @@ func TestAppointeesFunctions(t *testing.T) {
 			Target:         target,
 			Select:         selector,
 		}
-		response, err := chainReader.ListAppointees(context.Background(), nil, request)
+		response, err := chainReader.ListAppointees(context.Background(), request)
 		assert.NoError(t, err)
 		assert.Empty(t, response.Appointees)
 	})
@@ -848,7 +840,7 @@ func TestAppointeesFunctions(t *testing.T) {
 			Target:           target,
 			Selector:         selector,
 		}
-		response, err := chainReader.CanCall(context.Background(), nil, request)
+		response, err := chainReader.CanCall(context.Background(), request)
 		require.NoError(t, err)
 		require.True(t, response.CanCall)
 
@@ -857,7 +849,7 @@ func TestAppointeesFunctions(t *testing.T) {
 			Target:         target,
 			Select:         selector,
 		}
-		responseAppointees, err := chainReader.ListAppointees(context.Background(), nil, requestAppointees)
+		responseAppointees, err := chainReader.ListAppointees(context.Background(), requestAppointees)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, responseAppointees.Appointees)
 	})
@@ -868,9 +860,7 @@ func TestAppointeesFunctions(t *testing.T) {
 			AppointeeAddress: appointeeAddress,
 		}
 		response, err := chainReader.ListAppointeePermissions(
-			context.Background(),
-			nil,
-			request,
+			context.Background(), request,
 		)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, response.AppointeeAddress)
@@ -900,9 +890,7 @@ func TestContractErrorCases(t *testing.T) {
 
 	t.Run("GetStrategyAndUnderlyingToken", func(t *testing.T) {
 		_, err := chainReader.GetStrategyAndUnderlyingToken(
-			ctx,
-			nil,
-			elcontracts.GetStrategyAndUnderlyingTokenRequest{},
+			ctx, elcontracts.GetStrategyAndUnderlyingTokenRequest{},
 		)
 		assert.Error(t, err)
 		assert.Equal(t, err.Error(), "Failed to fetch token contract: no contract code at given address")
@@ -910,9 +898,7 @@ func TestContractErrorCases(t *testing.T) {
 
 	t.Run("GetStrategyAndUnderlyingERC20Token", func(t *testing.T) {
 		_, err := chainReader.GetStrategyAndUnderlyingERC20Token(
-			ctx,
-			nil,
-			elcontracts.GetStrategyAndUnderlyingERC20TokenRequest{StrategyAddress: strategyAddr},
+			ctx, elcontracts.GetStrategyAndUnderlyingERC20TokenRequest{StrategyAddress: strategyAddr},
 		)
 		assert.Error(t, err)
 		assert.Equal(t, err.Error(), "Failed to fetch token contract: no contract code at given address")
@@ -943,13 +929,13 @@ func TestInvalidConfig(t *testing.T) {
 
 	t.Run("try to check if operator is registered with invalid config", func(t *testing.T) {
 		// IsOperatorRegistered needs a correct DelegationManagerAddress
-		_, err := chainReader.IsOperatorRegistered(context.Background(), nil, operatorRequest)
+		_, err := chainReader.IsOperatorRegistered(context.Background(), operatorRequest)
 		require.Error(t, err)
 	})
 
 	t.Run("get operator details with invalid config", func(t *testing.T) {
 		// GetOperatorDetails needs a correct DelegationManagerAddress
-		_, err := chainReader.GetOperatorDetails(context.Background(), nil, elcontracts.GetOperatorDetailsRequest{})
+		_, err := chainReader.GetOperatorDetails(context.Background(), elcontracts.GetOperatorDetailsRequest{})
 		require.Error(t, err)
 	})
 
@@ -959,13 +945,11 @@ func TestInvalidConfig(t *testing.T) {
 			AvsAddress:      common.MaxAddress,
 		}
 		_, err = chainReader.GetOperatorAVSSplit(
-			context.Background(),
-			nil,
-			request,
+			context.Background(), request,
 		)
 		require.Error(t, err)
 
-		_, err = chainReader.GetOperatorPISplit(context.Background(), nil, elcontracts.GetOperatorPISplitRequest{})
+		_, err = chainReader.GetOperatorPISplit(context.Background(), elcontracts.GetOperatorPISplitRequest{})
 		require.Error(t, err)
 	})
 
@@ -980,20 +964,18 @@ func TestInvalidConfig(t *testing.T) {
 		}
 
 		// GetOperatorSharesInStrategy needs a correct DelegationManagerAddress
-		_, err := chainReader.GetOperatorSharesInStrategy(context.Background(), nil, requestShares)
+		_, err := chainReader.GetOperatorSharesInStrategy(context.Background(), requestShares)
 		require.Error(t, err)
 
 		// GetStrategyAndUnderlyingToken needs a correct StrategyAddress
 		request := elcontracts.GetStrategyAndUnderlyingTokenRequest{
 			StrategyAddress: strategyAddr,
 		}
-		_, err = chainReader.GetStrategyAndUnderlyingToken(context.Background(), nil, request)
+		_, err = chainReader.GetStrategyAndUnderlyingToken(context.Background(), request)
 		require.Error(t, err)
 
 		_, err = chainReader.GetStrategyAndUnderlyingERC20Token(
-			context.Background(),
-			nil,
-			elcontracts.GetStrategyAndUnderlyingERC20TokenRequest{StrategyAddress: strategyAddr},
+			context.Background(), elcontracts.GetStrategyAndUnderlyingERC20TokenRequest{StrategyAddress: strategyAddr},
 		)
 		require.Error(t, err)
 	})
@@ -1014,15 +996,13 @@ func TestInvalidConfig(t *testing.T) {
 
 		// CalculateDelegationApprovalDigestHash needs a correct DelegationManagerAddress
 		_, err := chainReader.CalculateDelegationApprovalDigestHash(
-			context.Background(),
-			nil,
-			request,
+			context.Background(), request,
 		)
 		require.Error(t, err)
 
 		// CalculateOperatorAVSRegistrationDigestHash needs a correct AvsDirectoryAddress
-		_, err = chainReader.CalculateOperatorAVSRegistrationDigestHash(context.Background(),
-			nil,
+		_, err = chainReader.CalculateOperatorAVSRegistrationDigestHash(
+			context.Background(),
 			elcontracts.CalculateOperatorAVSRegistrationDigestHashRequest{},
 		)
 		require.Error(t, err)
@@ -1030,14 +1010,20 @@ func TestInvalidConfig(t *testing.T) {
 
 	t.Run("get root with invalid config", func(t *testing.T) {
 		// GetDistributionRootsLength needs a correct RewardsCoordinatorAddress
-		_, err := chainReader.GetDistributionRootsLength(context.Background(), nil)
+		_, err := chainReader.GetDistributionRootsLength(
+			context.Background(),
+			elcontracts.GetDistributionRootsLengthRequest{},
+		)
 		require.Error(t, err)
 
 		// GetRootIndexFromHash needs a correct RewardsCoordinatorAddress
-		_, err = chainReader.GetRootIndexFromHash(context.Background(), nil, elcontracts.GetRootIndexFromHashRequest{})
+		_, err = chainReader.GetRootIndexFromHash(context.Background(), elcontracts.GetRootIndexFromHashRequest{})
 		require.Error(t, err)
 
-		_, err = chainReader.GetCurrentClaimableDistributionRoot(context.Background(), nil)
+		_, err = chainReader.GetCurrentClaimableDistributionRoot(
+			context.Background(),
+			elcontracts.GetCurrentClaimableDistributionRootRequest{},
+		)
 		require.Error(t, err)
 	})
 
@@ -1045,44 +1031,42 @@ func TestInvalidConfig(t *testing.T) {
 		// contractAddrs := testutils.GetContractAddressesFromContractRegistry(anvilHttpEndpoint)
 		// strategyAddr := contractAddrs.Erc20MockStrategy
 
-		_, err = chainReader.GetCurrentClaimableDistributionRoot(context.Background(), nil)
+		_, err = chainReader.GetCurrentClaimableDistributionRoot(
+			context.Background(),
+			elcontracts.GetCurrentClaimableDistributionRootRequest{},
+		)
 		require.Error(t, err)
 
 		_, err := chainReader.GetCumulativeClaimed(
-			context.Background(),
-			nil,
-			elcontracts.GetCumulativeClaimedRequest{},
+			context.Background(), elcontracts.GetCumulativeClaimedRequest{},
 		)
 		require.Error(t, err)
 
 		_, err = chainReader.GetMaxMagnitudes(
-			context.Background(),
-			nil,
-			elcontracts.GetMaxMagnitudes0Request{},
+			context.Background(), elcontracts.GetMaxMagnitudes0Request{},
 		)
 		require.Error(t, err)
 
 		_, err = chainReader.GetAllocatableMagnitude(
-			context.Background(),
-			nil,
-			elcontracts.GetAllocatableMagnitudeRequest{},
+			context.Background(), elcontracts.GetAllocatableMagnitudeRequest{},
 		)
 		require.Error(t, err)
 
-		_, err = chainReader.GetAllocationInfo(context.Background(), nil, elcontracts.GetAllocationInfoRequest{})
+		_, err = chainReader.GetAllocationInfo(context.Background(), elcontracts.GetAllocationInfoRequest{})
 		require.Error(t, err)
 
-		_, err = chainReader.GetAllocationDelay(context.Background(), nil, elcontracts.GetAllocationDelayRequest{})
+		_, err = chainReader.GetAllocationDelay(context.Background(), elcontracts.GetAllocationDelayRequest{})
 		require.Error(t, err)
 
 		_, err = chainReader.CheckClaim(
-			context.Background(),
-			nil,
-			elcontracts.CheckClaimRequest{},
+			context.Background(), elcontracts.CheckClaimRequest{},
 		)
 		require.Error(t, err)
 
-		_, err = chainReader.CurrRewardsCalculationEndTimestamp(context.Background(), nil)
+		_, err = chainReader.CurrRewardsCalculationEndTimestamp(
+			context.Background(),
+			elcontracts.CurrRewardsCalculationEndTimestampRequest{},
+		)
 		require.Error(t, err)
 	})
 
@@ -1091,7 +1075,7 @@ func TestInvalidConfig(t *testing.T) {
 		request := elcontracts.GetStakerSharesRequest{
 			StakerAddress: common.HexToAddress(operator.Address),
 		}
-		_, err := chainReader.GetStakerShares(context.Background(), nil, request)
+		_, err := chainReader.GetStakerShares(context.Background(), request)
 		require.Error(t, err)
 	})
 
@@ -1099,7 +1083,6 @@ func TestInvalidConfig(t *testing.T) {
 		// GetDelegatedOperator needs a correct DelegationManagerAddress
 		_, err := chainReader.GetDelegatedOperator(
 			context.Background(),
-			big.NewInt(0),
 			elcontracts.GetDelegatedOperatorRequest{},
 		)
 		require.Error(t, err)
@@ -1108,9 +1091,7 @@ func TestInvalidConfig(t *testing.T) {
 	t.Run("try to get the number of operator sets for an operator with invalid config", func(t *testing.T) {
 		// GetNumOperatorSetsForOperator needs a correct AllocationManagerAddress
 		_, err := chainReader.GetNumOperatorSetsForOperator(
-			context.Background(),
-			nil,
-			elcontracts.GetNumOperatorSetsForOperatorRequest{},
+			context.Background(), elcontracts.GetNumOperatorSetsForOperatorRequest{},
 		)
 		require.Error(t, err)
 	})
@@ -1120,7 +1101,7 @@ func TestInvalidConfig(t *testing.T) {
 		request := elcontracts.GetOperatorSetsForOperatorRequest{
 			OperatorAddress: common.HexToAddress(operatorAddr),
 		}
-		_, err := chainReader.GetOperatorSetsForOperator(context.Background(), nil, request)
+		_, err := chainReader.GetOperatorSetsForOperator(context.Background(), request)
 		require.Error(t, err)
 	})
 
@@ -1139,7 +1120,7 @@ func TestInvalidConfig(t *testing.T) {
 			}
 			_, err := chainReader.IsOperatorRegisteredWithOperatorSet(
 				context.Background(),
-				nil,
+
 				request,
 			)
 			require.Error(t, err)
@@ -1161,7 +1142,7 @@ func TestInvalidConfig(t *testing.T) {
 			}
 			_, err := chainReader.IsOperatorRegisteredWithOperatorSet(
 				context.Background(),
-				nil,
+
 				request,
 			)
 			require.Error(t, err)
@@ -1182,7 +1163,7 @@ func TestInvalidConfig(t *testing.T) {
 			}
 			_, err := chainReader.GetOperatorsForOperatorSet(
 				context.Background(),
-				nil,
+
 				request,
 			)
 			require.Error(t, err)
@@ -1203,7 +1184,7 @@ func TestInvalidConfig(t *testing.T) {
 			}
 			_, err := chainReader.GetNumOperatorsForOperatorSet(
 				context.Background(),
-				nil,
+
 				request,
 			)
 			require.Error(t, err)
@@ -1224,7 +1205,7 @@ func TestInvalidConfig(t *testing.T) {
 			}
 			_, err := chainReader.GetStrategiesForOperatorSet(
 				context.Background(),
-				nil, request,
+				request,
 			)
 			require.Error(t, err)
 		},
@@ -1327,7 +1308,7 @@ func TestOperatorSetsAndSlashableShares(t *testing.T) {
 			request := elcontracts.GetStrategiesForOperatorSetRequest{
 				OperatorSet: operatorSet,
 			}
-			response, err := chainReader.GetStrategiesForOperatorSet(context.Background(), nil, request)
+			response, err := chainReader.GetStrategiesForOperatorSet(context.Background(), request)
 			require.NoError(t, err)
 			require.Len(t, response.StrategiesAddresses, 1)
 			require.Equal(t, response.StrategiesAddresses[0].Hex(), strategyAddr.Hex())
@@ -1337,7 +1318,7 @@ func TestOperatorSetsAndSlashableShares(t *testing.T) {
 			request := elcontracts.GetRegisteredSetsRequest{
 				OperatorAddress: operatorAddr,
 			}
-			response, err := chainReader.GetRegisteredSets(context.Background(), nil, request)
+			response, err := chainReader.GetRegisteredSets(context.Background(), request)
 			require.NoError(t, err)
 			require.NotEmpty(t, response.OperatorSets)
 		})
@@ -1346,7 +1327,7 @@ func TestOperatorSetsAndSlashableShares(t *testing.T) {
 			request := elcontracts.GetOperatorSetsForOperatorRequest{
 				OperatorAddress: operatorAddr,
 			}
-			response, err := chainReader.GetOperatorSetsForOperator(context.Background(), nil, request)
+			response, err := chainReader.GetOperatorSetsForOperator(context.Background(), request)
 			require.NoError(t, err)
 			require.NotEmpty(t, response.OperatorSets)
 		})
@@ -1357,7 +1338,7 @@ func TestOperatorSetsAndSlashableShares(t *testing.T) {
 			}
 			response, err := chainReader.GetNumOperatorSetsForOperator(
 				context.Background(),
-				nil,
+
 				request,
 			)
 			require.NoError(t, err)
@@ -1368,7 +1349,7 @@ func TestOperatorSetsAndSlashableShares(t *testing.T) {
 			request := elcontracts.GetOperatorsForOperatorSetRequest{
 				OperatorSet: operatorSet,
 			}
-			response, err := chainReader.GetOperatorsForOperatorSet(context.Background(), nil, request)
+			response, err := chainReader.GetOperatorsForOperatorSet(context.Background(), request)
 			require.NoError(t, err)
 			require.NotEmpty(t, response.Operators)
 		})
@@ -1377,7 +1358,7 @@ func TestOperatorSetsAndSlashableShares(t *testing.T) {
 			request := elcontracts.GetNumOperatorsForOperatorSetRequest{
 				OperatorSet: operatorSet,
 			}
-			response, err := chainReader.GetNumOperatorsForOperatorSet(context.Background(), nil, request)
+			response, err := chainReader.GetNumOperatorsForOperatorSet(context.Background(), request)
 			require.NoError(t, err)
 			require.NotZero(t, response.NumOperators)
 		})
@@ -1392,7 +1373,7 @@ func TestOperatorSetsAndSlashableShares(t *testing.T) {
 		t.Run("get slashable shares for single operator", func(t *testing.T) {
 			shares, err := chainReader.GetSlashableShares(
 				context.Background(),
-				receipt.BlockNumber,
+				// receipt.BlockNumber,
 				request,
 			)
 			require.NoError(t, err)
@@ -1405,7 +1386,7 @@ func TestOperatorSetsAndSlashableShares(t *testing.T) {
 			}
 			response, err := chainReader.GetSlashableSharesForOperatorSets(
 				context.Background(),
-				receipt.BlockNumber,
+				// receipt.BlockNumber,
 				request,
 			)
 			require.NoError(t, err)
@@ -1413,12 +1394,12 @@ func TestOperatorSetsAndSlashableShares(t *testing.T) {
 		})
 
 		t.Run("get slashable shares before specific block", func(t *testing.T) {
-			request := elcontracts.GetSlashableSharesForOperatorSetsRequest{
+			request := elcontracts.GetSlashableSharesForOperatorSetsBeforeRequest{
 				OperatorSets: []allocationmanager.OperatorSet{operatorSet},
 			}
 			response, err := chainReader.GetSlashableSharesForOperatorSetsBefore(
 				context.Background(),
-				2,
+				// 2,
 				request,
 			)
 			require.NoError(t, err)
@@ -1447,19 +1428,19 @@ func TestOperatorSetsWithWrongInput(t *testing.T) {
 		request := elcontracts.GetOperatorsForOperatorSetRequest{
 			OperatorSet: operatorSet,
 		}
-		_, err := chainReader.GetOperatorsForOperatorSet(ctx, nil, request)
+		_, err := chainReader.GetOperatorsForOperatorSet(ctx, request)
 		require.Error(t, err)
 
 		requestNumOps := elcontracts.GetNumOperatorsForOperatorSetRequest{
 			OperatorSet: operatorSet,
 		}
-		_, err = chainReader.GetNumOperatorsForOperatorSet(ctx, nil, requestNumOps)
+		_, err = chainReader.GetNumOperatorsForOperatorSet(ctx, requestNumOps)
 		require.Error(t, err)
 
 		requestStr := elcontracts.GetStrategiesForOperatorSetRequest{
 			OperatorSet: operatorSet,
 		}
-		_, err = chainReader.GetStrategiesForOperatorSet(ctx, nil, requestStr)
+		_, err = chainReader.GetStrategiesForOperatorSet(ctx, requestStr)
 		require.Error(t, err)
 
 		strategies := []common.Address{contractAddrs.Erc20MockStrategy}
@@ -1469,9 +1450,7 @@ func TestOperatorSetsWithWrongInput(t *testing.T) {
 			StrategiesAddresses: strategies,
 		}
 		_, err = chainReader.GetSlashableShares(
-			ctx,
-			nil,
-			requestSlashable,
+			ctx, requestSlashable,
 		)
 		require.Error(t, err)
 	})
@@ -1485,11 +1464,11 @@ func TestOperatorSetsWithWrongInput(t *testing.T) {
 		require.NoError(t, err)
 
 		operatorSets := []allocationmanager.OperatorSet{operatorSet}
-		request := elcontracts.GetSlashableSharesForOperatorSetsRequest{
+		request := elcontracts.GetSlashableSharesForOperatorSetsBeforeRequest{
 			OperatorSets: operatorSets,
 		}
 
-		_, err = chainReader.GetSlashableSharesForOperatorSetsBefore(context.Background(), 10, request)
+		_, err = chainReader.GetSlashableSharesForOperatorSetsBefore(context.Background(), request)
 		require.Error(t, err)
 	})
 }

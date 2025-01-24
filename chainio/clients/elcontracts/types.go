@@ -87,6 +87,7 @@ type RemovePendingAdminRequest struct {
 
 // Reader structs
 type IsOperatorRegisteredRequest struct {
+	blockNumber     *big.Int
 	OperatorAddress common.Address
 }
 
@@ -95,6 +96,7 @@ type IsOperatorRegisteredResponse struct {
 }
 
 type GetStakerSharesRequest struct {
+	blockNumber   *big.Int
 	StakerAddress common.Address
 }
 
@@ -104,6 +106,7 @@ type GetStakerSharesResponse struct {
 }
 
 type GetDelegatedOperatorRequest struct {
+	blockNumber   *big.Int
 	StakerAddress common.Address
 }
 
@@ -112,6 +115,7 @@ type GetDelegatedOperatorResponse struct {
 }
 
 type GetOperatorDetailsRequest struct {
+	blockNumber     *big.Int
 	OperatorAddress common.Address
 }
 
@@ -122,6 +126,7 @@ type GetOperatorDetailsResponse struct {
 }
 
 type GetStrategyAndUnderlyingTokenRequest struct {
+	blockNumber     *big.Int
 	StrategyAddress common.Address
 }
 
@@ -131,6 +136,7 @@ type GetStrategyAndUnderlyingTokenResponse struct {
 }
 
 type GetStrategyAndUnderlyingERC20TokenRequest struct {
+	blockNumber     *big.Int
 	StrategyAddress common.Address
 }
 
@@ -141,6 +147,7 @@ type GetStrategyAndUnderlyingERC20TokenResponse struct {
 }
 
 type GetOperatorSharesInStrategyRequest struct {
+	blockNumber     *big.Int
 	OperatorAddress common.Address
 	StrategyAddress common.Address
 }
@@ -150,6 +157,7 @@ type GetOperatorSharesInStrategyResponse struct {
 }
 
 type CalculateDelegationApprovalDigestHashRequest struct {
+	blockNumber     *big.Int
 	OperatorAddress common.Address
 	StakerAddress   common.Address
 	ApproverAddress common.Address
@@ -162,6 +170,7 @@ type CalculateDelegationApprovalDigestHashResponse struct {
 }
 
 type CalculateOperatorAVSRegistrationDigestHashRequest struct {
+	blockNumber     *big.Int
 	OperatorAddress common.Address
 	AVSAddress      common.Address
 	Salt            [32]byte
@@ -172,12 +181,24 @@ type CalculateOperatorAVSRegistrationDigestHashResponse struct {
 	DigestHash [32]byte
 }
 
+type GetDistributionRootsLengthRequest struct {
+	blockNumber *big.Int
+}
+
 type GetDistributionRootsLengthResponse struct {
 	Length *big.Int
 }
 
+type CurrRewardsCalculationEndTimestampRequest struct {
+	blockNumber *big.Int
+}
+
 type CurrRewardsCalculationEndTimestampResponse struct {
 	Timestamp uint32
+}
+
+type GetCurrentClaimableDistributionRootRequest struct {
+	blockNumber *big.Int
 }
 
 type GetCurrentClaimableDistributionRootResponse struct {
@@ -185,7 +206,8 @@ type GetCurrentClaimableDistributionRootResponse struct {
 }
 
 type GetRootIndexFromHashRequest struct {
-	RootHash [32]byte
+	blockNumber *big.Int
+	RootHash    [32]byte
 }
 
 type GetRootIndexFromHashResponse struct {
@@ -193,6 +215,7 @@ type GetRootIndexFromHashResponse struct {
 }
 
 type GetCumulativeClaimedRequest struct {
+	blockNumber    *big.Int
 	ClaimerAddress common.Address
 	TokenAddress   common.Address
 }
@@ -202,7 +225,8 @@ type GetCumulativeClaimedResponse struct {
 }
 
 type CheckClaimRequest struct {
-	Claim rewardscoordinator.IRewardsCoordinatorTypesRewardsMerkleClaim
+	blockNumber *big.Int
+	Claim       rewardscoordinator.IRewardsCoordinatorTypesRewardsMerkleClaim
 }
 
 type CheckClaimResponse struct {
@@ -210,6 +234,7 @@ type CheckClaimResponse struct {
 }
 
 type GetOperatorAVSSplitRequest struct {
+	blockNumber     *big.Int
 	OperatorAddress common.Address
 	AvsAddress      common.Address
 }
@@ -219,6 +244,7 @@ type GetOperatorAVSSplitResponse struct {
 }
 
 type GetOperatorPISplitRequest struct {
+	blockNumber     *big.Int
 	OperatorAddress common.Address
 }
 
@@ -227,6 +253,7 @@ type GetOperatorPISplitResponse struct {
 }
 
 type GetMaxMagnitudes0Request struct {
+	blockNumber         *big.Int
 	OperatorAddress     common.Address
 	StrategiesAddresses []common.Address
 }
@@ -236,6 +263,7 @@ type GetMaxMagnitudes0Response struct {
 }
 
 type GetAllocationInfoRequest struct {
+	blockNumber     *big.Int
 	OperatorAddress common.Address
 	StrategyAddress common.Address
 }
@@ -245,6 +273,7 @@ type GetAllocationInfoResponse struct {
 }
 
 type GetOperatorSharesRequest struct {
+	blockNumber         *big.Int
 	OperatorAddress     common.Address
 	StrategiesAddresses []common.Address
 }
@@ -254,6 +283,7 @@ type GetOperatorSharesResponse struct {
 }
 
 type GetOperatorsSharesRequest struct {
+	blockNumber         *big.Int
 	OperatorsAddresses  []common.Address
 	StrategiesAddresses []common.Address
 }
@@ -263,6 +293,7 @@ type GetOperatorsSharesResponse struct {
 }
 
 type GetNumOperatorSetsForOperatorRequest struct {
+	blockNumber     *big.Int
 	OperatorAddress common.Address
 }
 
@@ -271,6 +302,7 @@ type GetNumOperatorSetsForOperatorResponse struct {
 }
 
 type GetOperatorSetsForOperatorRequest struct {
+	blockNumber     *big.Int
 	OperatorAddress common.Address
 }
 
@@ -279,6 +311,7 @@ type GetOperatorSetsForOperatorResponse struct {
 }
 
 type IsOperatorRegisteredWithOperatorSetRequest struct {
+	blockNumber     *big.Int
 	OperatorAddress common.Address
 	OperatorSet     allocationmanager.OperatorSet
 }
@@ -288,6 +321,7 @@ type IsOperatorRegisteredWithOperatorSetResponse struct {
 }
 
 type GetOperatorsForOperatorSetRequest struct {
+	blockNumber *big.Int
 	OperatorSet allocationmanager.OperatorSet
 }
 
@@ -296,6 +330,7 @@ type GetOperatorsForOperatorSetResponse struct {
 }
 
 type GetNumOperatorsForOperatorSetRequest struct {
+	blockNumber *big.Int
 	OperatorSet allocationmanager.OperatorSet
 }
 
@@ -304,6 +339,7 @@ type GetNumOperatorsForOperatorSetResponse struct {
 }
 
 type GetStrategiesForOperatorSetRequest struct {
+	blockNumber *big.Int
 	OperatorSet allocationmanager.OperatorSet
 }
 
@@ -312,6 +348,7 @@ type GetStrategiesForOperatorSetResponse struct {
 }
 
 type GetSlashableSharesRequest struct {
+	blockNumber         *big.Int
 	OperatorAddress     common.Address
 	OperatorSet         allocationmanager.OperatorSet
 	StrategiesAddresses []common.Address
@@ -322,6 +359,7 @@ type GetSlashableSharesResponse struct {
 }
 
 type GetAllocatableMagnitudeRequest struct {
+	blockNumber     *big.Int
 	OperatorAddress common.Address
 	StrategyAddress common.Address
 }
@@ -331,6 +369,7 @@ type GetAllocatableMagnitudeResponse struct {
 }
 
 type GetSlashableSharesForOperatorSetsRequest struct {
+	blockNumber  *big.Int
 	OperatorSets []allocationmanager.OperatorSet
 }
 
@@ -339,7 +378,18 @@ type GetSlashableSharesForOperatorSetsResponse struct {
 	OperatorSetStakes []OperatorSetStakes
 }
 
+type GetSlashableSharesForOperatorSetsBeforeRequest struct {
+	blockNumber  *big.Int
+	OperatorSets []allocationmanager.OperatorSet
+	FutureBlock  uint32
+}
+
+type GetSlashableSharesForOperatorSetsBeforeResponse struct {
+	OperatorSetStakes []OperatorSetStakes
+}
+
 type GetAllocationDelayRequest struct {
+	blockNumber     *big.Int
 	OperatorAddress common.Address
 }
 
@@ -348,6 +398,7 @@ type GetAllocationDelayResponse struct {
 }
 
 type GetRegisteredSetsRequest struct {
+	blockNumber     *big.Int
 	OperatorAddress common.Address
 }
 
@@ -356,6 +407,7 @@ type GetRegisteredSetsResponse struct {
 }
 
 type CanCallRequest struct {
+	blockNumber      *big.Int
 	AccountAddress   common.Address
 	AppointeeAddress common.Address
 	Target           common.Address
@@ -367,6 +419,7 @@ type CanCallResponse struct {
 }
 
 type ListAppointeesRequest struct {
+	blockNumber    *big.Int
 	AccountAddress common.Address
 	Target         common.Address
 	Select         [4]byte
@@ -377,6 +430,7 @@ type ListAppointeesResponse struct {
 }
 
 type ListAppointeePermissionsRequest struct {
+	blockNumber      *big.Int
 	AccountAddress   common.Address
 	AppointeeAddress common.Address
 }
@@ -387,6 +441,7 @@ type ListAppointeePermissionsResponse struct {
 }
 
 type ListPendingAdminsRequest struct {
+	blockNumber    *big.Int
 	AccountAddress common.Address
 }
 
@@ -395,6 +450,7 @@ type ListPendingAdminsResponse struct {
 }
 
 type ListAdminsRequest struct {
+	blockNumber    *big.Int
 	AccountAddress common.Address
 }
 
@@ -403,6 +459,7 @@ type ListAdminsResponse struct {
 }
 
 type IsPendingAdminRequest struct {
+	blockNumber         *big.Int
 	AccountAddress      common.Address
 	PendingAdminAddress common.Address
 }
@@ -412,6 +469,7 @@ type IsPendingAdminResponse struct {
 }
 
 type IsAdminRequest struct {
+	blockNumber    *big.Int
 	AccountAddress common.Address
 	AdminAddress   common.Address
 }

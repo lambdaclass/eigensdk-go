@@ -28,7 +28,6 @@ import (
 type eLReader interface {
 	CalculateOperatorAVSRegistrationDigestHash(
 		ctx context.Context,
-		blockNumber *big.Int,
 		request elcontracts.CalculateOperatorAVSRegistrationDigestHashRequest,
 	) (elcontracts.CalculateOperatorAVSRegistrationDigestHashResponse, error)
 }
@@ -168,7 +167,6 @@ func (w *ChainWriter) RegisterOperatorInQuorumWithAVSRegistryCoordinator(
 	}
 	response, err := w.elReader.CalculateOperatorAVSRegistrationDigestHash(
 		ctx,
-		nil,
 		request,
 	)
 	if err != nil {
@@ -295,7 +293,6 @@ func (w *ChainWriter) RegisterOperator(
 	}
 	response, err := w.elReader.CalculateOperatorAVSRegistrationDigestHash(
 		ctx,
-		nil,
 		request,
 	)
 	if err != nil {

@@ -32,7 +32,6 @@ import (
 type Reader interface {
 	GetStrategyAndUnderlyingERC20Token(
 		ctx context.Context,
-		blockNumber *big.Int,
 		request GetStrategyAndUnderlyingERC20TokenRequest,
 	) (GetStrategyAndUnderlyingERC20TokenResponse, error)
 }
@@ -250,7 +249,6 @@ func (w *ChainWriter) DepositERC20IntoStrategy(
 	// TODO: Review this function after finishing the refactor of the ChainReader
 	response, err := w.elChainReader.GetStrategyAndUnderlyingERC20Token(
 		ctx,
-		nil,
 		request,
 	)
 	if err != nil {
