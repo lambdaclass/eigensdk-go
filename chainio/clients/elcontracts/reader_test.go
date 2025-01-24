@@ -762,11 +762,14 @@ func TestAdminFunctions(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, receipt.Status, gethtypes.ReceiptStatusSuccessful)
 
-		listAdmins, err := chainReader.ListAdmins(context.Background(), operatorAddr)
+		requestAdmin := elcontracts.ListAdminsRequest{
+			AccountAddress: operatorAddr,
+		}
+		response, err := chainReader.ListAdmins(context.Background(), nil, requestAdmin)
 		assert.NoError(t, err)
-		assert.Len(t, listAdmins, 1)
+		assert.Len(t, response.Admins, 1)
 
-		admin := listAdmins[0]
+		admin := response.Admins[0]
 		isAdmin, err := chainReader.IsAdmin(context.Background(), operatorAddr, admin)
 		assert.NoError(t, err)
 		assert.True(t, isAdmin)

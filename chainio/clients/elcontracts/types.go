@@ -393,3 +393,11 @@ type ListPendingAdminsRequest struct {
 type ListPendingAdminsResponse struct {
 	PendingAdmins []common.Address
 }
+
+type ListAdminsRequest struct {
+	AccountAddress common.Address
+}
+
+type ListAdminsResponse struct {
+	Admins []common.Address
+}
