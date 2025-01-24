@@ -87,7 +87,7 @@ type RemovePendingAdminRequest struct {
 
 // Reader structs
 type IsOperatorRegisteredRequest struct {
-	blockNumber     *big.Int
+	BlockNumber     *big.Int
 	OperatorAddress common.Address
 }
 
@@ -96,7 +96,7 @@ type IsOperatorRegisteredResponse struct {
 }
 
 type StakerSharesRequest struct {
-	blockNumber   *big.Int
+	BlockNumber   *big.Int
 	StakerAddress common.Address
 }
 
@@ -106,7 +106,7 @@ type StakerSharesResponse struct {
 }
 
 type DelegatedOperatorRequest struct {
-	blockNumber   *big.Int
+	BlockNumber   *big.Int
 	StakerAddress common.Address
 }
 
@@ -115,7 +115,7 @@ type DelegatedOperatorResponse struct {
 }
 
 type OperatorDetailsRequest struct {
-	blockNumber     *big.Int
+	BlockNumber     *big.Int
 	OperatorAddress common.Address
 }
 
@@ -126,7 +126,7 @@ type OperatorDetailsResponse struct {
 }
 
 type StrategyAndUnderlyingTokenRequest struct {
-	blockNumber     *big.Int
+	BlockNumber     *big.Int
 	StrategyAddress common.Address
 }
 
@@ -136,7 +136,7 @@ type StrategyAndUnderlyingTokenResponse struct {
 }
 
 type StrategyAndUnderlyingERC20TokenRequest struct {
-	blockNumber     *big.Int
+	BlockNumber     *big.Int
 	StrategyAddress common.Address
 }
 
@@ -147,7 +147,7 @@ type StrategyAndUnderlyingERC20TokenResponse struct {
 }
 
 type OperatorSharesInStrategyRequest struct {
-	blockNumber     *big.Int
+	BlockNumber     *big.Int
 	OperatorAddress common.Address
 	StrategyAddress common.Address
 }
@@ -157,7 +157,7 @@ type OperatorSharesInStrategyResponse struct {
 }
 
 type CalculateDelegationApprovalDigestHashRequest struct {
-	blockNumber     *big.Int
+	BlockNumber     *big.Int
 	OperatorAddress common.Address
 	StakerAddress   common.Address
 	ApproverAddress common.Address
@@ -170,7 +170,7 @@ type CalculateDelegationApprovalDigestHashResponse struct {
 }
 
 type CalculateOperatorAVSRegistrationDigestHashRequest struct {
-	blockNumber     *big.Int
+	BlockNumber     *big.Int
 	OperatorAddress common.Address
 	AVSAddress      common.Address
 	Salt            [32]byte
@@ -182,7 +182,7 @@ type CalculateOperatorAVSRegistrationDigestHashResponse struct {
 }
 
 type DistributionRootsLengthRequest struct {
-	blockNumber *big.Int
+	BlockNumber *big.Int
 }
 
 type DistributionRootsLengthResponse struct {
@@ -190,7 +190,7 @@ type DistributionRootsLengthResponse struct {
 }
 
 type CurrRewardsCalculationEndTimestampRequest struct {
-	blockNumber *big.Int
+	BlockNumber *big.Int
 }
 
 type CurrRewardsCalculationEndTimestampResponse struct {
@@ -198,7 +198,7 @@ type CurrRewardsCalculationEndTimestampResponse struct {
 }
 
 type CurrentClaimableDistributionRootRequest struct {
-	blockNumber *big.Int
+	BlockNumber *big.Int
 }
 
 type CurrentClaimableDistributionRootResponse struct {
@@ -206,7 +206,7 @@ type CurrentClaimableDistributionRootResponse struct {
 }
 
 type RootIndexFromHashRequest struct {
-	blockNumber *big.Int
+	BlockNumber *big.Int
 	RootHash    [32]byte
 }
 
@@ -215,7 +215,7 @@ type RootIndexFromHashResponse struct {
 }
 
 type CumulativeClaimedRequest struct {
-	blockNumber    *big.Int
+	BlockNumber    *big.Int
 	ClaimerAddress common.Address
 	TokenAddress   common.Address
 }
@@ -225,7 +225,7 @@ type CumulativeClaimedResponse struct {
 }
 
 type CheckClaimRequest struct {
-	blockNumber *big.Int
+	BlockNumber *big.Int
 	Claim       rewardscoordinator.IRewardsCoordinatorTypesRewardsMerkleClaim
 }
 
@@ -234,7 +234,7 @@ type CheckClaimResponse struct {
 }
 
 type OperatorAVSSplitRequest struct {
-	blockNumber     *big.Int
+	BlockNumber     *big.Int
 	OperatorAddress common.Address
 	AvsAddress      common.Address
 }
@@ -244,7 +244,7 @@ type OperatorAVSSplitResponse struct {
 }
 
 type OperatorPISplitRequest struct {
-	blockNumber     *big.Int
+	BlockNumber     *big.Int
 	OperatorAddress common.Address
 }
 
@@ -253,7 +253,7 @@ type OperatorPISplitResponse struct {
 }
 
 type MaxMagnitudes0Request struct {
-	blockNumber         *big.Int
+	BlockNumber         *big.Int
 	OperatorAddress     common.Address
 	StrategiesAddresses []common.Address
 }
@@ -263,7 +263,7 @@ type MaxMagnitudes0Response struct {
 }
 
 type AllocationInfoRequest struct {
-	blockNumber     *big.Int
+	BlockNumber     *big.Int
 	OperatorAddress common.Address
 	StrategyAddress common.Address
 }
@@ -273,7 +273,7 @@ type AllocationInfoResponse struct {
 }
 
 type OperatorSharesRequest struct {
-	blockNumber         *big.Int
+	BlockNumber         *big.Int
 	OperatorAddress     common.Address
 	StrategiesAddresses []common.Address
 }
@@ -283,7 +283,7 @@ type OperatorSharesResponse struct {
 }
 
 type OperatorsSharesRequest struct {
-	blockNumber         *big.Int
+	BlockNumber         *big.Int
 	OperatorsAddresses  []common.Address
 	StrategiesAddresses []common.Address
 }
@@ -293,7 +293,7 @@ type OperatorsSharesResponse struct {
 }
 
 type NumOperatorSetsForOperatorRequest struct {
-	blockNumber     *big.Int
+	BlockNumber     *big.Int
 	OperatorAddress common.Address
 }
 
@@ -302,7 +302,7 @@ type NumOperatorSetsForOperatorResponse struct {
 }
 
 type OperatorSetsForOperatorRequest struct {
-	blockNumber     *big.Int
+	BlockNumber     *big.Int
 	OperatorAddress common.Address
 }
 
@@ -311,7 +311,7 @@ type OperatorSetsForOperatorResponse struct {
 }
 
 type IsOperatorRegisteredWithOperatorSetRequest struct {
-	blockNumber     *big.Int
+	BlockNumber     *big.Int
 	OperatorAddress common.Address
 	OperatorSet     allocationmanager.OperatorSet
 }
@@ -321,7 +321,7 @@ type IsOperatorRegisteredWithOperatorSetResponse struct {
 }
 
 type OperatorsForOperatorSetRequest struct {
-	blockNumber *big.Int
+	BlockNumber *big.Int
 	OperatorSet allocationmanager.OperatorSet
 }
 
@@ -330,7 +330,7 @@ type OperatorsForOperatorSetResponse struct {
 }
 
 type NumOperatorsForOperatorSetRequest struct {
-	blockNumber *big.Int
+	BlockNumber *big.Int
 	OperatorSet allocationmanager.OperatorSet
 }
 
@@ -339,7 +339,7 @@ type NumOperatorsForOperatorSetResponse struct {
 }
 
 type StrategiesForOperatorSetRequest struct {
-	blockNumber *big.Int
+	BlockNumber *big.Int
 	OperatorSet allocationmanager.OperatorSet
 }
 
@@ -348,7 +348,7 @@ type StrategiesForOperatorSetResponse struct {
 }
 
 type SlashableSharesRequest struct {
-	blockNumber         *big.Int
+	BlockNumber         *big.Int
 	OperatorAddress     common.Address
 	OperatorSet         allocationmanager.OperatorSet
 	StrategiesAddresses []common.Address
@@ -359,7 +359,7 @@ type SlashableSharesResponse struct {
 }
 
 type AllocatableMagnitudeRequest struct {
-	blockNumber     *big.Int
+	BlockNumber     *big.Int
 	OperatorAddress common.Address
 	StrategyAddress common.Address
 }
@@ -369,7 +369,7 @@ type AllocatableMagnitudeResponse struct {
 }
 
 type SlashableSharesForOperatorSetsRequest struct {
-	blockNumber  *big.Int
+	BlockNumber  *big.Int
 	OperatorSets []allocationmanager.OperatorSet
 }
 
@@ -378,7 +378,7 @@ type SlashableSharesForOperatorSetsResponse struct {
 }
 
 type SlashableSharesForOperatorSetsBeforeRequest struct {
-	blockNumber  *big.Int
+	BlockNumber  *big.Int
 	OperatorSets []allocationmanager.OperatorSet
 	FutureBlock  uint32
 }
@@ -388,7 +388,7 @@ type SlashableSharesForOperatorSetsBeforeResponse struct {
 }
 
 type AllocationDelayRequest struct {
-	blockNumber     *big.Int
+	BlockNumber     *big.Int
 	OperatorAddress common.Address
 }
 
@@ -397,7 +397,7 @@ type AllocationDelayResponse struct {
 }
 
 type RegisteredSetsRequest struct {
-	blockNumber     *big.Int
+	BlockNumber     *big.Int
 	OperatorAddress common.Address
 }
 
@@ -406,7 +406,7 @@ type RegisteredSetsResponse struct {
 }
 
 type CanCallRequest struct {
-	blockNumber      *big.Int
+	BlockNumber      *big.Int
 	AccountAddress   common.Address
 	AppointeeAddress common.Address
 	Target           common.Address
@@ -418,7 +418,7 @@ type CanCallResponse struct {
 }
 
 type ListAppointeesRequest struct {
-	blockNumber    *big.Int
+	BlockNumber    *big.Int
 	AccountAddress common.Address
 	Target         common.Address
 	Select         [4]byte
@@ -429,7 +429,7 @@ type ListAppointeesResponse struct {
 }
 
 type ListAppointeePermissionsRequest struct {
-	blockNumber      *big.Int
+	BlockNumber      *big.Int
 	AccountAddress   common.Address
 	AppointeeAddress common.Address
 }
@@ -440,7 +440,7 @@ type ListAppointeePermissionsResponse struct {
 }
 
 type ListPendingAdminsRequest struct {
-	blockNumber    *big.Int
+	BlockNumber    *big.Int
 	AccountAddress common.Address
 }
 
@@ -449,7 +449,7 @@ type ListPendingAdminsResponse struct {
 }
 
 type ListAdminsRequest struct {
-	blockNumber    *big.Int
+	BlockNumber    *big.Int
 	AccountAddress common.Address
 }
 
@@ -458,7 +458,7 @@ type ListAdminsResponse struct {
 }
 
 type IsPendingAdminRequest struct {
-	blockNumber         *big.Int
+	BlockNumber         *big.Int
 	AccountAddress      common.Address
 	PendingAdminAddress common.Address
 }
@@ -468,7 +468,7 @@ type IsPendingAdminResponse struct {
 }
 
 type IsAdminRequest struct {
-	blockNumber    *big.Int
+	BlockNumber    *big.Int
 	AccountAddress common.Address
 	AdminAddress   common.Address
 }

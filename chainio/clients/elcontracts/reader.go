@@ -99,7 +99,7 @@ func (r *ChainReader) IsOperatorRegistered(
 	}
 
 	isOperatorRegistered, err := r.delegationManager.IsOperator(
-		&bind.CallOpts{Context: ctx, BlockNumber: request.blockNumber},
+		&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumber},
 		request.OperatorAddress,
 	)
 	if err != nil {
@@ -120,7 +120,7 @@ func (r *ChainReader) GetStakerShares(
 	}
 
 	strategies, shares, err := r.delegationManager.GetDepositedShares(
-		&bind.CallOpts{Context: ctx, BlockNumber: request.blockNumber},
+		&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumber},
 		request.StakerAddress,
 	)
 	if err != nil {
@@ -140,7 +140,7 @@ func (r *ChainReader) GetDelegatedOperator(
 	}
 
 	operator, err := r.delegationManager.DelegatedTo(
-		&bind.CallOpts{Context: ctx, BlockNumber: request.blockNumber},
+		&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumber},
 		request.StakerAddress,
 	)
 	if err != nil {
@@ -159,7 +159,7 @@ func (r *ChainReader) GetOperatorDetails(
 	}
 
 	delegationManagerAddress, err := r.delegationManager.DelegationApprover(
-		&bind.CallOpts{Context: ctx, BlockNumber: request.blockNumber},
+		&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumber},
 		request.OperatorAddress,
 	)
 	// This call should not fail since it's a getter
@@ -170,7 +170,7 @@ func (r *ChainReader) GetOperatorDetails(
 	isSet, delay, err := r.allocationManager.GetAllocationDelay(
 		&bind.CallOpts{
 			Context:     ctx,
-			BlockNumber: request.blockNumber,
+			BlockNumber: request.BlockNumber,
 		},
 		request.OperatorAddress,
 	)
@@ -204,7 +204,7 @@ func (r *ChainReader) GetStrategyAndUnderlyingToken(
 		return StrategyAndUnderlyingTokenResponse{}, utils.WrapError("Failed to fetch strategy contract", err)
 	}
 	underlyingTokenAddr, err := contractStrategy.UnderlyingToken(
-		&bind.CallOpts{Context: ctx, BlockNumber: request.blockNumber},
+		&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumber},
 	)
 	if err != nil {
 		return StrategyAndUnderlyingTokenResponse{}, utils.WrapError("Failed to fetch token contract", err)
@@ -227,7 +227,7 @@ func (r *ChainReader) GetStrategyAndUnderlyingERC20Token(
 		return StrategyAndUnderlyingERC20TokenResponse{}, utils.WrapError("Failed to fetch strategy contract", err)
 	}
 	underlyingTokenAddr, err := contractStrategy.UnderlyingToken(
-		&bind.CallOpts{Context: ctx, BlockNumber: request.blockNumber},
+		&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumber},
 	)
 	if err != nil {
 		return StrategyAndUnderlyingERC20TokenResponse{}, utils.WrapError("Failed to fetch token contract", err)
@@ -253,7 +253,7 @@ func (r *ChainReader) GetOperatorSharesInStrategy(
 	}
 
 	shares, err := r.delegationManager.OperatorShares(
-		&bind.CallOpts{Context: ctx, BlockNumber: request.blockNumber},
+		&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumber},
 		request.OperatorAddress,
 		request.StrategyAddress,
 	)
@@ -273,7 +273,7 @@ func (r *ChainReader) CalculateDelegationApprovalDigestHash(
 	}
 
 	digestHash, err := r.delegationManager.CalculateDelegationApprovalDigestHash(
-		&bind.CallOpts{Context: ctx, BlockNumber: request.blockNumber},
+		&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumber},
 		request.StakerAddress,
 		request.OperatorAddress,
 		request.ApproverAddress,
@@ -299,7 +299,7 @@ func (r *ChainReader) CalculateOperatorAVSRegistrationDigestHash(
 	}
 
 	digestHash, err := r.avsDirectory.CalculateOperatorAVSRegistrationDigestHash(
-		&bind.CallOpts{Context: ctx, BlockNumber: request.blockNumber},
+		&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumber},
 		request.OperatorAddress,
 		request.AVSAddress,
 		request.Salt,
@@ -324,7 +324,7 @@ func (r *ChainReader) GetDistributionRootsLength(
 	}
 
 	rootLength, err := r.rewardsCoordinator.GetDistributionRootsLength(
-		&bind.CallOpts{Context: ctx, BlockNumber: request.blockNumber},
+		&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumber},
 	)
 	if err != nil {
 		return DistributionRootsLengthResponse{}, utils.WrapError("failed to get distribution roots length", err)
@@ -342,7 +342,7 @@ func (r *ChainReader) CurrRewardsCalculationEndTimestamp(
 	}
 
 	timestamp, err := r.rewardsCoordinator.CurrRewardsCalculationEndTimestamp(
-		&bind.CallOpts{Context: ctx, BlockNumber: request.blockNumber},
+		&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumber},
 	)
 	if err != nil {
 		return CurrRewardsCalculationEndTimestampResponse{}, utils.WrapError(
@@ -365,7 +365,7 @@ func (r *ChainReader) GetCurrentClaimableDistributionRoot(
 	}
 
 	root, err := r.rewardsCoordinator.GetCurrentClaimableDistributionRoot(
-		&bind.CallOpts{Context: ctx, BlockNumber: request.blockNumber},
+		&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumber},
 	)
 	if err != nil {
 		return CurrentClaimableDistributionRootResponse{}, utils.WrapError(
@@ -386,7 +386,7 @@ func (r *ChainReader) GetRootIndexFromHash(
 	}
 
 	rootIndex, err := r.rewardsCoordinator.GetRootIndexFromHash(
-		&bind.CallOpts{Context: ctx, BlockNumber: request.blockNumber},
+		&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumber},
 		request.RootHash,
 	)
 	if err != nil {
@@ -405,7 +405,7 @@ func (r *ChainReader) GetCumulativeClaimed(
 	}
 
 	cumulativeClaimed, err := r.rewardsCoordinator.CumulativeClaimed(
-		&bind.CallOpts{Context: ctx, BlockNumber: request.blockNumber},
+		&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumber},
 		request.ClaimerAddress,
 		request.TokenAddress,
 	)
@@ -425,7 +425,7 @@ func (r *ChainReader) CheckClaim(
 	}
 
 	isClaimed, err := r.rewardsCoordinator.CheckClaim(
-		&bind.CallOpts{Context: ctx, BlockNumber: request.blockNumber},
+		&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumber},
 		request.Claim,
 	)
 	if err != nil {
@@ -444,7 +444,7 @@ func (r *ChainReader) GetOperatorAVSSplit(
 	}
 
 	split, err := r.rewardsCoordinator.GetOperatorAVSSplit(
-		&bind.CallOpts{Context: ctx, BlockNumber: request.blockNumber},
+		&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumber},
 		request.OperatorAddress,
 		request.AvsAddress,
 	)
@@ -464,7 +464,7 @@ func (r *ChainReader) GetOperatorPISplit(
 	}
 
 	split, err := r.rewardsCoordinator.GetOperatorPISplit(
-		&bind.CallOpts{Context: ctx, BlockNumber: request.blockNumber},
+		&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumber},
 		request.OperatorAddress,
 	)
 	if err != nil {
@@ -483,7 +483,7 @@ func (r *ChainReader) GetAllocatableMagnitude(
 	}
 
 	magnitude, err := r.allocationManager.GetAllocatableMagnitude(
-		&bind.CallOpts{Context: ctx, BlockNumber: request.blockNumber},
+		&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumber},
 		request.OperatorAddress,
 		request.StrategyAddress,
 	)
@@ -503,7 +503,7 @@ func (r *ChainReader) GetMaxMagnitudes(
 	}
 
 	maxMagnitudes, err := r.allocationManager.GetMaxMagnitudes0(
-		&bind.CallOpts{Context: ctx, BlockNumber: request.blockNumber},
+		&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumber},
 		request.OperatorAddress,
 		request.StrategiesAddresses,
 	)
@@ -523,7 +523,7 @@ func (r *ChainReader) GetAllocationInfo(
 	}
 
 	opSets, allocationInfo, err := r.allocationManager.GetStrategyAllocations(
-		&bind.CallOpts{Context: ctx, BlockNumber: request.blockNumber},
+		&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumber},
 		request.OperatorAddress,
 		request.StrategyAddress,
 	)
@@ -555,7 +555,7 @@ func (r *ChainReader) GetOperatorShares(
 	}
 
 	shares, err := r.delegationManager.GetOperatorShares(
-		&bind.CallOpts{Context: ctx, BlockNumber: request.blockNumber},
+		&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumber},
 		request.OperatorAddress,
 		request.StrategiesAddresses)
 	if err != nil {
@@ -574,7 +574,7 @@ func (r *ChainReader) GetOperatorsShares(
 	}
 
 	shares, err := r.delegationManager.GetOperatorsShares(
-		&bind.CallOpts{Context: ctx, BlockNumber: request.blockNumber},
+		&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumber},
 		request.OperatorsAddresses,
 		request.StrategiesAddresses,
 	)
@@ -595,7 +595,7 @@ func (r *ChainReader) GetNumOperatorSetsForOperator(
 		return NumOperatorSetsForOperatorResponse{}, errors.New("AllocationManager contract not provided")
 	}
 	opSets, err := r.allocationManager.GetAllocatedSets(
-		&bind.CallOpts{Context: ctx, BlockNumber: request.blockNumber},
+		&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumber},
 		request.OperatorAddress,
 	)
 	if err != nil {
@@ -616,7 +616,7 @@ func (r *ChainReader) GetOperatorSetsForOperator(
 	// TODO: we're fetching max int64 operatorSets here. What's the practical limit for timeout by RPC? do we need to
 	// paginate?
 	opSets, err := r.allocationManager.GetAllocatedSets(
-		&bind.CallOpts{Context: ctx, BlockNumber: request.blockNumber},
+		&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumber},
 		request.OperatorAddress,
 	)
 	if err != nil {
@@ -638,7 +638,7 @@ func (r *ChainReader) IsOperatorRegisteredWithOperatorSet(
 		}
 
 		status, err := r.avsDirectory.AvsOperatorStatus(
-			&bind.CallOpts{Context: ctx, BlockNumber: request.blockNumber},
+			&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumber},
 			request.OperatorSet.Avs,
 			request.OperatorAddress,
 		)
@@ -657,7 +657,7 @@ func (r *ChainReader) IsOperatorRegisteredWithOperatorSet(
 		if r.allocationManager == nil {
 			return IsOperatorRegisteredResponse{IsRegistered: false}, errors.New("AllocationManager contract not provided")
 		}
-		registeredOperatorSets, err := r.allocationManager.GetRegisteredSets(&bind.CallOpts{Context: ctx, BlockNumber: request.blockNumber}, request.OperatorAddress)
+		registeredOperatorSets, err := r.allocationManager.GetRegisteredSets(&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumber}, request.OperatorAddress)
 		// This call should not fail since it's a getter
 		if err != nil {
 			return IsOperatorRegisteredResponse{IsRegistered: false}, utils.WrapError("failed to get registered operator sets", err)
@@ -684,7 +684,7 @@ func (r *ChainReader) GetOperatorsForOperatorSet(
 		if r.allocationManager == nil {
 			return OperatorsForOperatorSetResponse{}, errors.New("AllocationManager contract not provided")
 		}
-		members, err := r.allocationManager.GetMembers(&bind.CallOpts{Context: ctx, BlockNumber: request.blockNumber}, request.OperatorSet)
+		members, err := r.allocationManager.GetMembers(&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumber}, request.OperatorSet)
 		if err != nil {
 			return OperatorsForOperatorSetResponse{}, utils.WrapError("failed to get members", err)
 		}
@@ -705,7 +705,7 @@ func (r *ChainReader) GetNumOperatorsForOperatorSet(
 			return NumOperatorsForOperatorSetResponse{}, errors.New("AllocationManager contract not provided")
 		}
 
-		memberCount, err := r.allocationManager.GetMemberCount(&bind.CallOpts{Context: ctx, BlockNumber: request.blockNumber}, request.OperatorSet)
+		memberCount, err := r.allocationManager.GetMemberCount(&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumber}, request.OperatorSet)
 		if err != nil {
 			return NumOperatorsForOperatorSetResponse{}, utils.WrapError("failed to get member count", err)
 		}
@@ -728,7 +728,7 @@ func (r *ChainReader) GetStrategiesForOperatorSet(
 		}
 
 		strategies, err := r.allocationManager.GetStrategiesInOperatorSet(
-			&bind.CallOpts{Context: ctx, BlockNumber: request.blockNumber},
+			&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumber},
 			request.OperatorSet,
 		)
 		if err != nil {
@@ -755,7 +755,7 @@ func (r *ChainReader) GetSlashableShares(
 	}
 
 	slashableShares, err := r.allocationManager.GetMinimumSlashableStake(
-		&bind.CallOpts{Context: ctx, BlockNumber: request.blockNumber},
+		&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumber},
 		request.OperatorSet,
 		[]gethcommon.Address{request.OperatorAddress},
 		request.StrategiesAddresses,
@@ -792,7 +792,7 @@ func (r *ChainReader) GetSlashableSharesForOperatorSets(
 	}
 
 	requestBefore := SlashableSharesForOperatorSetsBeforeRequest{
-		blockNumber:  request.blockNumber,
+		BlockNumber:  request.BlockNumber,
 		OperatorSets: request.OperatorSets,
 		FutureBlock:  uint32(currentBlock),
 	}
@@ -805,7 +805,7 @@ func (r *ChainReader) GetSlashableSharesForOperatorSets(
 		)
 	}
 
-	return SlashableSharesForOperatorSetsResponse{OperatorSetStakes: resp.OperatorSetStakes}, nil
+	return SlashableSharesForOperatorSetsResponse(resp), nil
 }
 
 // GetSlashableSharesForOperatorSetsBefore returns the strategies the operatorSets take into account, their
@@ -820,7 +820,7 @@ func (r *ChainReader) GetSlashableSharesForOperatorSetsBefore(
 	operatorSetStakes := make([]OperatorSetStakes, len(request.OperatorSets))
 	for i, operatorSet := range request.OperatorSets {
 		requestOperator := OperatorsForOperatorSetRequest{
-			blockNumber: request.blockNumber,
+			BlockNumber: request.BlockNumber,
 			OperatorSet: operatorSet,
 		}
 		responseOperators, err := r.GetOperatorsForOperatorSet(ctx, requestOperator)
@@ -832,7 +832,7 @@ func (r *ChainReader) GetSlashableSharesForOperatorSetsBefore(
 		}
 
 		requestStrategies := StrategiesForOperatorSetRequest{
-			blockNumber: request.blockNumber,
+			BlockNumber: request.BlockNumber,
 			OperatorSet: operatorSet,
 		}
 		responseStrategies, err := r.GetStrategiesForOperatorSet(ctx, requestStrategies)
@@ -845,7 +845,7 @@ func (r *ChainReader) GetSlashableSharesForOperatorSetsBefore(
 		}
 
 		slashableShares, err := r.allocationManager.GetMinimumSlashableStake(
-			&bind.CallOpts{Context: ctx, BlockNumber: request.blockNumber},
+			&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumber},
 			allocationmanager.OperatorSet{
 				Id:  operatorSet.Id,
 				Avs: operatorSet.Avs,
@@ -881,7 +881,7 @@ func (r *ChainReader) GetAllocationDelay(
 		return AllocationDelayResponse{}, errors.New("AllocationManager contract not provided")
 	}
 	isSet, delay, err := r.allocationManager.GetAllocationDelay(
-		&bind.CallOpts{Context: ctx, BlockNumber: request.blockNumber},
+		&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumber},
 		request.OperatorAddress,
 	)
 	// This call should not fail since it's a getter
@@ -902,7 +902,7 @@ func (r *ChainReader) GetRegisteredSets(
 		return RegisteredSetsResponse{}, errors.New("AllocationManager contract not provided")
 	}
 	reigsteredSets, err := r.allocationManager.GetRegisteredSets(
-		&bind.CallOpts{Context: ctx, BlockNumber: request.blockNumber},
+		&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumber},
 		request.OperatorAddress,
 	)
 	if err != nil {
@@ -921,7 +921,7 @@ func (r *ChainReader) CanCall(
 	}
 
 	canCall, err := r.permissionController.CanCall(
-		&bind.CallOpts{Context: ctx, BlockNumber: request.blockNumber},
+		&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumber},
 		request.AccountAddress,
 		request.AppointeeAddress,
 		request.Target,
@@ -943,7 +943,7 @@ func (r *ChainReader) ListAppointees(
 	}
 
 	appointees, err := r.permissionController.GetAppointees(
-		&bind.CallOpts{Context: ctx, BlockNumber: request.blockNumber},
+		&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumber},
 		request.AccountAddress,
 		request.Target,
 		request.Select,
@@ -964,7 +964,7 @@ func (r *ChainReader) ListAppointeePermissions(
 	}
 
 	targets, selectors, err := r.permissionController.GetAppointeePermissions(
-		&bind.CallOpts{Context: ctx, BlockNumber: request.blockNumber},
+		&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumber},
 		request.AccountAddress,
 		request.AppointeeAddress,
 	)
@@ -984,7 +984,7 @@ func (r *ChainReader) ListPendingAdmins(
 	}
 
 	pendingAdmins, err := r.permissionController.GetPendingAdmins(
-		&bind.CallOpts{Context: ctx, BlockNumber: request.blockNumber},
+		&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumber},
 		request.AccountAddress,
 	)
 	// This call should not fail since it's a getter
@@ -1004,7 +1004,7 @@ func (r *ChainReader) ListAdmins(
 	}
 
 	admins, err := r.permissionController.GetAdmins(
-		&bind.CallOpts{Context: ctx, BlockNumber: request.blockNumber},
+		&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumber},
 		request.AccountAddress,
 	)
 	// This call should not fail since it's a getter
@@ -1023,7 +1023,7 @@ func (r *ChainReader) IsPendingAdmin(
 	}
 
 	isPendingAdmin, err := r.permissionController.IsPendingAdmin(
-		&bind.CallOpts{Context: ctx, BlockNumber: request.blockNumber},
+		&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumber},
 		request.AccountAddress,
 		request.PendingAdminAddress,
 	)
@@ -1043,7 +1043,7 @@ func (r *ChainReader) IsAdmin(
 	}
 
 	isAdmin, err := r.permissionController.IsAdmin(
-		&bind.CallOpts{Context: ctx, BlockNumber: request.blockNumber},
+		&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumber},
 		request.AccountAddress,
 		request.AdminAddress,
 	)
