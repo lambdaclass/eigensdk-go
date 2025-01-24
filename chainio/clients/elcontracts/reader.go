@@ -952,21 +952,24 @@ func (r *ChainReader) CanCall(
 
 func (r *ChainReader) ListAppointees(
 	ctx context.Context,
-	accountAddress gethcommon.Address,
-	target gethcommon.Address,
-	selector [4]byte,
-) ([]gethcommon.Address, error) {
+	blockNumber *big.Int,
+	request ListAppointeesRequest,
+) (ListAppointeesResponse, error) {
+	if r.permissionController == nil {
+		return ListAppointeesResponse{}, errors.New("PermissionController contract not provided")
+	}
+
 	appointees, err := r.permissionController.GetAppointees(
-		&bind.CallOpts{Context: ctx},
-		accountAddress,
-		target,
-		selector,
+		&bind.CallOpts{Context: ctx, BlockNumber: blockNumber},
+		request.AccountAddress,
+		request.Target,
+		request.Select,
 	)
 	// This call should not fail since it's a getter
 	if err != nil {
-		return nil, utils.WrapError("call to permission controller failed", err)
+		return ListAppointeesResponse{}, utils.WrapError("call to permission controller failed", err)
 	}
-	return appointees, nil
+	return ListAppointeesResponse{Appointees: appointees}, nil
 }
 
 func (r *ChainReader) ListAppointeePermissions(

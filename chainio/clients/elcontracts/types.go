@@ -365,3 +365,13 @@ type CanCallRequest struct {
 type CanCallResponse struct {
 	CanCall bool
 }
+
+type ListAppointeesRequest struct {
+	AccountAddress common.Address
+	Target         common.Address
+	Select         [4]byte
+}
+
+type ListAppointeesResponse struct {
+	Appointees []common.Address
+}

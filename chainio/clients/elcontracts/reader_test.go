@@ -794,9 +794,14 @@ func TestAppointeesFunctions(t *testing.T) {
 	selector := [4]byte{0, 1, 2, 3}
 
 	t.Run("list appointees when empty", func(t *testing.T) {
-		appointees, err := chainReader.ListAppointees(context.Background(), accountAddress, target, selector)
+		request := elcontracts.ListAppointeesRequest{
+			AccountAddress: accountAddress,
+			Target:         target,
+			Select:         selector,
+		}
+		response, err := chainReader.ListAppointees(context.Background(), nil, request)
 		assert.NoError(t, err)
-		assert.Empty(t, appointees)
+		assert.Empty(t, response.Appointees)
 	})
 
 	t.Run("list appointees", func(t *testing.T) {
@@ -822,9 +827,14 @@ func TestAppointeesFunctions(t *testing.T) {
 		require.NoError(t, err)
 		require.True(t, response.CanCall)
 
-		appointees, err := chainReader.ListAppointees(context.Background(), accountAddress, target, selector)
+		requestAppointees := elcontracts.ListAppointeesRequest{
+			AccountAddress: accountAddress,
+			Target:         target,
+			Select:         selector,
+		}
+		responseAppointees, err := chainReader.ListAppointees(context.Background(), nil, requestAppointees)
 		assert.NoError(t, err)
-		assert.NotEmpty(t, appointees)
+		assert.NotEmpty(t, responseAppointees.Appointees)
 	})
 
 	t.Run("list appointees permissions", func(t *testing.T) {
