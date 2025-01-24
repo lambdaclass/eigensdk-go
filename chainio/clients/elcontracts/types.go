@@ -329,3 +329,12 @@ type GetAllocatableMagnitudeRequest struct {
 type GetAllocatableMagnitudeResponse struct {
 	AllocatableMagnitude uint64
 }
+
+type GetSlashableSharesForOperatorSetsRequest struct {
+	OperatorSets []allocationmanager.OperatorSet
+}
+
+// Original struct was OperatorSetStakes
+type GetSlashableSharesForOperatorSetsResponse struct {
+	OperatorSetStakes []OperatorSetStakes
+}

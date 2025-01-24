@@ -1351,22 +1351,29 @@ func TestOperatorSetsAndSlashableShares(t *testing.T) {
 		})
 
 		t.Run("get slashable shares for multiple operatorSets", func(t *testing.T) {
-			shares, err := chainReader.GetSlashableSharesForOperatorSets(
+			request := elcontracts.GetSlashableSharesForOperatorSetsRequest{
+				OperatorSets: []allocationmanager.OperatorSet{operatorSet},
+			}
+			response, err := chainReader.GetSlashableSharesForOperatorSets(
 				context.Background(),
-				[]allocationmanager.OperatorSet{operatorSet},
+				receipt.BlockNumber,
+				request,
 			)
 			require.NoError(t, err)
-			require.NotEmpty(t, shares)
+			require.NotEmpty(t, response.OperatorSetStakes)
 		})
 
 		t.Run("get slashable shares before specific block", func(t *testing.T) {
-			shares, err := chainReader.GetSlashableSharesForOperatorSetsBefore(
+			request := elcontracts.GetSlashableSharesForOperatorSetsRequest{
+				OperatorSets: []allocationmanager.OperatorSet{operatorSet},
+			}
+			response, err := chainReader.GetSlashableSharesForOperatorSetsBefore(
 				context.Background(),
-				[]allocationmanager.OperatorSet{operatorSet},
 				2,
+				request,
 			)
 			require.NoError(t, err)
-			require.NotEmpty(t, shares)
+			require.NotEmpty(t, response.OperatorSetStakes)
 		})
 	})
 }
@@ -1429,8 +1436,11 @@ func TestOperatorSetsWithWrongInput(t *testing.T) {
 		require.NoError(t, err)
 
 		operatorSets := []allocationmanager.OperatorSet{operatorSet}
+		request := elcontracts.GetSlashableSharesForOperatorSetsRequest{
+			OperatorSets: operatorSets,
+		}
 
-		_, err = chainReader.GetSlashableSharesForOperatorSetsBefore(context.Background(), operatorSets, 10)
+		_, err = chainReader.GetSlashableSharesForOperatorSetsBefore(context.Background(), 10, request)
 		require.Error(t, err)
 	})
 }

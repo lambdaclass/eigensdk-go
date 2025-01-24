@@ -807,14 +807,16 @@ func (r *ChainReader) GetSlashableShares(
 // VOY X ACAAAA
 func (r *ChainReader) GetSlashableSharesForOperatorSets(
 	ctx context.Context,
-	operatorSets []allocationmanager.OperatorSet,
-) ([]OperatorSetStakes, error) {
-	currentBlock, err := r.ethClient.BlockNumber(ctx)
-	// This call should not fail since it's a getter
-	if err != nil {
-		return nil, err
-	}
-	return r.GetSlashableSharesForOperatorSetsBefore(ctx, operatorSets, uint32(currentBlock))
+	blockNumber *big.Int,
+	request GetSlashableSharesForOperatorSetsRequest,
+) (GetSlashableSharesForOperatorSetsResponse, error) {
+	// TODO: Is necessary to get the block number here? Or should we use the one passed as argument?
+	// currentBlock, err := r.ethClient.BlockNumber(ctx)
+	// // This call should not fail since it's a getter
+	// if err != nil {
+	// 	return nil, err
+	// }
+	return r.GetSlashableSharesForOperatorSetsBefore(ctx, uint32(blockNumber.Uint64()), request)
 }
 
 // GetSlashableSharesForOperatorSetsBefore returns the strategies the operatorSets take into account, their
@@ -822,19 +824,24 @@ func (r *ChainReader) GetSlashableSharesForOperatorSets(
 // operatorSets before a given timestamp.
 // Timestamp must be in the future. Used to underestimate future slashable stake.
 // Not supported for M2 AVSs
+
+// TODO: Should we use the block number instead of the futureBlock?
 func (r *ChainReader) GetSlashableSharesForOperatorSetsBefore(
 	ctx context.Context,
-	operatorSets []allocationmanager.OperatorSet,
 	futureBlock uint32,
-) ([]OperatorSetStakes, error) {
-	operatorSetStakes := make([]OperatorSetStakes, len(operatorSets))
-	for i, operatorSet := range operatorSets {
+	request GetSlashableSharesForOperatorSetsRequest,
+) (GetSlashableSharesForOperatorSetsResponse, error) {
+	operatorSetStakes := make([]OperatorSetStakes, len(request.OperatorSets))
+	for i, operatorSet := range request.OperatorSets {
 		requestOperator := GetOperatorsForOperatorSetRequest{
 			OperatorSet: operatorSet,
 		}
 		responseOperators, err := r.GetOperatorsForOperatorSet(ctx, nil, requestOperator)
 		if err != nil {
-			return nil, err
+			return GetSlashableSharesForOperatorSetsResponse{}, utils.WrapError(
+				"failed to get operators for operator set",
+				err,
+			)
 		}
 
 		requestStrategies := GetStrategiesForOperatorSetRequest{
@@ -844,7 +851,10 @@ func (r *ChainReader) GetSlashableSharesForOperatorSetsBefore(
 		responseStrategies, err := r.GetStrategiesForOperatorSet(ctx, nil, requestStrategies)
 		// If operator setId is 0 will fail on if above
 		if err != nil {
-			return nil, err
+			return GetSlashableSharesForOperatorSetsResponse{}, utils.WrapError(
+				"failed to get strategies for operator set",
+				err,
+			)
 		}
 
 		slashableShares, err := r.allocationManager.GetMinimumSlashableStake(
@@ -859,7 +869,10 @@ func (r *ChainReader) GetSlashableSharesForOperatorSetsBefore(
 		)
 		// This call should not fail since it's a getter
 		if err != nil {
-			return nil, err
+			return GetSlashableSharesForOperatorSetsResponse{}, utils.WrapError(
+				"failed to get minimum slashable stake",
+				err,
+			)
 		}
 
 		operatorSetStakes[i] = OperatorSetStakes{
@@ -870,7 +883,7 @@ func (r *ChainReader) GetSlashableSharesForOperatorSetsBefore(
 		}
 	}
 
-	return operatorSetStakes, nil
+	return GetSlashableSharesForOperatorSetsResponse{OperatorSetStakes: operatorSetStakes}, nil
 }
 
 func (r *ChainReader) GetAllocationDelay(
