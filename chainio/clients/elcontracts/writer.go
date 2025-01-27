@@ -120,6 +120,7 @@ func NewWriterFromConfig(
 	), nil
 }
 
+// RegisterAsOperator registers an operator to EigenLayer
 func (w *ChainWriter) RegisterAsOperator(
 	ctx context.Context,
 	request RegisterOperatorRequest,
@@ -149,6 +150,7 @@ func (w *ChainWriter) RegisterAsOperator(
 	return receipt, nil
 }
 
+// UpdateOperatorDetails updates the operator details of the operator
 func (w *ChainWriter) UpdateOperatorDetails(
 	ctx context.Context,
 	request OperatorDetailsRequest,
@@ -183,6 +185,7 @@ func (w *ChainWriter) UpdateOperatorDetails(
 	return receipt, nil
 }
 
+// UpdateMetadataURI updates the metadata URI of the operator
 func (w *ChainWriter) UpdateMetadataURI(
 	ctx context.Context,
 	request MetadataURIRequest,
@@ -209,6 +212,8 @@ func (w *ChainWriter) UpdateMetadataURI(
 	return receipt, nil
 }
 
+// DepositERC20IntoStrategy gets the underlying token of the strategy and deposits the given amount of tokens into the
+// strategy
 func (w *ChainWriter) DepositERC20IntoStrategy(
 	ctx context.Context,
 	request ERC20IntoStrategyRequest,
@@ -255,6 +260,7 @@ func (w *ChainWriter) DepositERC20IntoStrategy(
 	return receipt, nil
 }
 
+// SetClaimerFor sets the claimer authorized to call processClaim on behalf of the earner.
 func (w *ChainWriter) SetClaimerFor(
 	ctx context.Context,
 	request ClaimForRequest,
@@ -276,6 +282,8 @@ func (w *ChainWriter) SetClaimerFor(
 	return receipt, nil
 }
 
+// ProcessClaim processes a merkle-based rewards claim for the specified earner, transferring balance to the given
+// recipient.
 func (w *ChainWriter) ProcessClaim(
 	ctx context.Context,
 	request ClaimProcessRequest,
@@ -297,6 +305,7 @@ func (w *ChainWriter) ProcessClaim(
 	return receipt, nil
 }
 
+// SetOperatorAVSSplit sets the AVS split for a given operator and AVS address.
 func (w *ChainWriter) SetOperatorAVSSplit(
 	ctx context.Context,
 	request OperatorAVSSplitRequest,
@@ -323,6 +332,7 @@ func (w *ChainWriter) SetOperatorAVSSplit(
 	return receipt, nil
 }
 
+// SetOperatorPISplit sets the PI Split for a given operator.
 func (w *ChainWriter) SetOperatorPISplit(
 	ctx context.Context,
 	request OperatorPISplitRequest,
@@ -344,6 +354,8 @@ func (w *ChainWriter) SetOperatorPISplit(
 	return receipt, nil
 }
 
+// ProcessClaims processes multiple merkle-based reward claims in a single batch, transferring balances to the
+// specified recipient.
 func (w *ChainWriter) ProcessClaims(
 	ctx context.Context,
 	request ClaimsProcessRequest,
@@ -369,6 +381,7 @@ func (w *ChainWriter) ProcessClaims(
 	return receipt, nil
 }
 
+// ForceDeregisterFromOperatorSets removes an operator from one or more operator sets associated with a given AVS.
 func (w *ChainWriter) ForceDeregisterFromOperatorSets(
 	ctx context.Context,
 	request OperatorSetDeregisterRequest,
@@ -399,6 +412,7 @@ func (w *ChainWriter) ForceDeregisterFromOperatorSets(
 	return receipt, nil
 }
 
+// ModifyAllocations modifies the proportions of slashable stake allocated to an operator set from a list of strategies
 func (w *ChainWriter) ModifyAllocations(
 	ctx context.Context,
 	request AllocationModifyRequest,
@@ -421,6 +435,7 @@ func (w *ChainWriter) ModifyAllocations(
 	return receipt, nil
 }
 
+// SetAllocationDelay defines the number of blocks (delay) before an operator’s allocated stake becomes slashable.
 func (w *ChainWriter) SetAllocationDelay(
 	ctx context.Context,
 	request AllocationDelayRequest,
@@ -442,6 +457,7 @@ func (w *ChainWriter) SetAllocationDelay(
 	return receipt, nil
 }
 
+// DeregisterFromOperatorSets removes an operator from one or more operator sets associated with a given AVS.
 func (w *ChainWriter) DeregisterFromOperatorSets(
 	ctx context.Context,
 	request OperatorSetDeregisterRequest,
@@ -470,6 +486,7 @@ func (w *ChainWriter) DeregisterFromOperatorSets(
 	return receipt, nil
 }
 
+// RegisterForOperatorSets allows an operator to register for one or more operator sets for an AVS.
 func (w *ChainWriter) RegisterForOperatorSets(
 	ctx context.Context,
 	request RegisterOperatorSetsRequest,
@@ -513,6 +530,7 @@ func (w *ChainWriter) RegisterForOperatorSets(
 	return receipt, nil
 }
 
+// RemovePermission removes an appointee for a given account.
 func (w *ChainWriter) RemovePermission(
 	ctx context.Context,
 	request PermissionRemoveRequest,
@@ -525,7 +543,7 @@ func (w *ChainWriter) RemovePermission(
 	return w.txMgr.Send(ctx, tx, request.WaitForReceipt)
 }
 
-// Should be a public or private method?
+// Should be a public or private method? Can we move this logic to RemovePermission?
 func (w *ChainWriter) NewRemovePermissionTx(
 	request PermissionRemoveRequest,
 	txOpts *bind.TransactOpts,
@@ -543,7 +561,7 @@ func (w *ChainWriter) NewRemovePermissionTx(
 	)
 }
 
-// Should be a public or private method?
+// Should be a public or private method? Can we move this logic to SetPermission?
 func (w *ChainWriter) NewSetPermissionTx(
 	request PermissionSetRequest,
 	txOpts *bind.TransactOpts,
@@ -560,6 +578,7 @@ func (w *ChainWriter) NewSetPermissionTx(
 	)
 }
 
+// SetPermission sets an appointee for a given account.
 func (w *ChainWriter) SetPermission(
 	ctx context.Context,
 	request PermissionSetRequest,
@@ -573,7 +592,7 @@ func (w *ChainWriter) SetPermission(
 	return w.txMgr.Send(ctx, tx, request.WaitForReceipt)
 }
 
-// Should be a public or private method?
+// Should be a public or private method? Can we move this logic to AcceptAdmin?
 func (w *ChainWriter) NewAcceptAdminTx(
 	request AdminAcceptRequest,
 	txOpts *bind.TransactOpts,
@@ -584,6 +603,7 @@ func (w *ChainWriter) NewAcceptAdminTx(
 	return w.permissionController.AcceptAdmin(txOpts, request.AccountAddress)
 }
 
+// AcceptAdmin removes a pending admin from the list of pending admins and adds them to the list of admins.
 func (w *ChainWriter) AcceptAdmin(
 	ctx context.Context,
 	request AdminAcceptRequest,
@@ -596,7 +616,7 @@ func (w *ChainWriter) AcceptAdmin(
 	return w.txMgr.Send(ctx, tx, request.WaitForReceipt)
 }
 
-// Should be a public or private method?
+// Should be a public or private method? Can we move this logic to AddPendingAdmin?
 func (w *ChainWriter) NewAddPendingAdminTx(
 	request PendingAdminAcceptRequest,
 	txOpts *bind.TransactOpts,
@@ -607,6 +627,7 @@ func (w *ChainWriter) NewAddPendingAdminTx(
 	return w.permissionController.AddPendingAdmin(txOpts, request.AccountAddress, request.AdminAddress)
 }
 
+// AddPendingAdmin adds an admin to the list of pending admins.
 func (w *ChainWriter) AddPendingAdmin(
 	ctx context.Context,
 	request PendingAdminAcceptRequest,
@@ -619,7 +640,7 @@ func (w *ChainWriter) AddPendingAdmin(
 	return w.txMgr.Send(ctx, tx, request.WaitForReceipt)
 }
 
-// Should be a public or private method?
+// Should be a public or private method? Can we move this logic to RemoveAdmin?
 func (w *ChainWriter) NewRemoveAdminTx(
 	request AdminRemoveRequest,
 	txOpts *bind.TransactOpts,
@@ -630,6 +651,7 @@ func (w *ChainWriter) NewRemoveAdminTx(
 	return w.permissionController.RemoveAdmin(txOpts, request.AccountAddress, request.AdminAddress)
 }
 
+// RemoveAdmin removes an admin of an account.
 func (w *ChainWriter) RemoveAdmin(
 	ctx context.Context,
 	request AdminRemoveRequest,
@@ -642,7 +664,7 @@ func (w *ChainWriter) RemoveAdmin(
 	return w.txMgr.Send(ctx, tx, request.WaitForReceipt)
 }
 
-// Should be a public or private method?
+// Should be a public or private method? Can we move this logic to RemovePendingAdmin?
 func (w *ChainWriter) NewRemovePendingAdminTx(
 	request PendingAdminRemoveRequest,
 	txOpts *bind.TransactOpts,
@@ -653,6 +675,7 @@ func (w *ChainWriter) NewRemovePendingAdminTx(
 	return w.permissionController.RemovePendingAdmin(txOpts, request.AccountAddress, request.AdminAddress)
 }
 
+// RemovePendingAdmin removes a pending admin of an account
 func (w *ChainWriter) RemovePendingAdmin(
 	ctx context.Context,
 	request PendingAdminRemoveRequest,
