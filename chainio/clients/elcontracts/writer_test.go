@@ -912,15 +912,24 @@ func TestAcceptAdmin(t *testing.T) {
 	chainReader, err := testclients.NewTestChainReaderFromConfig(anvilHttpEndpoint, config)
 	require.NoError(t, err)
 
-	txManager, err := testclients.NewTestTxManager(anvilHttpEndpoint, testutils.ANVIL_FIRST_PRIVATE_KEY)
+	txManagerAccount, err := testclients.NewTestTxManager(anvilHttpEndpoint, accountPrivateKeyHex)
+	require.NoError(t, err)
+	optsAccount, err := txManagerAccount.GetNoSendTxOpts()
 	require.NoError(t, err)
 
-	opts, err := txManager.GetNoSendTxOpts()
+	txManagerPendingAdmin, err := testclients.NewTestTxManager(anvilHttpEndpoint, pendingAdminPrivateKeyHex)
+	require.NoError(t, err)
+	optsPendingAdmin, err := txManagerPendingAdmin.GetNoSendTxOpts()
 	require.NoError(t, err)
 
-	txOptions := &elcontracts.TxOptions{
+	txOptionsAccount := &elcontracts.TxOptions{
 		WaitForReceipt: true,
-		Options:        opts,
+		Options:        optsAccount,
+	}
+
+	txOptionsPendingAdmin := &elcontracts.TxOptions{
+		WaitForReceipt: true,
+		Options:        optsPendingAdmin,
 	}
 
 	pendingAdminAddr := common.HexToAddress(testutils.ANVIL_SECOND_ADDRESS)
@@ -928,7 +937,7 @@ func TestAcceptAdmin(t *testing.T) {
 		AccountAddress: accountAddr,
 		AdminAddress:   pendingAdminAddr,
 	}
-	receipt, err := accountChainWriter.AddPendingAdmin(context.Background(), request, txOptions)
+	receipt, err := accountChainWriter.AddPendingAdmin(context.Background(), request, txOptionsAccount)
 	require.NoError(t, err)
 	require.Equal(t, gethtypes.ReceiptStatusSuccessful, receipt.Status)
 
@@ -936,7 +945,7 @@ func TestAcceptAdmin(t *testing.T) {
 		AccountAddress: accountAddr,
 	}
 	t.Run("accept admin", func(t *testing.T) {
-		receipt, err = adminChainWriter.AcceptAdmin(context.Background(), acceptAdminRequest, txOptions)
+		receipt, err = adminChainWriter.AcceptAdmin(context.Background(), acceptAdminRequest, txOptionsPendingAdmin)
 		require.NoError(t, err)
 		require.Equal(t, gethtypes.ReceiptStatusSuccessful, receipt.Status)
 
@@ -946,7 +955,7 @@ func TestAcceptAdmin(t *testing.T) {
 	})
 
 	t.Run("accept admin when already accepted", func(t *testing.T) {
-		_, err = adminChainWriter.AcceptAdmin(context.Background(), acceptAdminRequest, txOptions)
+		_, err = adminChainWriter.AcceptAdmin(context.Background(), acceptAdminRequest, txOptionsPendingAdmin)
 		require.Error(t, err, "cannot accept an admin that has already been accepted")
 	})
 }
@@ -987,17 +996,35 @@ func TestRemoveAdmin(t *testing.T) {
 	chainReader, err := testclients.NewTestChainReaderFromConfig(anvilHttpEndpoint, config)
 	require.NoError(t, err)
 
-	txManager, err := testclients.NewTestTxManager(anvilHttpEndpoint, testutils.ANVIL_FIRST_PRIVATE_KEY)
+	accountTxManager, err := testclients.NewTestTxManager(anvilHttpEndpoint, accountPrivateKeyHex)
+	require.NoError(t, err)
+	optsAccount, err := accountTxManager.GetNoSendTxOpts()
 	require.NoError(t, err)
 
-	opts, err := txManager.GetNoSendTxOpts()
+	admin1TxManager, err := testclients.NewTestTxManager(anvilHttpEndpoint, admin1PrivateKeyHex)
+	require.NoError(t, err)
+	optsAdmin1, err := admin1TxManager.GetNoSendTxOpts()
 	require.NoError(t, err)
 
-	txOptions := &elcontracts.TxOptions{
+	admin2TxManager, err := testclients.NewTestTxManager(anvilHttpEndpoint, admin2PrivateKeyHex)
+	require.NoError(t, err)
+	optsAdmin2, err := admin2TxManager.GetNoSendTxOpts()
+	require.NoError(t, err)
+
+	accountTxOptions := &elcontracts.TxOptions{
 		WaitForReceipt: true,
-		Options:        opts,
+		Options:        optsAccount,
 	}
 
+	admin1TxOptions := &elcontracts.TxOptions{
+		WaitForReceipt: true,
+		Options:        optsAdmin1,
+	}
+
+	admin2TxOptions := &elcontracts.TxOptions{
+		WaitForReceipt: true,
+		Options:        optsAdmin2,
+	}
 	addAdmin1Request := elcontracts.PendingAdminAcceptRequest{
 		AccountAddress: accountAddr,
 		AdminAddress:   admin1,
@@ -1011,20 +1038,20 @@ func TestRemoveAdmin(t *testing.T) {
 	}
 
 	// Add and accept admin 1
-	receipt, err := accountChainWriter.AddPendingAdmin(context.Background(), addAdmin1Request, txOptions)
+	receipt, err := accountChainWriter.AddPendingAdmin(context.Background(), addAdmin1Request, accountTxOptions)
 	require.NoError(t, err)
 	require.Equal(t, gethtypes.ReceiptStatusSuccessful, receipt.Status)
 
-	receipt, err = admin1ChainWriter.AcceptAdmin(context.Background(), acceptAdminRequest, txOptions)
+	receipt, err = admin1ChainWriter.AcceptAdmin(context.Background(), acceptAdminRequest, admin1TxOptions)
 	require.NoError(t, err)
 	require.Equal(t, gethtypes.ReceiptStatusSuccessful, receipt.Status)
 
 	// Add and accept admin 2
-	receipt, err = admin1ChainWriter.AddPendingAdmin(context.Background(), addAdmin2Request, txOptions)
+	receipt, err = admin1ChainWriter.AddPendingAdmin(context.Background(), addAdmin2Request, admin1TxOptions)
 	require.NoError(t, err)
 	require.Equal(t, gethtypes.ReceiptStatusSuccessful, receipt.Status)
 
-	receipt, err = admin2ChainWriter.AcceptAdmin(context.Background(), acceptAdminRequest, txOptions)
+	receipt, err = admin2ChainWriter.AcceptAdmin(context.Background(), acceptAdminRequest, admin2TxOptions)
 	require.NoError(t, err)
 	require.Equal(t, gethtypes.ReceiptStatusSuccessful, receipt.Status)
 
@@ -1034,7 +1061,7 @@ func TestRemoveAdmin(t *testing.T) {
 	}
 
 	t.Run("remove admin 2", func(t *testing.T) {
-		receipt, err = admin1ChainWriter.RemoveAdmin(context.Background(), removeAdminRequest, txOptions)
+		receipt, err = admin1ChainWriter.RemoveAdmin(context.Background(), removeAdminRequest, admin1TxOptions)
 		require.NoError(t, err)
 		require.Equal(t, gethtypes.ReceiptStatusSuccessful, receipt.Status)
 
@@ -1044,7 +1071,7 @@ func TestRemoveAdmin(t *testing.T) {
 	})
 
 	t.Run("remove admin 2 when already removed", func(t *testing.T) {
-		_, err := admin1ChainWriter.RemoveAdmin(context.Background(), removeAdminRequest, txOptions)
+		_, err := admin1ChainWriter.RemoveAdmin(context.Background(), removeAdminRequest, admin1TxOptions)
 		require.Error(t, err, "cannot remove an admin that has already been removed")
 	})
 }

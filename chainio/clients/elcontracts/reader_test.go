@@ -652,12 +652,17 @@ func TestAdminFunctions(t *testing.T) {
 	}
 
 	operatorAddr := common.HexToAddress(testutils.ANVIL_FIRST_ADDRESS)
-	privateKeyHex := testutils.ANVIL_FIRST_PRIVATE_KEY
-	accountChainWriter, err := testclients.NewTestChainWriterFromConfig(anvilHttpEndpoint, privateKeyHex, config)
-	assert.NoError(t, err)
-
+	operatorPrivateKeyHex := testutils.ANVIL_FIRST_PRIVATE_KEY
 	pendingAdminAddr := common.HexToAddress(testutils.ANVIL_SECOND_ADDRESS)
 	pendingAdminPrivateKeyHex := testutils.ANVIL_SECOND_PRIVATE_KEY
+
+	accountChainWriter, err := testclients.NewTestChainWriterFromConfig(
+		anvilHttpEndpoint,
+		operatorPrivateKeyHex,
+		config,
+	)
+	assert.NoError(t, err)
+
 	adminChainWriter, err := testclients.NewTestChainWriterFromConfig(
 		anvilHttpEndpoint,
 		pendingAdminPrivateKeyHex,
@@ -668,29 +673,38 @@ func TestAdminFunctions(t *testing.T) {
 	chainReader, err := testclients.NewTestChainReaderFromConfig(anvilHttpEndpoint, config)
 	assert.NoError(t, err)
 
-	txManager, err := testclients.NewTestTxManager(anvilHttpEndpoint, privateKeyHex)
-	require.NoError(t, err)
+	operatorTxManager, err := testclients.NewTestTxManager(anvilHttpEndpoint, operatorPrivateKeyHex)
+	assert.NoError(t, err)
+	optsOperator, err := operatorTxManager.GetNoSendTxOpts()
+	assert.NoError(t, err)
 
-	opts, err := txManager.GetNoSendTxOpts()
-	require.NoError(t, err)
+	pendingAdminTxManager, err := testclients.NewTestTxManager(anvilHttpEndpoint, pendingAdminPrivateKeyHex)
+	assert.NoError(t, err)
+	optsPendingAdmin, err := pendingAdminTxManager.GetNoSendTxOpts()
+	assert.NoError(t, err)
 
-	txOptions := &elcontracts.TxOptions{
+	operatorTxOptions := &elcontracts.TxOptions{
 		WaitForReceipt: true,
-		Options:        opts,
+		Options:        optsOperator,
+	}
+
+	pendingAdminTxOptions := &elcontracts.TxOptions{
+		WaitForReceipt: true,
+		Options:        optsPendingAdmin,
 	}
 
 	t.Run("non-existent pending admin", func(t *testing.T) {
 		isPendingAdmin, err := chainReader.IsPendingAdmin(context.Background(), operatorAddr, pendingAdminAddr)
 		assert.NoError(t, err)
 		assert.False(t, isPendingAdmin)
-		t.Logf("IsPendingAdmin: %+v", isPendingAdmin)
+
 	})
 
 	t.Run("list pending admins when empty", func(t *testing.T) {
 		listPendingAdmins, err := chainReader.ListPendingAdmins(context.Background(), operatorAddr)
 		assert.NoError(t, err)
 		assert.Empty(t, listPendingAdmins)
-		t.Logf("ListPendingAdmins: %+v", listPendingAdmins)
+
 	})
 
 	t.Run("add pending admin and list", func(t *testing.T) {
@@ -699,40 +713,35 @@ func TestAdminFunctions(t *testing.T) {
 			AdminAddress:   pendingAdminAddr,
 		}
 
-		receipt, err := accountChainWriter.AddPendingAdmin(context.Background(), request, txOptions)
+		receipt, err := accountChainWriter.AddPendingAdmin(context.Background(), request, operatorTxOptions)
 		assert.NoError(t, err)
 		assert.Equal(t, receipt.Status, gethtypes.ReceiptStatusSuccessful)
-		t.Logf("AddPendingAdmin receipt: %+v", receipt)
 
 		isPendingAdmin, err := chainReader.IsPendingAdmin(context.Background(), operatorAddr, pendingAdminAddr)
 		assert.NoError(t, err)
 		assert.True(t, isPendingAdmin)
-		t.Logf("IsPendingAdmin: %+v", isPendingAdmin)
 
 		listPendingAdmins, err := chainReader.ListPendingAdmins(context.Background(), operatorAddr)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, listPendingAdmins)
-		t.Logf("ListPendingAdmins: %+v", listPendingAdmins)
+
 	})
 
 	t.Run("non-existent admin", func(t *testing.T) {
 		isAdmin, err := chainReader.IsAdmin(context.Background(), operatorAddr, pendingAdminAddr)
 		assert.NoError(t, err)
 		assert.False(t, isAdmin)
-		t.Logf("IsAdmin: %+v", isAdmin)
+
 	})
 
 	t.Run("list admins", func(t *testing.T) {
 		acceptAdminRequest := elcontracts.AdminAcceptRequest{
-			AccountAddress: pendingAdminAddr,
+			AccountAddress: operatorAddr,
 		}
 
-		t.Logf("AcceptAdminRequest: %+v", acceptAdminRequest)
-
-		receipt, err := adminChainWriter.AcceptAdmin(context.Background(), acceptAdminRequest, txOptions)
+		receipt, err := adminChainWriter.AcceptAdmin(context.Background(), acceptAdminRequest, pendingAdminTxOptions)
 		assert.NoError(t, err)
 		assert.Equal(t, receipt.Status, gethtypes.ReceiptStatusSuccessful)
-		t.Logf("AcceptAdmin receipt: %+v", receipt)
 
 		listAdmins, err := chainReader.ListAdmins(context.Background(), operatorAddr)
 		assert.NoError(t, err)
@@ -1132,7 +1141,15 @@ func TestOperatorSetsAndSlashableShares(t *testing.T) {
 	chainWriter, err := testclients.NewTestChainWriterFromConfig(anvilHttpEndpoint, operatorPrivateKeyHex, config)
 	require.NoError(t, err)
 
-	txManager, err := testclients.NewTestTxManager(anvilHttpEndpoint, testutils.ANVIL_FIRST_PRIVATE_KEY)
+	avsAdrr := common.HexToAddress(testutils.ANVIL_FIRST_ADDRESS)
+	avsPrivateKeyHex := testutils.ANVIL_FIRST_PRIVATE_KEY
+	operatorSetId := uint32(1)
+	operatorSet := allocationmanager.OperatorSet{
+		Avs: avsAdrr,
+		Id:  operatorSetId,
+	}
+
+	txManager, err := testclients.NewTestTxManager(anvilHttpEndpoint, operatorPrivateKeyHex)
 	require.NoError(t, err)
 
 	opts, err := txManager.GetNoSendTxOpts()
@@ -1141,14 +1158,6 @@ func TestOperatorSetsAndSlashableShares(t *testing.T) {
 	txOptions := &elcontracts.TxOptions{
 		WaitForReceipt: true,
 		Options:        opts,
-	}
-
-	avsAdrr := common.HexToAddress(testutils.ANVIL_FIRST_ADDRESS)
-	avsPrivateKeyHex := testutils.ANVIL_FIRST_PRIVATE_KEY
-	operatorSetId := uint32(1)
-	operatorSet := allocationmanager.OperatorSet{
-		Avs: avsAdrr,
-		Id:  operatorSetId,
 	}
 
 	strategyAddr := contractAddrs.Erc20MockStrategy
