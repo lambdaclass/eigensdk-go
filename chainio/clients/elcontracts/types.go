@@ -122,12 +122,12 @@ type ClaimForRequest struct {
 	Claimer common.Address
 }
 
-type ClaimProcess struct {
+type ClaimProcessRequest struct {
 	Claim            rewardscoordinator.IRewardsCoordinatorTypesRewardsMerkleClaim
 	RecipientAddress common.Address
 }
 
-type ClaimsProcess struct {
+type ClaimsProcessRequest struct {
 	Claims           []rewardscoordinator.IRewardsCoordinatorTypesRewardsMerkleClaim
 	RecipientAddress common.Address
 }

@@ -278,7 +278,7 @@ func (w *ChainWriter) SetClaimerFor(
 
 func (w *ChainWriter) ProcessClaim(
 	ctx context.Context,
-	request ClaimProcess,
+	request ClaimProcessRequest,
 	txOptions *TxOptions,
 ) (*gethtypes.Receipt, error) {
 	if w.rewardsCoordinator == nil {
@@ -306,13 +306,8 @@ func (w *ChainWriter) SetOperatorAVSSplit(
 		return nil, errors.New("RewardsCoordinator contract not provided")
 	}
 
-	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
-	if err != nil {
-		return nil, utils.WrapError("failed to get no send tx opts", err)
-	}
-
 	tx, err := w.rewardsCoordinator.SetOperatorAVSSplit(
-		noSendTxOpts,
+		txOptions.Options,
 		request.OperatorAddress,
 		request.AVSAddress,
 		request.Split,
@@ -337,12 +332,7 @@ func (w *ChainWriter) SetOperatorPISplit(
 		return nil, errors.New("RewardsCoordinator contract not provided")
 	}
 
-	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
-	if err != nil {
-		return nil, utils.WrapError("failed to get no send tx opts", err)
-	}
-
-	tx, err := w.rewardsCoordinator.SetOperatorPISplit(noSendTxOpts, request.OperatorAddress, request.Split)
+	tx, err := w.rewardsCoordinator.SetOperatorPISplit(txOptions.Options, request.OperatorAddress, request.Split)
 	if err != nil {
 		return nil, utils.WrapError("failed to create SetOperatorAVSSplit tx", err)
 	}
@@ -356,7 +346,7 @@ func (w *ChainWriter) SetOperatorPISplit(
 
 func (w *ChainWriter) ProcessClaims(
 	ctx context.Context,
-	request ClaimsProcess,
+	request ClaimsProcessRequest,
 	txOptions *TxOptions,
 ) (*gethtypes.Receipt, error) {
 	if w.rewardsCoordinator == nil {
@@ -367,12 +357,7 @@ func (w *ChainWriter) ProcessClaims(
 		return nil, errors.New("claims is empty, at least one claim must be provided")
 	}
 
-	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
-	if err != nil {
-		return nil, utils.WrapError("failed to get no send tx opts", err)
-	}
-
-	tx, err := w.rewardsCoordinator.ProcessClaims(noSendTxOpts, request.Claims, request.RecipientAddress)
+	tx, err := w.rewardsCoordinator.ProcessClaims(txOptions.Options, request.Claims, request.RecipientAddress)
 	if err != nil {
 		return nil, utils.WrapError("failed to create ProcessClaims tx", err)
 	}
@@ -393,13 +378,8 @@ func (w *ChainWriter) ForceDeregisterFromOperatorSets(
 		return nil, errors.New("AVSDirectory contract not provided")
 	}
 
-	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
-	if err != nil {
-		return nil, utils.WrapError("failed to get no send tx opts", err)
-	}
-
 	tx, err := w.allocationManager.DeregisterFromOperatorSets(
-		noSendTxOpts,
+		txOptions.Options,
 		allocationmanager.IAllocationManagerTypesDeregisterParams{
 			Operator:       request.OperatorAddress,
 			Avs:            request.AVSAddress,
@@ -428,12 +408,7 @@ func (w *ChainWriter) ModifyAllocations(
 		return nil, errors.New("AllocationManager contract not provided")
 	}
 
-	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
-	if err != nil {
-		return nil, utils.WrapError("failed to get no send tx opts", err)
-	}
-
-	tx, err := w.allocationManager.ModifyAllocations(noSendTxOpts, request.OperatorAddress, request.Allocations)
+	tx, err := w.allocationManager.ModifyAllocations(txOptions.Options, request.OperatorAddress, request.Allocations)
 	if err != nil {
 		return nil, utils.WrapError("failed to create ModifyAllocations tx", err)
 	}
@@ -455,12 +430,7 @@ func (w *ChainWriter) SetAllocationDelay(
 		return nil, errors.New("AllocationManager contract not provided")
 	}
 
-	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
-	if err != nil {
-		return nil, utils.WrapError("failed to get no send tx opts", err)
-	}
-
-	tx, err := w.allocationManager.SetAllocationDelay(noSendTxOpts, request.OperatorAddress, request.Delay)
+	tx, err := w.allocationManager.SetAllocationDelay(txOptions.Options, request.OperatorAddress, request.Delay)
 	if err != nil {
 		return nil, utils.WrapError("failed to create InitializeAllocationDelay tx", err)
 	}
@@ -481,13 +451,8 @@ func (w *ChainWriter) DeregisterFromOperatorSets(
 		return nil, errors.New("AllocationManager contract not provided")
 	}
 
-	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
-	if err != nil {
-		return nil, utils.WrapError("failed to get no send tx opts", err)
-	}
-
 	tx, err := w.allocationManager.DeregisterFromOperatorSets(
-		noSendTxOpts,
+		txOptions.Options,
 		allocationmanager.IAllocationManagerTypesDeregisterParams{
 			Operator:       request.OperatorAddress,
 			Avs:            request.AVSAddress,
@@ -514,11 +479,6 @@ func (w *ChainWriter) RegisterForOperatorSets(
 		return nil, errors.New("AllocationManager contract not provided")
 	}
 
-	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
-	if err != nil {
-		return nil, utils.WrapError("failed to get no send tx opts", err)
-	}
-
 	pubkeyRegParams, err := getPubkeyRegistrationParams(
 		w.ethClient,
 		request.RegistryCoordinatorAddress,
@@ -534,7 +494,7 @@ func (w *ChainWriter) RegisterForOperatorSets(
 		return nil, utils.WrapError("failed to encode registration params", err)
 	}
 	tx, err := w.allocationManager.RegisterForOperatorSets(
-		noSendTxOpts,
+		txOptions.Options,
 		request.OperatorAddress,
 		allocationmanager.IAllocationManagerTypesRegisterParams{
 			Avs:            request.AVSAddress,
