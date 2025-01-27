@@ -169,7 +169,7 @@ func TestRegisterAndDeregisterFromOperatorSets(t *testing.T) {
 	chainReader, err := testclients.NewTestChainReaderFromConfig(anvilHttpEndpoint, config)
 	require.NoError(t, err)
 
-	txManager, err := testclients.NewTestTxManager(anvilHttpEndpoint, testutils.ANVIL_FIRST_PRIVATE_KEY)
+	txManager, err := testclients.NewTestTxManager(anvilHttpEndpoint, testutils.ANVIL_SECOND_PRIVATE_KEY)
 	require.NoError(t, err)
 
 	opts, err := txManager.GetNoSendTxOpts()

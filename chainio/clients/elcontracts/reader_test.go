@@ -442,7 +442,20 @@ func TestGetCumulativeClaimedRewards(t *testing.T) {
 	claim, err := newTestClaim(chainReader, anvilHttpEndpoint, cumulativeEarnings, privateKeyHex)
 	require.NoError(t, err)
 
-	receipt, err = chainWriter.ProcessClaim(context.Background(), *claim, rewardsCoordinatorAddr, true)
+	ops, err := clients.TxManager.GetNoSendTxOpts()
+	require.NoError(t, err)
+
+	txOptions := &elcontracts.TxOptions{
+		WaitForReceipt: true,
+		Options:        ops,
+	}
+
+	request := elcontracts.ClaimProcessRequest{
+		Claim:            *claim,
+		RecipientAddress: rewardsCoordinatorAddr,
+	}
+
+	receipt, err = chainWriter.ProcessClaim(context.Background(), request, txOptions)
 	require.NoError(t, err)
 	require.True(t, receipt.Status == gethtypes.ReceiptStatusSuccessful)
 
@@ -472,6 +485,14 @@ func TestCheckClaim(t *testing.T) {
 	chainReader, err := testclients.NewTestChainReaderFromConfig(anvilHttpEndpoint, config)
 	require.NoError(t, err)
 
+	ops, err := clients.TxManager.GetNoSendTxOpts()
+	require.NoError(t, err)
+
+	txOptions := &elcontracts.TxOptions{
+		WaitForReceipt: true,
+		Options:        ops,
+	}
+
 	activationDelay := uint32(0)
 	// Set activation delay to zero so that the earnings can be claimed right after submitting the root
 	receipt, err := setTestRewardsCoordinatorActivationDelay(anvilHttpEndpoint, privateKeyHex, activationDelay)
@@ -482,7 +503,12 @@ func TestCheckClaim(t *testing.T) {
 	claim, err := newTestClaim(chainReader, anvilHttpEndpoint, cumulativeEarnings, privateKeyHex)
 	require.NoError(t, err)
 
-	receipt, err = chainWriter.ProcessClaim(context.Background(), *claim, rewardsCoordinatorAddr, true)
+	request := elcontracts.ClaimProcessRequest{
+		Claim:            *claim,
+		RecipientAddress: rewardsCoordinatorAddr,
+	}
+
+	receipt, err = chainWriter.ProcessClaim(context.Background(), request, txOptions)
 	require.NoError(t, err)
 	require.True(t, receipt.Status == gethtypes.ReceiptStatusSuccessful)
 
@@ -543,9 +569,23 @@ func TestGetAllocatableMagnitudeAndGetMaxMagnitudes(t *testing.T) {
 	chainWriter, err := testclients.NewTestChainWriterFromConfig(anvilHttpEndpoint, privateKeyHex, config)
 	require.NoError(t, err)
 
-	waitForReceipt := true
+	txManager, err := testclients.NewTestTxManager(anvilHttpEndpoint, testutils.ANVIL_FIRST_PRIVATE_KEY)
+	require.NoError(t, err)
+
+	opts, err := txManager.GetNoSendTxOpts()
+	require.NoError(t, err)
+
+	txOptions := &elcontracts.TxOptions{
+		WaitForReceipt: true,
+		Options:        opts,
+	}
+
 	delay := uint32(1)
-	receipt, err := chainWriter.SetAllocationDelay(context.Background(), operatorAddr, delay, waitForReceipt)
+	request := elcontracts.AllocationDelayRequest{
+		OperatorAddress: operatorAddr,
+		Delay:           delay,
+	}
+	receipt, err := chainWriter.SetAllocationDelay(context.Background(), request, txOptions)
 	require.NoError(t, err)
 	require.Equal(t, gethtypes.ReceiptStatusSuccessful, receipt.Status)
 
@@ -572,7 +612,12 @@ func TestGetAllocatableMagnitudeAndGetMaxMagnitudes(t *testing.T) {
 		},
 	}
 
-	receipt, err = chainWriter.ModifyAllocations(context.Background(), operatorAddr, allocateParams, waitForReceipt)
+	modifyAllocationRequest := elcontracts.AllocationModifyRequest{
+		OperatorAddress: operatorAddr,
+		Allocations:     allocateParams,
+	}
+
+	receipt, err = chainWriter.ModifyAllocations(context.Background(), modifyAllocationRequest, txOptions)
 	require.NoError(t, err)
 	require.Equal(t, gethtypes.ReceiptStatusSuccessful, receipt.Status)
 
@@ -623,53 +668,71 @@ func TestAdminFunctions(t *testing.T) {
 	chainReader, err := testclients.NewTestChainReaderFromConfig(anvilHttpEndpoint, config)
 	assert.NoError(t, err)
 
+	txManager, err := testclients.NewTestTxManager(anvilHttpEndpoint, privateKeyHex)
+	require.NoError(t, err)
+
+	opts, err := txManager.GetNoSendTxOpts()
+	require.NoError(t, err)
+
+	txOptions := &elcontracts.TxOptions{
+		WaitForReceipt: true,
+		Options:        opts,
+	}
+
 	t.Run("non-existent pending admin", func(t *testing.T) {
 		isPendingAdmin, err := chainReader.IsPendingAdmin(context.Background(), operatorAddr, pendingAdminAddr)
 		assert.NoError(t, err)
 		assert.False(t, isPendingAdmin)
+		t.Logf("IsPendingAdmin: %+v", isPendingAdmin)
 	})
 
 	t.Run("list pending admins when empty", func(t *testing.T) {
 		listPendingAdmins, err := chainReader.ListPendingAdmins(context.Background(), operatorAddr)
 		assert.NoError(t, err)
 		assert.Empty(t, listPendingAdmins)
+		t.Logf("ListPendingAdmins: %+v", listPendingAdmins)
 	})
 
 	t.Run("add pending admin and list", func(t *testing.T) {
-		request := elcontracts.AddPendingAdminRequest{
+		request := elcontracts.PendingAdminAcceptRequest{
 			AccountAddress: operatorAddr,
 			AdminAddress:   pendingAdminAddr,
-			WaitForReceipt: true,
 		}
 
-		receipt, err := accountChainWriter.AddPendingAdmin(context.Background(), request)
+		receipt, err := accountChainWriter.AddPendingAdmin(context.Background(), request, txOptions)
 		assert.NoError(t, err)
 		assert.Equal(t, receipt.Status, gethtypes.ReceiptStatusSuccessful)
+		t.Logf("AddPendingAdmin receipt: %+v", receipt)
 
 		isPendingAdmin, err := chainReader.IsPendingAdmin(context.Background(), operatorAddr, pendingAdminAddr)
 		assert.NoError(t, err)
 		assert.True(t, isPendingAdmin)
+		t.Logf("IsPendingAdmin: %+v", isPendingAdmin)
 
 		listPendingAdmins, err := chainReader.ListPendingAdmins(context.Background(), operatorAddr)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, listPendingAdmins)
+		t.Logf("ListPendingAdmins: %+v", listPendingAdmins)
 	})
 
 	t.Run("non-existent admin", func(t *testing.T) {
 		isAdmin, err := chainReader.IsAdmin(context.Background(), operatorAddr, pendingAdminAddr)
 		assert.NoError(t, err)
 		assert.False(t, isAdmin)
+		t.Logf("IsAdmin: %+v", isAdmin)
 	})
 
 	t.Run("list admins", func(t *testing.T) {
-		acceptAdminRequest := elcontracts.AcceptAdminRequest{
-			AccountAddress: operatorAddr,
-			WaitForReceipt: true,
+		acceptAdminRequest := elcontracts.AdminAcceptRequest{
+			AccountAddress: pendingAdminAddr,
 		}
 
-		receipt, err := adminChainWriter.AcceptAdmin(context.Background(), acceptAdminRequest)
+		t.Logf("AcceptAdminRequest: %+v", acceptAdminRequest)
+
+		receipt, err := adminChainWriter.AcceptAdmin(context.Background(), acceptAdminRequest, txOptions)
 		assert.NoError(t, err)
 		assert.Equal(t, receipt.Status, gethtypes.ReceiptStatusSuccessful)
+		t.Logf("AcceptAdmin receipt: %+v", receipt)
 
 		listAdmins, err := chainReader.ListAdmins(context.Background(), operatorAddr)
 		assert.NoError(t, err)
@@ -708,6 +771,17 @@ func TestAppointeesFunctions(t *testing.T) {
 	target := common.HexToAddress(testutils.ANVIL_THIRD_ADDRESS)
 	selector := [4]byte{0, 1, 2, 3}
 
+	txManager, err := testclients.NewTestTxManager(anvilHttpEndpoint, testutils.ANVIL_FIRST_PRIVATE_KEY)
+	require.NoError(t, err)
+
+	opts, err := txManager.GetNoSendTxOpts()
+	require.NoError(t, err)
+
+	txOptions := &elcontracts.TxOptions{
+		WaitForReceipt: true,
+		Options:        opts,
+	}
+
 	t.Run("list appointees when empty", func(t *testing.T) {
 		appointees, err := chainReader.ListAppointees(context.Background(), accountAddress, target, selector)
 		assert.NoError(t, err)
@@ -715,15 +789,14 @@ func TestAppointeesFunctions(t *testing.T) {
 	})
 
 	t.Run("list appointees", func(t *testing.T) {
-		setPermissionRequest := elcontracts.SetPermissionRequest{
+		setPermissionRequest := elcontracts.PermissionSetRequest{
 			AccountAddress:   accountAddress,
 			AppointeeAddress: appointeeAddress,
 			Target:           target,
 			Selector:         selector,
-			WaitForReceipt:   true,
 		}
 
-		receipt, err := chainWriter.SetPermission(context.Background(), setPermissionRequest)
+		receipt, err := chainWriter.SetPermission(context.Background(), setPermissionRequest, txOptions)
 		require.NoError(t, err)
 		require.Equal(t, receipt.Status, gethtypes.ReceiptStatusSuccessful)
 
@@ -1059,6 +1132,17 @@ func TestOperatorSetsAndSlashableShares(t *testing.T) {
 	chainWriter, err := testclients.NewTestChainWriterFromConfig(anvilHttpEndpoint, operatorPrivateKeyHex, config)
 	require.NoError(t, err)
 
+	txManager, err := testclients.NewTestTxManager(anvilHttpEndpoint, testutils.ANVIL_FIRST_PRIVATE_KEY)
+	require.NoError(t, err)
+
+	opts, err := txManager.GetNoSendTxOpts()
+	require.NoError(t, err)
+
+	txOptions := &elcontracts.TxOptions{
+		WaitForReceipt: true,
+		Options:        opts,
+	}
+
 	avsAdrr := common.HexToAddress(testutils.ANVIL_FIRST_ADDRESS)
 	avsPrivateKeyHex := testutils.ANVIL_FIRST_PRIVATE_KEY
 	operatorSetId := uint32(1)
@@ -1076,20 +1160,20 @@ func TestOperatorSetsAndSlashableShares(t *testing.T) {
 	keypair, err := bls.NewKeyPairFromString("0x01")
 	require.NoError(t, err)
 
-	request := elcontracts.RegistrationRequest{
-		OperatorAddress: operatorAddr,
-		AVSAddress:      avsAdrr,
-		OperatorSetIds:  []uint32{operatorSetId},
-		WaitForReceipt:  true,
-		Socket:          "socket",
-		BlsKeyPair:      keypair,
+	registryCoordinatorAddress := contractAddrs.RegistryCoordinator
+	request := elcontracts.RegisterOperatorSetsRequest{
+		OperatorAddress:            operatorAddr,
+		AVSAddress:                 avsAdrr,
+		RegistryCoordinatorAddress: registryCoordinatorAddress,
+		OperatorSetIds:             []uint32{operatorSetId},
+		Socket:                     "socket",
+		BlsKeyPair:                 keypair,
 	}
 
-	registryCoordinatorAddress := contractAddrs.RegistryCoordinator
 	receipt, err := chainWriter.RegisterForOperatorSets(
 		context.Background(),
-		registryCoordinatorAddress,
 		request,
+		txOptions,
 	)
 	require.NoError(t, err)
 	require.Equal(t, uint64(1), receipt.Status)
@@ -1098,11 +1182,15 @@ func TestOperatorSetsAndSlashableShares(t *testing.T) {
 	allocationMagnitude := 100
 	allocationConfigurationDelay := 1200
 
+	allocationDelayRequest := elcontracts.AllocationDelayRequest{
+		OperatorAddress: operatorAddr,
+		Delay:           uint32(allocationDelay),
+	}
+
 	receipt, err = chainWriter.SetAllocationDelay(
 		context.Background(),
-		operatorAddr,
-		uint32(allocationDelay),
-		true,
+		allocationDelayRequest,
+		txOptions,
 	)
 	require.NoError(t, err)
 	require.Equal(t, gethtypes.ReceiptStatusSuccessful, receipt.Status)
@@ -1121,11 +1209,15 @@ func TestOperatorSetsAndSlashableShares(t *testing.T) {
 		},
 	}
 
+	modifyAllocationRequest := elcontracts.AllocationModifyRequest{
+		OperatorAddress: operatorAddr,
+		Allocations:     allocationParams,
+	}
+
 	receipt, err = chainWriter.ModifyAllocations(
 		context.Background(),
-		operatorAddr,
-		allocationParams,
-		true,
+		modifyAllocationRequest,
+		txOptions,
 	)
 	require.NoError(t, err)
 	require.Equal(t, gethtypes.ReceiptStatusSuccessful, receipt.Status)
