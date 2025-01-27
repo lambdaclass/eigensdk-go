@@ -87,12 +87,12 @@ type RemovePendingAdminRequest struct {
 }
 
 type TxOptions struct {
-	WaitForReceipt bool
-	Options        *bind.TransactOpts
+	Options *bind.TransactOpts
 }
 
 type RegisterOperatorRequest struct {
-	Operator types.Operator
+	Operator       types.Operator
+	WaitForReceipt bool
 }
 
 type RegisterOperatorSetsRequest struct {
@@ -102,61 +102,73 @@ type RegisterOperatorSetsRequest struct {
 	OperatorSetIds             []uint32
 	BlsKeyPair                 *bls.KeyPair
 	Socket                     string
+	WaitForReceipt             bool
 }
 
 type OperatorDetailsRequest struct {
-	Operator types.Operator
+	Operator       types.Operator
+	WaitForReceipt bool
 }
 
 type MetadataURIRequest struct {
 	OperatorAddress common.Address
 	Uri             string
+	WaitForReceipt  bool
 }
 
 type ERC20IntoStrategyRequest struct {
 	StrategyAddress common.Address
 	Amount          *big.Int
+	WaitForReceipt  bool
 }
 
 type ClaimForRequest struct {
-	Claimer common.Address
+	Claimer        common.Address
+	WaitForReceipt bool
 }
 
 type ClaimProcessRequest struct {
 	Claim            rewardscoordinator.IRewardsCoordinatorTypesRewardsMerkleClaim
 	RecipientAddress common.Address
+	WaitForReceipt   bool
 }
 
 type ClaimsProcessRequest struct {
 	Claims           []rewardscoordinator.IRewardsCoordinatorTypesRewardsMerkleClaim
 	RecipientAddress common.Address
+	WaitForReceipt   bool
 }
 
 type OperatorAVSSplitRequest struct {
 	OperatorAddress common.Address
 	AVSAddress      common.Address
 	Split           uint16
+	WaitForReceipt  bool
 }
 
 type OperatorPISplitRequest struct {
 	OperatorAddress common.Address
 	Split           uint16
+	WaitForReceipt  bool
 }
 
 type OperatorSetDeregisterRequest struct {
 	OperatorAddress common.Address
 	AVSAddress      common.Address
 	OperatorSetIds  []uint32
+	WaitForReceipt  bool
 }
 
 type AllocationModifyRequest struct {
 	OperatorAddress common.Address
 	Allocations     []allocationmanager.IAllocationManagerTypesAllocateParams
+	WaitForReceipt  bool
 }
 
 type AllocationDelayRequest struct {
 	OperatorAddress common.Address
 	Delay           uint32
+	WaitForReceipt  bool
 }
 
 type PermissionRemoveRequest struct {
@@ -164,6 +176,7 @@ type PermissionRemoveRequest struct {
 	AppointeeAddress common.Address
 	Target           common.Address
 	Selector         [4]byte
+	WaitForReceipt   bool
 }
 
 type PermissionSetRequest struct {
@@ -171,23 +184,28 @@ type PermissionSetRequest struct {
 	AppointeeAddress common.Address
 	Target           common.Address
 	Selector         [4]byte
+	WaitForReceipt   bool
 }
 
 type AdminAcceptRequest struct {
 	AccountAddress common.Address
+	WaitForReceipt bool
 }
 
 type PendingAdminAcceptRequest struct {
 	AccountAddress common.Address
 	AdminAddress   common.Address
+	WaitForReceipt bool
 }
 
 type AdminRemoveRequest struct {
 	AccountAddress common.Address
 	AdminAddress   common.Address
+	WaitForReceipt bool
 }
 
 type PendingAdminRemoveRequest struct {
 	AccountAddress common.Address
 	AdminAddress   common.Address
+	WaitForReceipt bool
 }

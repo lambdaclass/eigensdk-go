@@ -446,13 +446,13 @@ func TestGetCumulativeClaimedRewards(t *testing.T) {
 	require.NoError(t, err)
 
 	txOptions := &elcontracts.TxOptions{
-		WaitForReceipt: true,
-		Options:        ops,
+		Options: ops,
 	}
 
 	request := elcontracts.ClaimProcessRequest{
 		Claim:            *claim,
 		RecipientAddress: rewardsCoordinatorAddr,
+		WaitForReceipt:   true,
 	}
 
 	receipt, err = chainWriter.ProcessClaim(context.Background(), request, txOptions)
@@ -489,8 +489,7 @@ func TestCheckClaim(t *testing.T) {
 	require.NoError(t, err)
 
 	txOptions := &elcontracts.TxOptions{
-		WaitForReceipt: true,
-		Options:        ops,
+		Options: ops,
 	}
 
 	activationDelay := uint32(0)
@@ -506,6 +505,7 @@ func TestCheckClaim(t *testing.T) {
 	request := elcontracts.ClaimProcessRequest{
 		Claim:            *claim,
 		RecipientAddress: rewardsCoordinatorAddr,
+		WaitForReceipt:   true,
 	}
 
 	receipt, err = chainWriter.ProcessClaim(context.Background(), request, txOptions)
@@ -576,14 +576,14 @@ func TestGetAllocatableMagnitudeAndGetMaxMagnitudes(t *testing.T) {
 	require.NoError(t, err)
 
 	txOptions := &elcontracts.TxOptions{
-		WaitForReceipt: true,
-		Options:        opts,
+		Options: opts,
 	}
 
 	delay := uint32(1)
 	request := elcontracts.AllocationDelayRequest{
 		OperatorAddress: operatorAddr,
 		Delay:           delay,
+		WaitForReceipt:  true,
 	}
 	receipt, err := chainWriter.SetAllocationDelay(context.Background(), request, txOptions)
 	require.NoError(t, err)
@@ -615,6 +615,7 @@ func TestGetAllocatableMagnitudeAndGetMaxMagnitudes(t *testing.T) {
 	modifyAllocationRequest := elcontracts.AllocationModifyRequest{
 		OperatorAddress: operatorAddr,
 		Allocations:     allocateParams,
+		WaitForReceipt:  true,
 	}
 
 	receipt, err = chainWriter.ModifyAllocations(context.Background(), modifyAllocationRequest, txOptions)
@@ -684,13 +685,11 @@ func TestAdminFunctions(t *testing.T) {
 	assert.NoError(t, err)
 
 	operatorTxOptions := &elcontracts.TxOptions{
-		WaitForReceipt: true,
-		Options:        optsOperator,
+		Options: optsOperator,
 	}
 
 	pendingAdminTxOptions := &elcontracts.TxOptions{
-		WaitForReceipt: true,
-		Options:        optsPendingAdmin,
+		Options: optsPendingAdmin,
 	}
 
 	t.Run("non-existent pending admin", func(t *testing.T) {
@@ -711,6 +710,7 @@ func TestAdminFunctions(t *testing.T) {
 		request := elcontracts.PendingAdminAcceptRequest{
 			AccountAddress: operatorAddr,
 			AdminAddress:   pendingAdminAddr,
+			WaitForReceipt: true,
 		}
 
 		receipt, err := accountChainWriter.AddPendingAdmin(context.Background(), request, operatorTxOptions)
@@ -737,6 +737,7 @@ func TestAdminFunctions(t *testing.T) {
 	t.Run("list admins", func(t *testing.T) {
 		acceptAdminRequest := elcontracts.AdminAcceptRequest{
 			AccountAddress: operatorAddr,
+			WaitForReceipt: true,
 		}
 
 		receipt, err := adminChainWriter.AcceptAdmin(context.Background(), acceptAdminRequest, pendingAdminTxOptions)
@@ -787,8 +788,7 @@ func TestAppointeesFunctions(t *testing.T) {
 	require.NoError(t, err)
 
 	txOptions := &elcontracts.TxOptions{
-		WaitForReceipt: true,
-		Options:        opts,
+		Options: opts,
 	}
 
 	t.Run("list appointees when empty", func(t *testing.T) {
@@ -803,6 +803,7 @@ func TestAppointeesFunctions(t *testing.T) {
 			AppointeeAddress: appointeeAddress,
 			Target:           target,
 			Selector:         selector,
+			WaitForReceipt:   true,
 		}
 
 		receipt, err := chainWriter.SetPermission(context.Background(), setPermissionRequest, txOptions)
@@ -1156,8 +1157,7 @@ func TestOperatorSetsAndSlashableShares(t *testing.T) {
 	require.NoError(t, err)
 
 	txOptions := &elcontracts.TxOptions{
-		WaitForReceipt: true,
-		Options:        opts,
+		Options: opts,
 	}
 
 	strategyAddr := contractAddrs.Erc20MockStrategy
@@ -1177,6 +1177,7 @@ func TestOperatorSetsAndSlashableShares(t *testing.T) {
 		OperatorSetIds:             []uint32{operatorSetId},
 		Socket:                     "socket",
 		BlsKeyPair:                 keypair,
+		WaitForReceipt:             true,
 	}
 
 	receipt, err := chainWriter.RegisterForOperatorSets(
@@ -1194,6 +1195,7 @@ func TestOperatorSetsAndSlashableShares(t *testing.T) {
 	allocationDelayRequest := elcontracts.AllocationDelayRequest{
 		OperatorAddress: operatorAddr,
 		Delay:           uint32(allocationDelay),
+		WaitForReceipt:  true,
 	}
 
 	receipt, err = chainWriter.SetAllocationDelay(
@@ -1221,6 +1223,7 @@ func TestOperatorSetsAndSlashableShares(t *testing.T) {
 	modifyAllocationRequest := elcontracts.AllocationModifyRequest{
 		OperatorAddress: operatorAddr,
 		Allocations:     allocationParams,
+		WaitForReceipt:  true,
 	}
 
 	receipt, err = chainWriter.ModifyAllocations(

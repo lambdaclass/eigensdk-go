@@ -140,7 +140,7 @@ func (w *ChainWriter) RegisterAsOperator(
 	if err != nil {
 		return nil, err
 	}
-	receipt, err := w.txMgr.Send(ctx, tx, txOptions.WaitForReceipt)
+	receipt, err := w.txMgr.Send(ctx, tx, request.WaitForReceipt)
 	if err != nil {
 		return nil, errors.New("failed to send tx with err: " + err.Error())
 	}
@@ -168,7 +168,7 @@ func (w *ChainWriter) UpdateOperatorDetails(
 	if err != nil {
 		return nil, err
 	}
-	receipt, err := w.txMgr.Send(ctx, tx, txOptions.WaitForReceipt)
+	receipt, err := w.txMgr.Send(ctx, tx, request.WaitForReceipt)
 	if err != nil {
 		return nil, errors.New("failed to send tx with err: " + err.Error())
 	}
@@ -196,7 +196,7 @@ func (w *ChainWriter) UpdateMetadataURI(
 	if err != nil {
 		return nil, err
 	}
-	receipt, err := w.txMgr.Send(ctx, tx, txOptions.WaitForReceipt)
+	receipt, err := w.txMgr.Send(ctx, tx, request.WaitForReceipt)
 	if err != nil {
 		return nil, errors.New("failed to send tx with err: " + err.Error())
 	}
@@ -232,7 +232,7 @@ func (w *ChainWriter) DepositERC20IntoStrategy(
 	if err != nil {
 		return nil, errors.Join(errors.New("failed to approve token transfer"), err)
 	}
-	_, err = w.txMgr.Send(ctx, tx, txOptions.WaitForReceipt)
+	_, err = w.txMgr.Send(ctx, tx, request.WaitForReceipt)
 	if err != nil {
 		return nil, errors.New("failed to send tx with err: " + err.Error())
 	}
@@ -246,7 +246,7 @@ func (w *ChainWriter) DepositERC20IntoStrategy(
 	if err != nil {
 		return nil, err
 	}
-	receipt, err := w.txMgr.Send(ctx, tx, txOptions.WaitForReceipt)
+	receipt, err := w.txMgr.Send(ctx, tx, request.WaitForReceipt)
 	if err != nil {
 		return nil, errors.New("failed to send tx with err: " + err.Error())
 	}
@@ -268,7 +268,7 @@ func (w *ChainWriter) SetClaimerFor(
 	if err != nil {
 		return nil, err
 	}
-	receipt, err := w.txMgr.Send(ctx, tx, txOptions.WaitForReceipt)
+	receipt, err := w.txMgr.Send(ctx, tx, request.WaitForReceipt)
 	if err != nil {
 		return nil, utils.WrapError("failed to send tx", err)
 	}
@@ -289,7 +289,7 @@ func (w *ChainWriter) ProcessClaim(
 	if err != nil {
 		return nil, utils.WrapError("failed to create ProcessClaim tx", err)
 	}
-	receipt, err := w.txMgr.Send(ctx, tx, txOptions.WaitForReceipt)
+	receipt, err := w.txMgr.Send(ctx, tx, request.WaitForReceipt)
 	if err != nil {
 		return nil, utils.WrapError("failed to send tx", err)
 	}
@@ -315,7 +315,7 @@ func (w *ChainWriter) SetOperatorAVSSplit(
 	if err != nil {
 		return nil, utils.WrapError("failed to create SetOperatorAVSSplit tx", err)
 	}
-	receipt, err := w.txMgr.Send(ctx, tx, txOptions.WaitForReceipt)
+	receipt, err := w.txMgr.Send(ctx, tx, request.WaitForReceipt)
 	if err != nil {
 		return nil, utils.WrapError("failed to send tx", err)
 	}
@@ -336,7 +336,7 @@ func (w *ChainWriter) SetOperatorPISplit(
 	if err != nil {
 		return nil, utils.WrapError("failed to create SetOperatorAVSSplit tx", err)
 	}
-	receipt, err := w.txMgr.Send(ctx, tx, txOptions.WaitForReceipt)
+	receipt, err := w.txMgr.Send(ctx, tx, request.WaitForReceipt)
 	if err != nil {
 		return nil, utils.WrapError("failed to send tx", err)
 	}
@@ -361,7 +361,7 @@ func (w *ChainWriter) ProcessClaims(
 	if err != nil {
 		return nil, utils.WrapError("failed to create ProcessClaims tx", err)
 	}
-	receipt, err := w.txMgr.Send(ctx, tx, txOptions.WaitForReceipt)
+	receipt, err := w.txMgr.Send(ctx, tx, request.WaitForReceipt)
 	if err != nil {
 		return nil, utils.WrapError("failed to send tx", err)
 	}
@@ -391,7 +391,7 @@ func (w *ChainWriter) ForceDeregisterFromOperatorSets(
 		return nil, utils.WrapError("failed to create ForceDeregisterFromOperatorSets tx", err)
 	}
 
-	receipt, err := w.txMgr.Send(ctx, tx, txOptions.WaitForReceipt)
+	receipt, err := w.txMgr.Send(ctx, tx, request.WaitForReceipt)
 	if err != nil {
 		return nil, utils.WrapError("failed to send tx", err)
 	}
@@ -413,7 +413,7 @@ func (w *ChainWriter) ModifyAllocations(
 		return nil, utils.WrapError("failed to create ModifyAllocations tx", err)
 	}
 
-	receipt, err := w.txMgr.Send(ctx, tx, txOptions.WaitForReceipt)
+	receipt, err := w.txMgr.Send(ctx, tx, request.WaitForReceipt)
 	if err != nil {
 		return nil, utils.WrapError("failed to send tx", err)
 	}
@@ -434,7 +434,7 @@ func (w *ChainWriter) SetAllocationDelay(
 	if err != nil {
 		return nil, utils.WrapError("failed to create InitializeAllocationDelay tx", err)
 	}
-	receipt, err := w.txMgr.Send(ctx, tx, txOptions.WaitForReceipt)
+	receipt, err := w.txMgr.Send(ctx, tx, request.WaitForReceipt)
 	if err != nil {
 		return nil, utils.WrapError("failed to send tx", err)
 	}
@@ -462,7 +462,7 @@ func (w *ChainWriter) DeregisterFromOperatorSets(
 		return nil, utils.WrapError("failed to create DeregisterFromOperatorSets tx", err)
 	}
 
-	receipt, err := w.txMgr.Send(ctx, tx, txOptions.WaitForReceipt)
+	receipt, err := w.txMgr.Send(ctx, tx, request.WaitForReceipt)
 	if err != nil {
 		return nil, utils.WrapError("failed to send tx", err)
 	}
@@ -505,7 +505,7 @@ func (w *ChainWriter) RegisterForOperatorSets(
 		return nil, utils.WrapError("failed to create RegisterForOperatorSets tx", err)
 	}
 
-	receipt, err := w.txMgr.Send(ctx, tx, txOptions.WaitForReceipt)
+	receipt, err := w.txMgr.Send(ctx, tx, request.WaitForReceipt)
 	if err != nil {
 		return nil, utils.WrapError("failed to send tx", err)
 	}
@@ -522,7 +522,7 @@ func (w *ChainWriter) RemovePermission(
 	if err != nil {
 		return nil, utils.WrapError("failed to create NewRemovePermissionTx", err)
 	}
-	return w.txMgr.Send(ctx, tx, txOptions.WaitForReceipt)
+	return w.txMgr.Send(ctx, tx, request.WaitForReceipt)
 }
 
 // Should be a public or private method?
@@ -570,7 +570,7 @@ func (w *ChainWriter) SetPermission(
 		return nil, utils.WrapError("failed to create NewSetPermissionTx", err)
 	}
 
-	return w.txMgr.Send(ctx, tx, txOptions.WaitForReceipt)
+	return w.txMgr.Send(ctx, tx, request.WaitForReceipt)
 }
 
 // Should be a public or private method?
@@ -593,7 +593,7 @@ func (w *ChainWriter) AcceptAdmin(
 	if err != nil {
 		return nil, utils.WrapError("failed to create AcceptAdmin transaction", err)
 	}
-	return w.txMgr.Send(ctx, tx, txOptions.WaitForReceipt)
+	return w.txMgr.Send(ctx, tx, request.WaitForReceipt)
 }
 
 // Should be a public or private method?
@@ -616,7 +616,7 @@ func (w *ChainWriter) AddPendingAdmin(
 	if err != nil {
 		return nil, utils.WrapError("failed to create AddPendingAdminTx", err)
 	}
-	return w.txMgr.Send(ctx, tx, txOptions.WaitForReceipt)
+	return w.txMgr.Send(ctx, tx, request.WaitForReceipt)
 }
 
 // Should be a public or private method?
@@ -639,7 +639,7 @@ func (w *ChainWriter) RemoveAdmin(
 	if err != nil {
 		return nil, utils.WrapError("failed to create RemoveAdmin transaction", err)
 	}
-	return w.txMgr.Send(ctx, tx, txOptions.WaitForReceipt)
+	return w.txMgr.Send(ctx, tx, request.WaitForReceipt)
 }
 
 // Should be a public or private method?
@@ -663,7 +663,7 @@ func (w *ChainWriter) RemovePendingAdmin(
 		return nil, utils.WrapError("failed to create RemovePendingAdmin transaction", err)
 	}
 
-	return w.txMgr.Send(ctx, tx, txOptions.WaitForReceipt)
+	return w.txMgr.Send(ctx, tx, request.WaitForReceipt)
 }
 
 func getPubkeyRegistrationParams(

@@ -87,8 +87,7 @@ func TestRegisterOperator(t *testing.T) {
 		require.NoError(t, err)
 
 		txOptions := &elcontracts.TxOptions{
-			WaitForReceipt: true,
-			Options:        opts,
+			Options: opts,
 		}
 
 		operator :=
@@ -99,7 +98,8 @@ func TestRegisterOperator(t *testing.T) {
 			}
 
 		request := elcontracts.RegisterOperatorRequest{
-			Operator: operator,
+			Operator:       operator,
+			WaitForReceipt: true,
 		}
 
 		receipt, err := clients.ElChainWriter.RegisterAsOperator(context.Background(), request, txOptions)
@@ -125,8 +125,7 @@ func TestRegisterOperator(t *testing.T) {
 		require.NoError(t, err)
 
 		txOptions := &elcontracts.TxOptions{
-			WaitForReceipt: true,
-			Options:        opts,
+			Options: opts,
 		}
 
 		operator :=
@@ -137,7 +136,8 @@ func TestRegisterOperator(t *testing.T) {
 			}
 
 		request := elcontracts.RegisterOperatorRequest{
-			Operator: operator,
+			Operator:       operator,
+			WaitForReceipt: true,
 		}
 
 		_, err = clients.ElChainWriter.RegisterAsOperator(context.Background(), request, txOptions)
@@ -200,11 +200,11 @@ func TestRegisterAndDeregisterFromOperatorSets(t *testing.T) {
 		OperatorSetIds:             []uint32{operatorSetId},
 		Socket:                     "socket",
 		BlsKeyPair:                 keypair,
+		WaitForReceipt:             true,
 	}
 
 	txOptions := &elcontracts.TxOptions{
-		WaitForReceipt: true,
-		Options:        opts,
+		Options: opts,
 	}
 
 	operatorSet := allocationmanager.OperatorSet{
@@ -243,6 +243,7 @@ func TestRegisterAndDeregisterFromOperatorSets(t *testing.T) {
 		OperatorAddress: operatorAddress,
 		AVSAddress:      avsAddress,
 		OperatorSetIds:  []uint32{operatorSetId},
+		WaitForReceipt:  true,
 	}
 
 	t.Run("deregister operator from operator set", func(t *testing.T) {
@@ -281,8 +282,7 @@ func TestChainWriter(t *testing.T) {
 	require.NoError(t, err)
 
 	txOptions := &elcontracts.TxOptions{
-		WaitForReceipt: true,
-		Options:        opts,
+		Options: opts,
 	}
 
 	t.Run("update operator details", func(t *testing.T) {
@@ -297,7 +297,8 @@ func TestChainWriter(t *testing.T) {
 		}
 
 		request := elcontracts.OperatorDetailsRequest{
-			Operator: operatorModified,
+			Operator:       operatorModified,
+			WaitForReceipt: true,
 		}
 
 		receipt, err := clients.ElChainWriter.UpdateOperatorDetails(context.Background(), request, txOptions)
@@ -313,7 +314,8 @@ func TestChainWriter(t *testing.T) {
 		}
 
 		request := elcontracts.OperatorDetailsRequest{
-			Operator: wrongOperatorModified,
+			Operator:       wrongOperatorModified,
+			WaitForReceipt: true,
 		}
 
 		_, err := clients.ElChainWriter.UpdateOperatorDetails(
@@ -331,6 +333,7 @@ func TestChainWriter(t *testing.T) {
 		request := elcontracts.MetadataURIRequest{
 			OperatorAddress: walletModifiedAddress,
 			Uri:             "https://0.0.0.0",
+			WaitForReceipt:  true,
 		}
 
 		receipt, err := clients.ElChainWriter.UpdateMetadataURI(
@@ -346,6 +349,7 @@ func TestChainWriter(t *testing.T) {
 		requestWronOperator := elcontracts.MetadataURIRequest{
 			OperatorAddress: common.HexToAddress(testutils.ANVIL_THIRD_ADDRESS),
 			Uri:             "https://0.0.0.0",
+			WaitForReceipt:  true,
 		}
 		_, err := clients.ElChainWriter.UpdateMetadataURI(
 			context.Background(),
@@ -359,6 +363,7 @@ func TestChainWriter(t *testing.T) {
 		request := elcontracts.ERC20IntoStrategyRequest{
 			StrategyAddress: contractAddrs.Erc20MockStrategy,
 			Amount:          big.NewInt(1),
+			WaitForReceipt:  true,
 		}
 		receipt, err := clients.ElChainWriter.DepositERC20IntoStrategy(
 			context.Background(),
@@ -397,12 +402,12 @@ func TestSetClaimerFor(t *testing.T) {
 	require.NoError(t, err)
 
 	txOptions := &elcontracts.TxOptions{
-		WaitForReceipt: true,
-		Options:        opts,
+		Options: opts,
 	}
 
 	request := elcontracts.ClaimForRequest{
-		Claimer: common.HexToAddress(testutils.ANVIL_FIRST_ADDRESS),
+		Claimer:        common.HexToAddress(testutils.ANVIL_FIRST_ADDRESS),
+		WaitForReceipt: true,
 	}
 
 	// call SetClaimerFor
@@ -450,8 +455,7 @@ func TestSetOperatorPISplit(t *testing.T) {
 	require.NoError(t, err)
 
 	txOptions := &elcontracts.TxOptions{
-		WaitForReceipt: true,
-		Options:        opts,
+		Options: opts,
 	}
 
 	expectedInitialSplit := uint16(1000)
@@ -465,6 +469,7 @@ func TestSetOperatorPISplit(t *testing.T) {
 	request := elcontracts.OperatorPISplitRequest{
 		OperatorAddress: operatorAddr,
 		Split:           newSplit,
+		WaitForReceipt:  true,
 	}
 
 	receipt, err = chainWriter.SetOperatorPISplit(context.Background(), request, txOptions)
@@ -522,8 +527,7 @@ func TestSetOperatorAVSSplit(t *testing.T) {
 	require.NoError(t, err)
 
 	txOptions := &elcontracts.TxOptions{
-		WaitForReceipt: true,
-		Options:        opts,
+		Options: opts,
 	}
 
 	expectedInitialSplit := uint16(1000)
@@ -537,6 +541,7 @@ func TestSetOperatorAVSSplit(t *testing.T) {
 		OperatorAddress: operatorAddr,
 		AVSAddress:      avsAddr,
 		Split:           newSplit,
+		WaitForReceipt:  true,
 	}
 
 	receipt, err = chainWriter.SetOperatorAVSSplit(
@@ -592,8 +597,7 @@ func TestSetAllocationDelay(t *testing.T) {
 	require.NoError(t, err)
 
 	txOptions := &elcontracts.TxOptions{
-		WaitForReceipt: true,
-		Options:        opts,
+		Options: opts,
 	}
 
 	t.Run("set allocation delay", func(t *testing.T) {
@@ -601,6 +605,7 @@ func TestSetAllocationDelay(t *testing.T) {
 		request := elcontracts.AllocationDelayRequest{
 			OperatorAddress: operatorAddr,
 			Delay:           delay,
+			WaitForReceipt:  true,
 		}
 		receipt, err := chainWriter.SetAllocationDelay(context.Background(), request, txOptions)
 		require.NoError(t, err)
@@ -653,6 +658,7 @@ func TestSetAndRemovePermission(t *testing.T) {
 		AppointeeAddress: appointeeAddress,
 		Target:           target,
 		Selector:         selector,
+		WaitForReceipt:   true,
 	}
 
 	removePermissionRequest := elcontracts.PermissionRemoveRequest{
@@ -660,6 +666,7 @@ func TestSetAndRemovePermission(t *testing.T) {
 		AppointeeAddress: appointeeAddress,
 		Target:           target,
 		Selector:         selector,
+		WaitForReceipt:   true,
 	}
 
 	txManager, err := testclients.NewTestTxManager(anvilHttpEndpoint, testutils.ANVIL_FIRST_PRIVATE_KEY)
@@ -669,8 +676,7 @@ func TestSetAndRemovePermission(t *testing.T) {
 	require.NoError(t, err)
 
 	txOptions := &elcontracts.TxOptions{
-		WaitForReceipt: true,
-		Options:        opts,
+		Options: opts,
 	}
 
 	t.Run("set permission to account", func(t *testing.T) {
@@ -732,8 +738,7 @@ func TestModifyAllocations(t *testing.T) {
 	require.NoError(t, err)
 
 	txOptions := &elcontracts.TxOptions{
-		WaitForReceipt: true,
-		Options:        opts,
+		Options: opts,
 	}
 
 	strategyAddr := contractAddrs.Erc20MockStrategy
@@ -756,6 +761,7 @@ func TestModifyAllocations(t *testing.T) {
 	requestAllocation := elcontracts.AllocationModifyRequest{
 		OperatorAddress: operatorAddr,
 		Allocations:     allocateParams,
+		WaitForReceipt:  true,
 	}
 
 	_, err = chainWriter.ModifyAllocations(context.Background(), requestAllocation, txOptions)
@@ -765,6 +771,7 @@ func TestModifyAllocations(t *testing.T) {
 	requestDelay := elcontracts.AllocationDelayRequest{
 		OperatorAddress: operatorAddr,
 		Delay:           delay,
+		WaitForReceipt:  true,
 	}
 	// The allocation delay must be initialized before modifying the allocations
 	receipt, err := chainWriter.SetAllocationDelay(context.Background(), requestDelay, txOptions)
@@ -836,19 +843,20 @@ func TestAddAndRemovePendingAdmin(t *testing.T) {
 	require.NoError(t, err)
 
 	txOptions := &elcontracts.TxOptions{
-		WaitForReceipt: true,
-		Options:        opts,
+		Options: opts,
 	}
 
 	pendingAdmin := common.HexToAddress(testutils.ANVIL_THIRD_ADDRESS)
 	acceptPendingAdminRequest := elcontracts.PendingAdminAcceptRequest{
 		AccountAddress: operatorAddr,
 		AdminAddress:   pendingAdmin,
+		WaitForReceipt: true,
 	}
 
 	removePendingAdminRequest := elcontracts.PendingAdminRemoveRequest{
 		AccountAddress: operatorAddr,
 		AdminAddress:   pendingAdmin,
+		WaitForReceipt: true,
 	}
 
 	t.Run("remove pending admin when not added", func(t *testing.T) {
@@ -923,19 +931,18 @@ func TestAcceptAdmin(t *testing.T) {
 	require.NoError(t, err)
 
 	txOptionsAccount := &elcontracts.TxOptions{
-		WaitForReceipt: true,
-		Options:        optsAccount,
+		Options: optsAccount,
 	}
 
 	txOptionsPendingAdmin := &elcontracts.TxOptions{
-		WaitForReceipt: true,
-		Options:        optsPendingAdmin,
+		Options: optsPendingAdmin,
 	}
 
 	pendingAdminAddr := common.HexToAddress(testutils.ANVIL_SECOND_ADDRESS)
 	request := elcontracts.PendingAdminAcceptRequest{
 		AccountAddress: accountAddr,
 		AdminAddress:   pendingAdminAddr,
+		WaitForReceipt: true,
 	}
 	receipt, err := accountChainWriter.AddPendingAdmin(context.Background(), request, txOptionsAccount)
 	require.NoError(t, err)
@@ -943,6 +950,7 @@ func TestAcceptAdmin(t *testing.T) {
 
 	acceptAdminRequest := elcontracts.AdminAcceptRequest{
 		AccountAddress: accountAddr,
+		WaitForReceipt: true,
 	}
 	t.Run("accept admin", func(t *testing.T) {
 		receipt, err = adminChainWriter.AcceptAdmin(context.Background(), acceptAdminRequest, txOptionsPendingAdmin)
@@ -1012,29 +1020,29 @@ func TestRemoveAdmin(t *testing.T) {
 	require.NoError(t, err)
 
 	accountTxOptions := &elcontracts.TxOptions{
-		WaitForReceipt: true,
-		Options:        optsAccount,
+		Options: optsAccount,
 	}
 
 	admin1TxOptions := &elcontracts.TxOptions{
-		WaitForReceipt: true,
-		Options:        optsAdmin1,
+		Options: optsAdmin1,
 	}
 
 	admin2TxOptions := &elcontracts.TxOptions{
-		WaitForReceipt: true,
-		Options:        optsAdmin2,
+		Options: optsAdmin2,
 	}
 	addAdmin1Request := elcontracts.PendingAdminAcceptRequest{
 		AccountAddress: accountAddr,
 		AdminAddress:   admin1,
+		WaitForReceipt: true,
 	}
 	addAdmin2Request := elcontracts.PendingAdminAcceptRequest{
 		AccountAddress: accountAddr,
 		AdminAddress:   admin2,
+		WaitForReceipt: true,
 	}
 	acceptAdminRequest := elcontracts.AdminAcceptRequest{
 		AccountAddress: accountAddr,
+		WaitForReceipt: true,
 	}
 
 	// Add and accept admin 1
@@ -1058,6 +1066,7 @@ func TestRemoveAdmin(t *testing.T) {
 	removeAdminRequest := elcontracts.AdminRemoveRequest{
 		AccountAddress: accountAddr,
 		AdminAddress:   admin2,
+		WaitForReceipt: true,
 	}
 
 	t.Run("remove admin 2", func(t *testing.T) {
@@ -1106,8 +1115,7 @@ func TestProcessClaim(t *testing.T) {
 	require.NoError(t, err)
 
 	txOptions := &elcontracts.TxOptions{
-		WaitForReceipt: true,
-		Options:        opts,
+		Options: opts,
 	}
 
 	activationDelay := uint32(0)
@@ -1124,6 +1132,7 @@ func TestProcessClaim(t *testing.T) {
 	request := elcontracts.ClaimProcessRequest{
 		Claim:            *claim,
 		RecipientAddress: recipient,
+		WaitForReceipt:   true,
 	}
 	receipt, err = chainWriter.ProcessClaim(context.Background(), request, txOptions)
 	require.NoError(t, err)
@@ -1160,8 +1169,7 @@ func TestProcessClaims(t *testing.T) {
 	require.NoError(t, err)
 
 	txOptions := &elcontracts.TxOptions{
-		WaitForReceipt: true,
-		Options:        opts,
+		Options: opts,
 	}
 
 	activationDelay := uint32(0)
@@ -1179,6 +1187,7 @@ func TestProcessClaims(t *testing.T) {
 	request := elcontracts.ClaimsProcessRequest{
 		Claims:           emptyClaims,
 		RecipientAddress: recipient,
+		WaitForReceipt:   true,
 	}
 	_, err = chainWriter.ProcessClaims(context.Background(), request, txOptions)
 	require.Error(t, err, "cannot process empty claims")
@@ -1196,6 +1205,7 @@ func TestProcessClaims(t *testing.T) {
 	request = elcontracts.ClaimsProcessRequest{
 		Claims:           claims,
 		RecipientAddress: recipient,
+		WaitForReceipt:   true,
 	}
 	receipt, err = chainWriter.ProcessClaims(context.Background(), request, txOptions)
 	require.NoError(t, err)
