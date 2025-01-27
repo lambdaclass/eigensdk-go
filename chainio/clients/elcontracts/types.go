@@ -4,8 +4,12 @@ import (
 	"math/big"
 
 	allocationmanager "github.com/Layr-Labs/eigensdk-go/contracts/bindings/AllocationManager"
-	"github.com/Layr-Labs/eigensdk-go/crypto/bls"
 
+	rewardscoordinator "github.com/Layr-Labs/eigensdk-go/contracts/bindings/IRewardsCoordinator"
+	"github.com/Layr-Labs/eigensdk-go/crypto/bls"
+	"github.com/Layr-Labs/eigensdk-go/types"
+
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 )
 
@@ -80,4 +84,110 @@ type RemovePendingAdminRequest struct {
 	AccountAddress common.Address
 	AdminAddress   common.Address
 	WaitForReceipt bool
+}
+
+type TxOptions struct {
+	WaitForReceipt bool
+	Options        *bind.TransactOpts
+}
+
+type RegisterOperatorRequest struct {
+	Operator types.Operator
+}
+
+type RegisterOperatorSetsRequest struct {
+	RegistryCoordinatorAddress common.Address
+	OperatorAddress            common.Address
+	AVSAddress                 common.Address
+	OperatorSetIds             []uint32
+	BlsKeyPair                 *bls.KeyPair
+	Socket                     string
+}
+
+type OperatorDetailsRequest struct {
+	Operator types.Operator
+}
+
+type MetadataURIRequest struct {
+	OperatorAddress common.Address
+	Uri             string
+}
+
+type ERC20IntoStrategyRequest struct {
+	StrategyAddress common.Address
+	Amount          *big.Int
+}
+
+type ClaimForRequest struct {
+	Claimer common.Address
+}
+
+type ClaimProcess struct {
+	Claim            rewardscoordinator.IRewardsCoordinatorTypesRewardsMerkleClaim
+	RecipientAddress common.Address
+}
+
+type ClaimsProcess struct {
+	Claims           []rewardscoordinator.IRewardsCoordinatorTypesRewardsMerkleClaim
+	RecipientAddress common.Address
+}
+
+type OperatorAVSSplitRequest struct {
+	OperatorAddress common.Address
+	AVSAddress      common.Address
+	Split           uint16
+}
+
+type OperatorPISplitRequest struct {
+	OperatorAddress common.Address
+	Split           uint16
+}
+
+type OperatorSetDeregisterRequest struct {
+	OperatorAddress common.Address
+	AVSAddress      common.Address
+	OperatorSetIds  []uint32
+}
+
+type AllocationModifyRequest struct {
+	OperatorAddress common.Address
+	Allocations     []allocationmanager.IAllocationManagerTypesAllocateParams
+}
+
+type AllocationDelayRequest struct {
+	OperatorAddress common.Address
+	Delay           uint32
+}
+
+type PermissionRemoveRequest struct {
+	AccountAddress   common.Address
+	AppointeeAddress common.Address
+	Target           common.Address
+	Selector         [4]byte
+}
+
+type PermissionSetRequest struct {
+	AccountAddress   common.Address
+	AppointeeAddress common.Address
+	Target           common.Address
+	Selector         [4]byte
+}
+
+type AdminAcceptRequest struct {
+	AccountAddress common.Address
+}
+
+type PendingAdminAcceptRequest struct {
+	AccountAddress common.Address
+	AdminAddress   common.Address
+}
+
+type AdminRemoveRequest struct {
+	AccountAddress common.Address
+	AdminAddress   common.Address
+}
+
+type PendingAdminRemoveRequest struct {
+	AccountAddress common.Address
+	AdminAddress   common.Address
 }
