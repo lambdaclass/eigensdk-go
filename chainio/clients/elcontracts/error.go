@@ -17,3 +17,7 @@ func (e Error) Error() string {
 		return fmt.Sprintf("%s(%d) - %s", e.message, e.code, e.description)
 	}
 }
+
+func CommonErrorMissingContract(contractName string) string {
+	return fmt.Sprintf("Missing needed contract(1) - %s contract not provided", contractName)
+}
