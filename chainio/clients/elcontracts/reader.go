@@ -96,10 +96,17 @@ func (r *ChainReader) IsOperatorRegistered(
 	operator types.Operator,
 ) (bool, error) {
 	if r.delegationManager == nil {
-		return false, errors.New("DelegationManager contract not provided")
+		wrappedError := Error{1, "Missing needed contract", "DelegationManager contract not provided", nil}
+		return false, wrappedError
 	}
 
-	return r.delegationManager.IsOperator(&bind.CallOpts{Context: ctx}, gethcommon.HexToAddress(operator.Address))
+	isRegistered, err := r.delegationManager.IsOperator(&bind.CallOpts{Context: ctx}, gethcommon.HexToAddress(operator.Address))
+	if err != nil {
+		wrappedError := Error{0, "Binding error", "Error happened while calling delegationManager.IsOperator", err}
+		return false, wrappedError
+	}
+
+	return isRegistered, nil
 }
 
 // GetStakerShares returns the amount of shares that a staker has in all of the strategies in which they have nonzero
@@ -109,9 +116,17 @@ func (r *ChainReader) GetStakerShares(
 	stakerAddress gethcommon.Address,
 ) ([]gethcommon.Address, []*big.Int, error) {
 	if r.delegationManager == nil {
-		return nil, nil, errors.New("DelegationManager contract not provided")
+		wrappedError := Error{1, "Missing needed contract", "DelegationManager contract not provided", nil}
+		return nil, nil, wrappedError
 	}
-	return r.delegationManager.GetDepositedShares(&bind.CallOpts{Context: ctx}, stakerAddress)
+
+	addresses, shares, err := r.delegationManager.GetDepositedShares(&bind.CallOpts{Context: ctx}, stakerAddress)
+	if err != nil {
+		wrappedError := Error{0, "Binding error", "Error happened while calling delegationManager.GetDepositedShares", err}
+		return nil, nil, wrappedError
+	}
+
+	return addresses, shares, nil
 }
 
 // GetDelegatedOperator returns the operator that a staker has delegated to
@@ -121,9 +136,17 @@ func (r *ChainReader) GetDelegatedOperator(
 	blockNumber *big.Int,
 ) (gethcommon.Address, error) {
 	if r.delegationManager == nil {
-		return gethcommon.Address{}, errors.New("DelegationManager contract not provided")
+		wrappedError := Error{1, "Missing needed contract", "DelegationManager contract not provided", nil}
+		return gethcommon.Address{}, wrappedError
 	}
-	return r.delegationManager.DelegatedTo(&bind.CallOpts{Context: ctx}, stakerAddress)
+
+	delegatedOperator, err := r.delegationManager.DelegatedTo(&bind.CallOpts{Context: ctx}, stakerAddress)
+	if err != nil {
+		wrappedError := Error{0, "Binding error", "Error happened while calling delegationManager.DelegatedTo", err}
+		return gethcommon.Address{}, wrappedError
+	}
+
+	return delegatedOperator, nil
 }
 
 func (r *ChainReader) GetOperatorDetails(
@@ -131,7 +154,8 @@ func (r *ChainReader) GetOperatorDetails(
 	operator types.Operator,
 ) (types.Operator, error) {
 	if r.delegationManager == nil {
-		return types.Operator{}, errors.New("DelegationManager contract not provided")
+		wrappedError := Error{1, "Missing needed contract", "DelegationManager contract not provided", nil}
+		return types.Operator{}, wrappedError
 	}
 
 	delegationManagerAddress, err := r.delegationManager.DelegationApprover(
@@ -140,9 +164,11 @@ func (r *ChainReader) GetOperatorDetails(
 	)
 	// This call should not fail since it's a getter
 	if err != nil {
-		return types.Operator{}, err
+		wrappedError := Error{0, "Binding error", "Error happened while calling delegationManager.DelegationApprover", err}
+		return types.Operator{}, wrappedError
 	}
 
+	// Should we check if (allocationManager != nil)?
 	isSet, delay, err := r.allocationManager.GetAllocationDelay(
 		&bind.CallOpts{
 			Context: ctx,
@@ -151,7 +177,8 @@ func (r *ChainReader) GetOperatorDetails(
 	)
 	// This call should not fail
 	if err != nil {
-		return types.Operator{}, err
+		wrappedError := Error{0, "Binding error", "Error happened while calling allocationManager.GetAllocationDelay", err}
+		return types.Operator{}, wrappedError
 	}
 
 	var allocationDelay uint32
@@ -176,11 +203,13 @@ func (r *ChainReader) GetStrategyAndUnderlyingToken(
 	contractStrategy, err := strategy.NewContractIStrategy(strategyAddr, r.ethClient)
 	// This call should not fail since it's an init
 	if err != nil {
-		return nil, gethcommon.Address{}, utils.WrapError("Failed to fetch strategy contract", err)
+		wrappedError := Error{2, "Binding error", "Error happened while fetching strategy contract", err}
+		return nil, gethcommon.Address{}, wrappedError
 	}
 	underlyingTokenAddr, err := contractStrategy.UnderlyingToken(&bind.CallOpts{Context: ctx})
 	if err != nil {
-		return nil, gethcommon.Address{}, utils.WrapError("Failed to fetch token contract", err)
+		wrappedError := Error{2, "Binding error", "Error happened while fetching token contract", err}
+		return nil, gethcommon.Address{}, wrappedError
 	}
 	return contractStrategy, underlyingTokenAddr, nil
 }
@@ -194,16 +223,19 @@ func (r *ChainReader) GetStrategyAndUnderlyingERC20Token(
 	contractStrategy, err := strategy.NewContractIStrategy(strategyAddr, r.ethClient)
 	// This call should not fail since it's an init
 	if err != nil {
-		return nil, nil, gethcommon.Address{}, utils.WrapError("Failed to fetch strategy contract", err)
+		wrappedError := Error{2, "Binding error", "Error happened while fetching strategy contract", err}
+		return nil, nil, gethcommon.Address{}, wrappedError
 	}
 	underlyingTokenAddr, err := contractStrategy.UnderlyingToken(&bind.CallOpts{Context: ctx})
 	if err != nil {
-		return nil, nil, gethcommon.Address{}, utils.WrapError("Failed to fetch token contract", err)
+		wrappedError := Error{2, "Binding error", "Error happened while fetching token contract", err}
+		return nil, nil, gethcommon.Address{}, wrappedError
 	}
 	contractUnderlyingToken, err := erc20.NewContractIERC20(underlyingTokenAddr, r.ethClient)
 	// This call should not fail, if the strategy does not have an underlying token then it would enter the if above
 	if err != nil {
-		return nil, nil, gethcommon.Address{}, utils.WrapError("Failed to fetch token contract", err)
+		wrappedError := Error{2, "Binding error", "Error happened while fetching erc20 token contract", err}
+		return nil, nil, gethcommon.Address{}, wrappedError
 	}
 	return contractStrategy, contractUnderlyingToken, underlyingTokenAddr, nil
 }
@@ -214,14 +246,21 @@ func (r *ChainReader) GetOperatorSharesInStrategy(
 	strategyAddr gethcommon.Address,
 ) (*big.Int, error) {
 	if r.delegationManager == nil {
-		return &big.Int{}, errors.New("DelegationManager contract not provided")
+		wrappedError := Error{1, "Missing needed contract", "DelegationManager contract not provided", nil}
+		return &big.Int{}, wrappedError
 	}
 
-	return r.delegationManager.OperatorShares(
+	shares, err := r.delegationManager.OperatorShares(
 		&bind.CallOpts{Context: ctx},
 		operatorAddr,
 		strategyAddr,
 	)
+	if err != nil {
+		wrappedError := Error{0, "Binding error", "Error happened while calling delegationManager.OperatorShares", err}
+		return &big.Int{}, wrappedError
+	}
+
+	return shares, nil
 }
 
 func (r *ChainReader) CalculateDelegationApprovalDigestHash(
