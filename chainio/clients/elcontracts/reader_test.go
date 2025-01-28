@@ -1023,7 +1023,7 @@ func TestInvalidConfig(t *testing.T) {
 				operatorSet,
 			)
 			require.Error(t, err)
-			assert.Equal(t, err.Error(), elcontracts.CommonErrorMissingContract("AVSDirectory"))
+			assert.Equal(t, err.Error(), elcontracts.CommonErrorMissingContract("AllocationManager"))
 		},
 	)
 
