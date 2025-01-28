@@ -19,7 +19,6 @@ import (
 	strategymanager "github.com/Layr-Labs/eigensdk-go/contracts/bindings/StrategyManager"
 	"github.com/Layr-Labs/eigensdk-go/logging"
 	"github.com/Layr-Labs/eigensdk-go/types"
-	"github.com/Layr-Labs/eigensdk-go/utils"
 )
 
 type Config struct {
@@ -1028,6 +1027,11 @@ func (r *ChainReader) CanCall(
 	target gethcommon.Address,
 	selector [4]byte,
 ) (bool, error) {
+	if r.permissionController == nil {
+		wrappedError := Error{1, "Missing needed contract", "PermissionController contract not provided", nil}
+		return false, wrappedError
+	}
+
 	canCall, err := r.permissionController.CanCall(
 		&bind.CallOpts{Context: ctx},
 		accountAddress,
@@ -1037,7 +1041,13 @@ func (r *ChainReader) CanCall(
 	)
 	// This call should not fail since it's a getter
 	if err != nil {
-		return false, utils.WrapError("call to permission controller failed", err)
+		wrappedError := Error{
+			0,
+			"Binding error",
+			"Error happened while calling permissionController.CanCall",
+			err,
+		}
+		return false, wrappedError
 	}
 	return canCall, nil
 }
@@ -1048,6 +1058,11 @@ func (r *ChainReader) ListAppointees(
 	target gethcommon.Address,
 	selector [4]byte,
 ) ([]gethcommon.Address, error) {
+	if r.permissionController == nil {
+		wrappedError := Error{1, "Missing needed contract", "PermissionController contract not provided", nil}
+		return nil, wrappedError
+	}
+
 	appointees, err := r.permissionController.GetAppointees(
 		&bind.CallOpts{Context: ctx},
 		accountAddress,
@@ -1056,7 +1071,13 @@ func (r *ChainReader) ListAppointees(
 	)
 	// This call should not fail since it's a getter
 	if err != nil {
-		return nil, utils.WrapError("call to permission controller failed", err)
+		wrappedError := Error{
+			0,
+			"Binding error",
+			"Error happened while calling permissionController.GetAppointees",
+			err,
+		}
+		return nil, wrappedError
 	}
 	return appointees, nil
 }
@@ -1066,6 +1087,11 @@ func (r *ChainReader) ListAppointeePermissions(
 	accountAddress gethcommon.Address,
 	appointeeAddress gethcommon.Address,
 ) ([]gethcommon.Address, [][4]byte, error) {
+	if r.permissionController == nil {
+		wrappedError := Error{1, "Missing needed contract", "PermissionController contract not provided", nil}
+		return nil, nil, wrappedError
+	}
+
 	targets, selectors, err := r.permissionController.GetAppointeePermissions(
 		&bind.CallOpts{Context: ctx},
 		accountAddress,
@@ -1073,7 +1099,13 @@ func (r *ChainReader) ListAppointeePermissions(
 	)
 	// This call should not fail since it's a getter
 	if err != nil {
-		return nil, nil, utils.WrapError("call to permission controller failed", err)
+		wrappedError := Error{
+			0,
+			"Binding error",
+			"Error happened while calling permissionController.GetAppointeePermissions",
+			err,
+		}
+		return nil, nil, wrappedError
 	}
 	return targets, selectors, nil
 }
@@ -1082,10 +1114,21 @@ func (r *ChainReader) ListPendingAdmins(
 	ctx context.Context,
 	accountAddress gethcommon.Address,
 ) ([]gethcommon.Address, error) {
+	if r.permissionController == nil {
+		wrappedError := Error{1, "Missing needed contract", "PermissionController contract not provided", nil}
+		return nil, wrappedError
+	}
+
 	pendingAdmins, err := r.permissionController.GetPendingAdmins(&bind.CallOpts{Context: ctx}, accountAddress)
 	// This call should not fail since it's a getter
 	if err != nil {
-		return nil, utils.WrapError("call to permission controller failed", err)
+		wrappedError := Error{
+			0,
+			"Binding error",
+			"Error happened while calling permissionController.GetPendingAdmins",
+			err,
+		}
+		return nil, wrappedError
 	}
 	return pendingAdmins, nil
 }
@@ -1094,10 +1137,21 @@ func (r *ChainReader) ListAdmins(
 	ctx context.Context,
 	accountAddress gethcommon.Address,
 ) ([]gethcommon.Address, error) {
+	if r.permissionController == nil {
+		wrappedError := Error{1, "Missing needed contract", "PermissionController contract not provided", nil}
+		return nil, wrappedError
+	}
+
 	pendingAdmins, err := r.permissionController.GetAdmins(&bind.CallOpts{Context: ctx}, accountAddress)
 	// This call should not fail since it's a getter
 	if err != nil {
-		return nil, utils.WrapError("call to permission controller failed", err)
+		wrappedError := Error{
+			0,
+			"Binding error",
+			"Error happened while calling permissionController.GetAdmins",
+			err,
+		}
+		return nil, wrappedError
 	}
 	return pendingAdmins, nil
 }
@@ -1107,6 +1161,11 @@ func (r *ChainReader) IsPendingAdmin(
 	accountAddress gethcommon.Address,
 	pendingAdminAddress gethcommon.Address,
 ) (bool, error) {
+	if r.permissionController == nil {
+		wrappedError := Error{1, "Missing needed contract", "PermissionController contract not provided", nil}
+		return false, wrappedError
+	}
+
 	isPendingAdmin, err := r.permissionController.IsPendingAdmin(
 		&bind.CallOpts{Context: ctx},
 		accountAddress,
@@ -1114,7 +1173,13 @@ func (r *ChainReader) IsPendingAdmin(
 	)
 	// This call should not fail since it's a getter
 	if err != nil {
-		return false, utils.WrapError("call to permission controller failed", err)
+		wrappedError := Error{
+			0,
+			"Binding error",
+			"Error happened while calling permissionController.IsPendingAdmin",
+			err,
+		}
+		return false, wrappedError
 	}
 	return isPendingAdmin, nil
 }
@@ -1124,10 +1189,21 @@ func (r *ChainReader) IsAdmin(
 	accountAddress gethcommon.Address,
 	adminAddress gethcommon.Address,
 ) (bool, error) {
+	if r.permissionController == nil {
+		wrappedError := Error{1, "Missing needed contract", "PermissionController contract not provided", nil}
+		return false, wrappedError
+	}
+
 	isAdmin, err := r.permissionController.IsAdmin(&bind.CallOpts{Context: ctx}, accountAddress, adminAddress)
 	// This call should not fail since it's a getter
 	if err != nil {
-		return false, utils.WrapError("call to permission controller failed", err)
+		wrappedError := Error{
+			0,
+			"Binding error",
+			"Error happened while calling permissionController.IsAdmin",
+			err,
+		}
+		return false, wrappedError
 	}
 	return isAdmin, nil
 }
