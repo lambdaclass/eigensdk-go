@@ -3,7 +3,6 @@ package avsregistry
 import (
 	"context"
 	"errors"
-	"math"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum"
@@ -84,78 +83,90 @@ func NewReaderFromConfig(
 	), nil
 }
 
-func (r *ChainReader) GetQuorumCount(opts *bind.CallOpts) (uint8, error) {
+func (r *ChainReader) GetQuorumCount(ctx context.Context, request QuorumCountRequest) (QuorumCountResponse, error) {
 	if r.registryCoordinator == nil {
-		return 0, errors.New("RegistryCoordinator contract not provided")
+		return QuorumCountResponse{}, errors.New("RegistryCoordinator contract not provided")
 	}
-	return r.registryCoordinator.QuorumCount(opts)
+
+	quorumCount, err := r.registryCoordinator.QuorumCount(
+		&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumber},
+	)
+	if err != nil {
+		return QuorumCountResponse{}, utils.WrapError("Failed to get quorum count", err)
+	}
+
+	return QuorumCountResponse{QuorumCount: quorumCount}, nil
 }
 
 func (r *ChainReader) GetOperatorsStakeInQuorumsAtCurrentBlock(
-	opts *bind.CallOpts,
-	quorumNumbers types.QuorumNums,
-) ([][]opstateretriever.OperatorStateRetrieverOperator, error) {
-	if opts.Context == nil {
-		opts.Context = context.Background()
-	}
-	curBlock, err := r.ethClient.BlockNumber(opts.Context)
+	ctx context.Context,
+	request OperatorsStakeInQuorumAtCurrentBlockRequest,
+) (OperatorsStakeInQuorumResponse, error) {
+	curBlock, err := r.ethClient.BlockNumber(ctx)
 	if err != nil {
-		return nil, utils.WrapError("Cannot get current block number", err)
+		return OperatorsStakeInQuorumResponse{}, utils.WrapError("Cannot get current block number", err)
 	}
-	if curBlock > math.MaxUint32 {
-		return nil, utils.WrapError("Current block number is too large to be converted to uint32", err)
+
+	operatorStakes, err := r.operatorStateRetriever.GetOperatorState(
+		&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumber},
+		r.registryCoordinatorAddr,
+		request.QuorumNumbers.UnderlyingType(),
+		uint32(curBlock),
+	)
+	if err != nil {
+		return OperatorsStakeInQuorumResponse{}, utils.WrapError("Cannot get operators stake", err)
 	}
-	return r.GetOperatorsStakeInQuorumsAtBlock(opts, quorumNumbers, uint32(curBlock))
+
+	return OperatorsStakeInQuorumResponse{OperatorsStakeInQuorum: operatorStakes}, nil
 }
 
 // the contract stores historical state, so blockNumber should be the block number of the state you want to query
 // and the blockNumber in opts should be the block number of the latest block (or set to nil, which is equivalent)
 func (r *ChainReader) GetOperatorsStakeInQuorumsAtBlock(
-	opts *bind.CallOpts,
-	quorumNumbers types.QuorumNums,
-	blockNumber uint32,
-) ([][]opstateretriever.OperatorStateRetrieverOperator, error) {
+	ctx context.Context,
+	request OperatorsStakeInQuorumAtBlockRequest,
+) (OperatorsStakeInQuorumResponse, error) {
 	if r.operatorStateRetriever == nil {
-		return nil, errors.New("OperatorStateRetriever contract not provided")
+		return OperatorsStakeInQuorumResponse{}, errors.New("OperatorStateRetriever contract not provided")
 	}
 
 	operatorStakes, err := r.operatorStateRetriever.GetOperatorState(
-		opts,
+		&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumber},
 		r.registryCoordinatorAddr,
-		quorumNumbers.UnderlyingType(),
-		blockNumber)
+		request.QuorumNumbers.UnderlyingType(),
+		request.HistoricalBlockNumber)
 	if err != nil {
-		return nil, utils.WrapError("Failed to get operators state", err)
+		return OperatorsStakeInQuorumResponse{}, utils.WrapError("Failed to get operators state", err)
 	}
-	return operatorStakes, nil
+	return OperatorsStakeInQuorumResponse{OperatorsStakeInQuorum: operatorStakes}, nil
 }
 
 func (r *ChainReader) GetOperatorAddrsInQuorumsAtCurrentBlock(
-	opts *bind.CallOpts,
-	quorumNumbers types.QuorumNums,
-) ([][]common.Address, error) {
+	ctx context.Context,
+	request OperatorAddrsInQuorumsAtCurrentBlockRequest,
+) (OperatorAddrsInQuorumsAtCurrentBlockResponse, error) {
 	if r.operatorStateRetriever == nil {
-		return nil, errors.New("OperatorStateRetriever contract not provided")
+		return OperatorAddrsInQuorumsAtCurrentBlockResponse{}, errors.New(
+			"OperatorStateRetriever contract not provided",
+		)
 	}
 
-	if opts.Context == nil {
-		opts.Context = context.Background()
-	}
-	curBlock, err := r.ethClient.BlockNumber(opts.Context)
+	curBlock, err := r.ethClient.BlockNumber(ctx)
 	if err != nil {
-		return nil, utils.WrapError("Failed to get current block number", err)
+		return OperatorAddrsInQuorumsAtCurrentBlockResponse{}, utils.WrapError(
+			"Failed to get current block number",
+			err,
+		)
 	}
-	if curBlock > math.MaxUint32 {
-		return nil, utils.WrapError("Current block number is too large to be converted to uint32", err)
-	}
+
 	operatorStakes, err := r.operatorStateRetriever.GetOperatorState(
-		opts,
+		&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumber},
 		r.registryCoordinatorAddr,
-		quorumNumbers.UnderlyingType(),
+		request.QuorumNumbers.UnderlyingType(),
 		uint32(curBlock),
 	)
 	if err != nil {
-		return nil, utils.WrapError("Failed to get operators state", err)
+		return OperatorAddrsInQuorumsAtCurrentBlockResponse{}, utils.WrapError("Failed to get operators state", err)
 	}
 	var quorumOperatorAddrs [][]common.Address
 	for _, quorum := range operatorStakes {
@@ -165,49 +176,52 @@ func (r *ChainReader) GetOperatorAddrsInQuorumsAtCurrentBlock(
 		}
 		quorumOperatorAddrs = append(quorumOperatorAddrs, operatorAddrs)
 	}
-	return quorumOperatorAddrs, nil
+	return OperatorAddrsInQuorumsAtCurrentBlockResponse{OperatorAddrsInQuorums: quorumOperatorAddrs}, nil
 
 }
 
 func (r *ChainReader) GetOperatorsStakeInQuorumsOfOperatorAtBlock(
-	opts *bind.CallOpts,
-	operatorId types.OperatorId,
-	blockNumber uint32,
-) (types.QuorumNums, [][]opstateretriever.OperatorStateRetrieverOperator, error) {
+	ctx context.Context,
+	request OperatorsStakeInQuorumsOfOperatorAtBlockRequest,
+) (OperatorsStakeInQuorumsOfOperatorResponse, error) {
 	if r.operatorStateRetriever == nil {
-		return nil, nil, errors.New("OperatorStateRetriever contract not provided")
+		return OperatorsStakeInQuorumsOfOperatorResponse{}, errors.New(
+			"OperatorStateRetriever contract not provided",
+		)
 	}
 
 	quorumBitmap, operatorStakes, err := r.operatorStateRetriever.GetOperatorState0(
-		opts,
+		&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumber},
 		r.registryCoordinatorAddr,
-		operatorId,
-		blockNumber)
+		request.OperatorId,
+		request.HistoricalBlockNumber)
 	if err != nil {
-		return nil, nil, utils.WrapError("Failed to get operators state", err)
+		return OperatorsStakeInQuorumsOfOperatorResponse{}, utils.WrapError("Failed to get operators state", err)
 	}
+
 	quorums := types.BitmapToQuorumIds(quorumBitmap)
-	return quorums, operatorStakes, nil
+	return OperatorsStakeInQuorumsOfOperatorResponse{
+		QuorumNumbers:           quorums,
+		OperatorsStakesInQuorum: operatorStakes,
+	}, nil
 }
 
 // opts will be modified to have the latest blockNumber, so make sure not to reuse it
 // blockNumber in opts will be ignored, and the chain will be queried to get the latest blockNumber
 func (r *ChainReader) GetOperatorsStakeInQuorumsOfOperatorAtCurrentBlock(
-	opts *bind.CallOpts,
-	operatorId types.OperatorId,
-) (types.QuorumNums, [][]opstateretriever.OperatorStateRetrieverOperator, error) {
-	if opts.Context == nil {
-		opts.Context = context.Background()
-	}
-	curBlock, err := r.ethClient.BlockNumber(opts.Context)
+	ctx context.Context,
+	request OperatorsStakeInQuorumsOfOperatorAtCurrentBlockRequest,
+) (OperatorsStakeInQuorumsOfOperatorResponse, error) {
+	curBlock, err := r.ethClient.BlockNumber(ctx)
 	if err != nil {
-		return nil, nil, utils.WrapError("Failed to get current block number", err)
+		return OperatorsStakeInQuorumsOfOperatorResponse{}, utils.WrapError("Failed to get current block number", err)
 	}
-	if curBlock > math.MaxUint32 {
-		return nil, nil, utils.WrapError("Current block number is too large to be converted to uint32", err)
-	}
-	opts.BlockNumber = big.NewInt(int64(curBlock))
-	return r.GetOperatorsStakeInQuorumsOfOperatorAtBlock(opts, operatorId, uint32(curBlock))
+
+	return r.GetOperatorsStakeInQuorumsOfOperatorAtBlock(ctx, OperatorsStakeInQuorumsOfOperatorAtBlockRequest{
+		BlockNumber:           request.BlockNumber,
+		HistoricalBlockNumber: uint32(curBlock),
+		OperatorId:            request.OperatorId,
+	})
 }
 
 // To avoid a possible race condition, this method must assure that all the calls
@@ -216,189 +230,203 @@ func (r *ChainReader) GetOperatorsStakeInQuorumsOfOperatorAtCurrentBlock(
 // to the latest block.
 // All calls to the chain use `opts` parameter.
 func (r *ChainReader) GetOperatorStakeInQuorumsOfOperatorAtCurrentBlock(
-	opts *bind.CallOpts,
-	operatorId types.OperatorId,
-) (map[types.QuorumNum]types.StakeAmount, error) {
+	ctx context.Context,
+	request OperatorStakeInQuorumsOfOperatorAtCurrentBlockRequest,
+) (OperatorStakeInQuorumsOfOperatorResponse, error) {
+	// 1. Validar que los contratos estén disponibles
 	if r.registryCoordinator == nil {
-		return nil, errors.New("RegistryCoordinator contract not provided")
+		return OperatorStakeInQuorumsOfOperatorResponse{}, errors.New(
+			"registryCoordinator contract not provided",
+		)
 	}
-
 	if r.stakeRegistry == nil {
-		return nil, errors.New("StakeRegistry contract not provided")
+		return OperatorStakeInQuorumsOfOperatorResponse{}, errors.New(
+			"stakeRegistry contract not provided",
+		)
 	}
 
-	// check if opts parameter has not a block number set (BlockNumber)
-	var defaultHash common.Hash
-	if opts.BlockNumber == nil && opts.BlockHash == defaultHash {
-		// if not, set the block number to the latest block
-		if opts.Context == nil {
-			opts.Context = context.Background()
-		}
-		latestBlock, err := r.ethClient.BlockNumber(opts.Context)
+	if request.BlockNumber == nil {
+		latestBlock, err := r.ethClient.BlockNumber(ctx)
 		if err != nil {
-			return nil, utils.WrapError("Failed to get latest block number", err)
+			return OperatorStakeInQuorumsOfOperatorResponse{},
+				utils.WrapError("failed to get latest block number", err)
 		}
-		opts.BlockNumber = big.NewInt(int64(latestBlock))
+
+		request.BlockNumber = big.NewInt(int64(latestBlock))
 	}
 
-	quorumBitmap, err := r.registryCoordinator.GetCurrentQuorumBitmap(opts, operatorId)
+	callOpts := &bind.CallOpts{
+		Context:     ctx,
+		BlockNumber: request.BlockNumber,
+	}
+
+	quorumBitmap, err := r.registryCoordinator.GetCurrentQuorumBitmap(callOpts, request.OperatorId)
 	if err != nil {
-		return nil, utils.WrapError("Failed to get operator quorums", err)
+		return OperatorStakeInQuorumsOfOperatorResponse{},
+			utils.WrapError("failed to get operator quorums", err)
 	}
 	quorums := types.BitmapToQuorumIds(quorumBitmap)
+
 	quorumStakes := make(map[types.QuorumNum]types.StakeAmount)
 	for _, quorum := range quorums {
 		stake, err := r.stakeRegistry.GetCurrentStake(
-			opts,
-			operatorId,
+			callOpts,
+			request.OperatorId,
 			uint8(quorum),
 		)
 		if err != nil {
-			return nil, utils.WrapError("Failed to get operator stake", err)
+			return OperatorStakeInQuorumsOfOperatorResponse{},
+				utils.WrapError("failed to get operator stake", err)
 		}
 		quorumStakes[quorum] = stake
 	}
-	return quorumStakes, nil
+
+	// 6. Devolver la respuesta como un struct
+	return OperatorStakeInQuorumsOfOperatorResponse{
+		QuorumStakes: quorumStakes,
+	}, nil
 }
 
 func (r *ChainReader) GetCheckSignaturesIndices(
-	opts *bind.CallOpts,
-	referenceBlockNumber uint32,
-	quorumNumbers types.QuorumNums,
-	nonSignerOperatorIds []types.OperatorId,
-) (opstateretriever.OperatorStateRetrieverCheckSignaturesIndices, error) {
+	ctx context.Context,
+	request SignaturesIndicesRequest,
+) (SignaturesIndicesResponse, error) {
 	if r.operatorStateRetriever == nil {
-		return opstateretriever.OperatorStateRetrieverCheckSignaturesIndices{}, errors.New(
+		return SignaturesIndicesResponse{}, errors.New(
 			"OperatorStateRetriever contract not provided",
 		)
 	}
 
-	nonSignerOperatorIdsBytes := make([][32]byte, len(nonSignerOperatorIds))
-	for i, id := range nonSignerOperatorIds {
+	nonSignerOperatorIdsBytes := make([][32]byte, len(request.NonSignerOperatorIds))
+	for i, id := range request.NonSignerOperatorIds {
 		nonSignerOperatorIdsBytes[i] = id
 	}
 	checkSignatureIndices, err := r.operatorStateRetriever.GetCheckSignaturesIndices(
-		opts,
+		&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumber},
 		r.registryCoordinatorAddr,
-		referenceBlockNumber,
-		quorumNumbers.UnderlyingType(),
+		request.ReferenceBlockNumber,
+		request.QuorumNumbers.UnderlyingType(),
 		nonSignerOperatorIdsBytes,
 	)
 	if err != nil {
-		return opstateretriever.OperatorStateRetrieverCheckSignaturesIndices{}, utils.WrapError(
+		return SignaturesIndicesResponse{}, utils.WrapError(
 			"Failed to get check signatures indices",
 			err,
 		)
 	}
-	return checkSignatureIndices, nil
+	return SignaturesIndicesResponse{SignaturesIndices: checkSignatureIndices}, nil
 }
 
 func (r *ChainReader) GetOperatorId(
-	opts *bind.CallOpts,
-	operatorAddress common.Address,
-) ([32]byte, error) {
+	ctx context.Context,
+	request OperatorIdRequest,
+) (OperatorIdResponse, error) {
 	if r.registryCoordinator == nil {
-		return [32]byte{}, errors.New("RegistryCoordinator contract not provided")
+		return OperatorIdResponse{}, errors.New("RegistryCoordinator contract not provided")
 	}
 
 	operatorId, err := r.registryCoordinator.GetOperatorId(
-		opts,
-		operatorAddress,
+		&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumber},
+		request.OperatorAddress,
 	)
 	if err != nil {
-		return [32]byte{}, utils.WrapError("Failed to get operator id", err)
+		return OperatorIdResponse{}, utils.WrapError("Failed to get operator id", err)
 	}
-	return operatorId, nil
+	return OperatorIdResponse{OperatorId: operatorId}, nil
 }
 
 func (r *ChainReader) GetOperatorFromId(
-	opts *bind.CallOpts,
-	operatorId types.OperatorId,
-) (common.Address, error) {
+	ctx context.Context,
+	request OperatorFromIdRequest,
+) (OperatorFromIdResponse, error) {
 	if r.registryCoordinator == nil {
-		return common.Address{}, errors.New("RegistryCoordinator contract not provided")
+		return OperatorFromIdResponse{}, errors.New("RegistryCoordinator contract not provided")
 	}
 
 	operatorAddress, err := r.registryCoordinator.GetOperatorFromId(
-		opts,
-		operatorId,
+		&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumber},
+		request.OperatorId,
 	)
 	if err != nil {
-		return common.Address{}, utils.WrapError("Failed to get operator address", err)
+		return OperatorFromIdResponse{}, utils.WrapError("Failed to get operator address", err)
 	}
-	return operatorAddress, nil
+	return OperatorFromIdResponse{OperatorAddress: operatorAddress}, nil
 }
 
 func (r *ChainReader) QueryRegistrationDetail(
-	opts *bind.CallOpts,
-	operatorAddress common.Address,
-) ([]bool, error) {
-	operatorId, err := r.GetOperatorId(opts, operatorAddress)
+	ctx context.Context,
+	request RegistrationDetailRequest,
+) (RegistrationDetailResponse, error) {
+	operatorIdResponse, err := r.GetOperatorId(ctx, OperatorIdRequest(request))
 	if err != nil {
-		return nil, utils.WrapError("Failed to get operator id", err)
+		return RegistrationDetailResponse{}, utils.WrapError("Failed to get operator id", err)
 	}
-	value, err := r.registryCoordinator.GetCurrentQuorumBitmap(opts, operatorId)
+
+	value, err := r.registryCoordinator.GetCurrentQuorumBitmap(
+		&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumber},
+		operatorIdResponse.OperatorId)
 	if err != nil {
-		return nil, utils.WrapError("Failed to get operator quorums", err)
+		return RegistrationDetailResponse{}, utils.WrapError("Failed to get operator quorums", err)
 	}
+
 	numBits := value.BitLen()
 	var quorums []bool
 	for i := 0; i < numBits; i++ {
 		quorums = append(quorums, value.Int64()&(1<<i) != 0)
 	}
+
 	if len(quorums) == 0 {
-		numQuorums, err := r.GetQuorumCount(opts)
+		numQuorumsRequest := QuorumCountRequest{BlockNumber: request.BlockNumber}
+		numQuorumsResponse, err := r.GetQuorumCount(ctx, numQuorumsRequest)
 		if err != nil {
-			return nil, utils.WrapError("Failed to get quorum count", err)
+			return RegistrationDetailResponse{}, utils.WrapError("Failed to get quorum count", err)
 		}
-		for i := uint8(0); i < numQuorums; i++ {
+		for i := uint8(0); i < numQuorumsResponse.QuorumCount; i++ {
 			quorums = append(quorums, false)
 		}
 	}
-	return quorums, nil
+	return RegistrationDetailResponse{Quorums: quorums}, nil
 }
 
 func (r *ChainReader) IsOperatorRegistered(
-	opts *bind.CallOpts,
-	operatorAddress common.Address,
-) (bool, error) {
+	ctx context.Context,
+	request OperatorRegisteredRequest,
+) (OperatorRegisteredResponse, error) {
 	if r.registryCoordinator == nil {
-		return false, errors.New("RegistryCoordinator contract not provided")
+		return OperatorRegisteredResponse{}, errors.New("RegistryCoordinator contract not provided")
 	}
 
-	operatorStatus, err := r.registryCoordinator.GetOperatorStatus(opts, operatorAddress)
+	operatorStatus, err := r.registryCoordinator.GetOperatorStatus(
+		&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumber},
+		request.OperatorAddress,
+	)
 	if err != nil {
-		return false, utils.WrapError("Failed to get operator status", err)
+		return OperatorRegisteredResponse{}, utils.WrapError("Failed to get operator status", err)
 	}
 
 	// 0 = NEVER_REGISTERED, 1 = REGISTERED, 2 = DEREGISTERED
 	registeredWithAvs := operatorStatus == 1
-	return registeredWithAvs, nil
+	return OperatorRegisteredResponse{IsRegistered: registeredWithAvs}, nil
 }
 
 func (r *ChainReader) QueryExistingRegisteredOperatorPubKeys(
 	ctx context.Context,
-	startBlock *big.Int,
-	stopBlock *big.Int,
-	blockRange *big.Int,
-) ([]types.OperatorAddr, []types.OperatorPubkeys, error) {
+	request OperatorQueryRequest,
+) (OperatorPubKeysRequestResponse, error) {
 	blsApkRegistryAbi, err := apkreg.ContractBLSApkRegistryMetaData.GetAbi()
 	if err != nil {
-		return nil, nil, utils.WrapError("Cannot get Abi", err)
+		return OperatorPubKeysRequestResponse{}, utils.WrapError("Cannot get Abi", err)
 	}
 
-	if startBlock == nil {
-		startBlock = big.NewInt(0)
-	}
-	if stopBlock == nil {
+	if request.StopBlock == 0 {
 		curBlockNum, err := r.ethClient.BlockNumber(ctx)
 		if err != nil {
-			return nil, nil, utils.WrapError("Cannot get current block number", err)
+			return OperatorPubKeysRequestResponse{}, utils.WrapError("Cannot get current block number", err)
 		}
-		stopBlock = new(big.Int).SetUint64(curBlockNum)
+		request.StopBlock = curBlockNum
 	}
-	if blockRange == nil {
-		blockRange = DefaultQueryBlockRange
+	if request.BlockRange == 0 {
+		request.BlockRange = DefaultQueryBlockRange.Uint64()
 	}
 
 	operatorAddresses := make([]types.OperatorAddr, 0)
@@ -406,26 +434,27 @@ func (r *ChainReader) QueryExistingRegisteredOperatorPubKeys(
 	// QueryExistingRegisteredOperatorPubKeys and QueryExistingRegisteredOperatorSockets
 	// both run in parallel and they read and mutate the same variable startBlock,
 	// so we clone it to prevent the race condition.
-	// TODO: we might want to eventually change the function signature to pass a uint,
-	// but that would be a breaking change
-	for i := new(big.Int).Set(startBlock); i.Cmp(stopBlock) <= 0; i.Add(i, blockRange) {
+	for i := request.StartBlock; i <= request.StopBlock; i += request.BlockRange {
 		// Subtract 1 since FilterQuery is inclusive
-		toBlock := big.NewInt(0).Add(i, big.NewInt(0).Sub(blockRange, big.NewInt(1)))
-		if toBlock.Cmp(stopBlock) > 0 {
-			toBlock = stopBlock
+		toBlock := i + request.BlockRange - 1
+		if toBlock > request.StopBlock {
+			toBlock = request.StopBlock
 		}
+
+		// FilterQuery needs big.Int
+		fromBlockBig := new(big.Int).SetUint64(i)
+		toBlockBig := new(big.Int).SetUint64(toBlock)
+
 		query := ethereum.FilterQuery{
-			FromBlock: i,
-			ToBlock:   toBlock,
-			Addresses: []common.Address{
-				r.blsApkRegistryAddr,
-			},
-			Topics: [][]common.Hash{{blsApkRegistryAbi.Events["NewPubkeyRegistration"].ID}},
+			FromBlock: fromBlockBig,
+			ToBlock:   toBlockBig,
+			Addresses: []common.Address{r.blsApkRegistryAddr},
+			Topics:    [][]common.Hash{{blsApkRegistryAbi.Events["NewPubkeyRegistration"].ID}},
 		}
 
 		logs, err := r.ethClient.FilterLogs(ctx, query)
 		if err != nil {
-			return nil, nil, utils.WrapError("Cannot filter logs", err)
+			return OperatorPubKeysRequestResponse{}, utils.WrapError("Cannot filter logs", err)
 		}
 		r.logger.Debug(
 			"avsRegistryChainReader.QueryExistingRegisteredOperatorPubKeys",
@@ -444,7 +473,7 @@ func (r *ChainReader) QueryExistingRegisteredOperatorPubKeys(
 
 			event, err := blsApkRegistryAbi.Unpack("NewPubkeyRegistration", vLog.Data)
 			if err != nil {
-				return nil, nil, utils.WrapError("Cannot unpack event data", err)
+				return OperatorPubKeysRequestResponse{}, utils.WrapError("Cannot unpack event data", err)
 			}
 
 			G1Pubkey := event[0].(struct {
@@ -472,55 +501,51 @@ func (r *ChainReader) QueryExistingRegisteredOperatorPubKeys(
 		}
 	}
 
-	return operatorAddresses, operatorPubkeys, nil
+	return OperatorPubKeysRequestResponse{
+		OperatorAddresses: operatorAddresses,
+		OperatorsPubkeys:  operatorPubkeys,
+	}, nil
 }
 
 func (r *ChainReader) QueryExistingRegisteredOperatorSockets(
 	ctx context.Context,
-	startBlock *big.Int,
-	stopBlock *big.Int,
-	blockRange *big.Int,
-) (map[types.OperatorId]types.Socket, error) {
+	request OperatorQueryRequest,
+) (OperatorSocketsResponse, error) {
 	if r.registryCoordinator == nil {
-		return nil, errors.New("RegistryCoordinator contract not provided")
+		return OperatorSocketsResponse{}, errors.New("RegistryCoordinator contract not provided")
 	}
 
-	if startBlock == nil {
-		startBlock = big.NewInt(0)
-	}
-	if stopBlock == nil {
+	if request.StopBlock == 0 {
 		curBlockNum, err := r.ethClient.BlockNumber(ctx)
 		if err != nil {
-			return nil, utils.WrapError("Cannot get current block number", err)
+			return OperatorSocketsResponse{}, utils.WrapError("Cannot get current block number", err)
 		}
-		stopBlock = new(big.Int).SetUint64(curBlockNum)
+		request.StopBlock = curBlockNum
 	}
-	if blockRange == nil {
-		blockRange = DefaultQueryBlockRange
+	if request.BlockRange == 0 {
+		request.BlockRange = DefaultQueryBlockRange.Uint64()
 	}
 
 	operatorIdToSocketMap := make(map[types.OperatorId]types.Socket)
 	// QueryExistingRegisteredOperatorPubKeys and QueryExistingRegisteredOperatorSockets
 	// both run in parallel and they read and mutate the same variable startBlock,
 	// so we clone it to prevent the race condition.
-	// TODO: we might want to eventually change the function signature to pass a uint,
-	// but that would be a breaking change
-	for i := new(big.Int).Set(startBlock); i.Cmp(stopBlock) <= 0; i.Add(i, blockRange) {
+	for i := request.StartBlock; i <= request.StopBlock; i += request.BlockRange {
 		// Subtract 1 since FilterQuery is inclusive
-		toBlock := big.NewInt(0).Add(i, big.NewInt(0).Sub(blockRange, big.NewInt(1)))
-		if toBlock.Cmp(stopBlock) > 0 {
-			toBlock = stopBlock
+		toBlock := i + request.BlockRange - 1
+		if toBlock > request.StopBlock {
+			toBlock = request.StopBlock
 		}
 
-		end := toBlock.Uint64()
+		end := toBlock
 
 		filterOpts := &bind.FilterOpts{
-			Start: i.Uint64(),
+			Start: i,
 			End:   &end,
 		}
 		socketUpdates, err := r.registryCoordinator.FilterOperatorSocketUpdate(filterOpts, nil)
 		if err != nil {
-			return nil, utils.WrapError("Cannot filter operator socket updates", err)
+			return OperatorSocketsResponse{}, utils.WrapError("Cannot filter operator socket updates", err)
 		}
 
 		numSocketUpdates := 0
@@ -538,5 +563,5 @@ func (r *ChainReader) QueryExistingRegisteredOperatorSockets(
 			toBlock,
 		)
 	}
-	return operatorIdToSocketMap, nil
+	return OperatorSocketsResponse{Sockets: operatorIdToSocketMap}, nil
 }
