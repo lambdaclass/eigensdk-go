@@ -228,13 +228,10 @@ func (w *ChainWriter) RegisterOperator(
 	// https://github.com/Layr-Labs/eigenlayer-middleware/blob/m2-mainnet/docs/RegistryCoordinator.md#registeroperator
 	// TODO(madhur): check to see if we can make the signer and txmgr more flexible so we can use them (and remote
 	// signers) to sign non txs
-	operatorEcdsaPrivateKey *ecdsa.PrivateKey,
-	blsKeyPair *bls.KeyPair,
-	quorumNumbers types.QuorumNums,
-	socket string,
-	waitForReceipt bool,
+	request OperatorRegisterRequest,
+	txOptions *TxOptions,
 ) (*gethtypes.Receipt, error) {
-	operatorAddr := crypto.PubkeyToAddress(operatorEcdsaPrivateKey.PublicKey)
+	operatorAddr := crypto.PubkeyToAddress(request.OperatorEcdsaPrivateKey.PublicKey)
 	w.logger.Info(
 		"registering operator with the AVS's registry coordinator",
 		"avs-service-manager",
@@ -242,9 +239,9 @@ func (w *ChainWriter) RegisterOperator(
 		"operator",
 		operatorAddr,
 		"quorumNumbers",
-		quorumNumbers,
+		request.QuorumNumbers,
 		"socket",
-		socket,
+		request.Socket,
 	)
 	// params to register bls pubkey with bls apk registry
 	g1HashedMsgToSign, err := w.registryCoordinator.PubkeyRegistrationMessageHash(&bind.CallOpts{}, operatorAddr)
@@ -252,10 +249,10 @@ func (w *ChainWriter) RegisterOperator(
 		return nil, err
 	}
 	signedMsg := chainioutils.ConvertToBN254G1Point(
-		blsKeyPair.SignHashedToCurveMessage(chainioutils.ConvertBn254GethToGnark(g1HashedMsgToSign)).G1Point,
+		request.BlsKeyPair.SignHashedToCurveMessage(chainioutils.ConvertBn254GethToGnark(g1HashedMsgToSign)).G1Point,
 	)
-	G1pubkeyBN254 := chainioutils.ConvertToBN254G1Point(blsKeyPair.GetPubKeyG1())
-	G2pubkeyBN254 := chainioutils.ConvertToBN254G2Point(blsKeyPair.GetPubKeyG2())
+	G1pubkeyBN254 := chainioutils.ConvertToBN254G1Point(request.BlsKeyPair.GetPubKeyG1())
+	G2pubkeyBN254 := chainioutils.ConvertToBN254G2Point(request.BlsKeyPair.GetPubKeyG2())
 	pubkeyRegParams := regcoord.IBLSApkRegistryPubkeyRegistrationParams{
 		PubkeyRegistrationSignature: signedMsg,
 		PubkeyG1:                    G1pubkeyBN254,
@@ -293,7 +290,7 @@ func (w *ChainWriter) RegisterOperator(
 	if err != nil {
 		return nil, err
 	}
-	operatorSignature, err := crypto.Sign(msgToSign[:], operatorEcdsaPrivateKey)
+	operatorSignature, err := crypto.Sign(msgToSign[:], request.OperatorEcdsaPrivateKey)
 	if err != nil {
 		return nil, err
 	}
@@ -307,23 +304,19 @@ func (w *ChainWriter) RegisterOperator(
 		Expiry:    operatorToAvsRegistrationSigExpiry,
 	}
 
-	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
-	if err != nil {
-		return nil, err
-	}
 	// TODO: this call will fail if max number of operators are already registered
 	// in that case, need to call churner to kick out another operator. See eigenDA's node/operator.go implementation
 	tx, err := w.registryCoordinator.RegisterOperator(
-		noSendTxOpts,
-		quorumNumbers.UnderlyingType(),
-		socket,
+		txOptions.Options,
+		request.QuorumNumbers.UnderlyingType(),
+		request.Socket,
 		pubkeyRegParams,
 		operatorSignatureWithSaltAndExpiry,
 	)
 	if err != nil {
 		return nil, err
 	}
-	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
+	receipt, err := w.txMgr.Send(ctx, tx, request.WaitForReceipt)
 	if err != nil {
 		return nil, errors.New("failed to send tx with err: " + err.Error())
 	}
@@ -336,7 +329,7 @@ func (w *ChainWriter) RegisterOperator(
 		"operator",
 		operatorAddr,
 		"quorumNumbers",
-		quorumNumbers,
+		request.QuorumNumbers,
 	)
 	return receipt, nil
 }
@@ -348,24 +341,20 @@ func (w *ChainWriter) RegisterOperator(
 // (highly dependent on number of operators per quorum)
 func (w *ChainWriter) UpdateStakesOfEntireOperatorSetForQuorums(
 	ctx context.Context,
-	operatorsPerQuorum [][]gethcommon.Address,
-	quorumNumbers types.QuorumNums,
-	waitForReceipt bool,
+	request StakesOfEntireOperatorSetForQuorumsRequest,
+	txOptions *TxOptions,
 ) (*gethtypes.Receipt, error) {
-	w.logger.Info("updating stakes for entire operator set", "quorumNumbers", quorumNumbers)
-	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
-	if err != nil {
-		return nil, err
-	}
+	w.logger.Info("updating stakes for entire operator set", "quorumNumbers", request.QuorumNumbers)
+
 	tx, err := w.registryCoordinator.UpdateOperatorsForQuorum(
-		noSendTxOpts,
-		operatorsPerQuorum,
-		quorumNumbers.UnderlyingType(),
+		txOptions.Options,
+		request.OperatorsPerQuorum,
+		request.QuorumNumbers.UnderlyingType(),
 	)
 	if err != nil {
 		return nil, err
 	}
-	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
+	receipt, err := w.txMgr.Send(ctx, tx, request.WaitForReceipt)
 	if err != nil {
 		return nil, errors.New("failed to send tx with err: " + err.Error())
 	}
@@ -374,7 +363,7 @@ func (w *ChainWriter) UpdateStakesOfEntireOperatorSetForQuorums(
 		"txHash",
 		receipt.TxHash.String(),
 		"quorumNumbers",
-		quorumNumbers,
+		request.QuorumNumbers,
 	)
 	return receipt, nil
 
@@ -382,19 +371,16 @@ func (w *ChainWriter) UpdateStakesOfEntireOperatorSetForQuorums(
 
 func (w *ChainWriter) UpdateStakesOfOperatorSubsetForAllQuorums(
 	ctx context.Context,
-	operators []gethcommon.Address,
-	waitForReceipt bool,
+	request StakesOfOperatorSubsetForAllQuorumsRequest,
+	txOptions *TxOptions,
 ) (*gethtypes.Receipt, error) {
-	w.logger.Info("updating stakes of operator subset for all quorums", "operators", operators)
-	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
+	w.logger.Info("updating stakes of operator subset for all quorums", "operators", request.OperatorsAddresses)
+
+	tx, err := w.registryCoordinator.UpdateOperators(txOptions.Options, request.OperatorsAddresses)
 	if err != nil {
 		return nil, err
 	}
-	tx, err := w.registryCoordinator.UpdateOperators(noSendTxOpts, operators)
-	if err != nil {
-		return nil, err
-	}
-	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
+	receipt, err := w.txMgr.Send(ctx, tx, request.WaitForReceipt)
 	if err != nil {
 		return nil, errors.New("failed to send tx with err: " + err.Error())
 	}
@@ -403,27 +389,23 @@ func (w *ChainWriter) UpdateStakesOfOperatorSubsetForAllQuorums(
 		"txHash",
 		receipt.TxHash.String(),
 		"operators",
-		operators,
+		request.OperatorsAddresses,
 	)
 	return receipt, nil
 }
 
 func (w *ChainWriter) DeregisterOperator(
 	ctx context.Context,
-	quorumNumbers types.QuorumNums,
-	pubkey regcoord.BN254G1Point,
-	waitForReceipt bool,
+	request OperatorDeregisterRequest,
+	txOptions *TxOptions,
 ) (*gethtypes.Receipt, error) {
 	w.logger.Info("deregistering operator with the AVS's registry coordinator")
-	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
+
+	tx, err := w.registryCoordinator.DeregisterOperator0(txOptions.Options, request.QuorumNumbers.UnderlyingType())
 	if err != nil {
 		return nil, err
 	}
-	tx, err := w.registryCoordinator.DeregisterOperator0(noSendTxOpts, quorumNumbers.UnderlyingType())
-	if err != nil {
-		return nil, err
-	}
-	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
+	receipt, err := w.txMgr.Send(ctx, tx, request.WaitForReceipt)
 	if err != nil {
 		return nil, errors.New("failed to send tx with err: " + err.Error())
 	}
@@ -437,23 +419,22 @@ func (w *ChainWriter) DeregisterOperator(
 
 func (w *ChainWriter) DeregisterOperatorOperatorSets(
 	ctx context.Context,
-	operatorSetIds types.OperatorSetIds,
-	operator types.Operator,
-	pubkey regcoord.BN254G1Point,
-	waitForReceipt bool,
+	request OperatorDeregisterOperatorSetsRequest,
+	txOptions *TxOptions,
 ) (*gethtypes.Receipt, error) {
 	w.logger.Info("deregistering operator with the AVS's registry coordinator")
 
-	operatorAddress := gethcommon.HexToAddress(operator.Address)
-	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
+	operatorAddress := gethcommon.HexToAddress(request.Operator.Address)
+
+	tx, err := w.registryCoordinator.DeregisterOperator(
+		txOptions.Options,
+		operatorAddress,
+		request.OperatorSetIds.UnderlyingType(),
+	)
 	if err != nil {
 		return nil, err
 	}
-	tx, err := w.registryCoordinator.DeregisterOperator(noSendTxOpts, operatorAddress, operatorSetIds.UnderlyingType())
-	if err != nil {
-		return nil, err
-	}
-	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
+	receipt, err := w.txMgr.Send(ctx, tx, request.WaitForReceipt)
 	if err != nil {
 		return nil, errors.New("failed to send tx with err: " + err.Error())
 	}
@@ -467,18 +448,14 @@ func (w *ChainWriter) DeregisterOperatorOperatorSets(
 
 func (w *ChainWriter) UpdateSocket(
 	ctx context.Context,
-	socket types.Socket,
-	waitForReceipt bool,
+	request SocketUpdateRequest,
+	txOptions *TxOptions,
 ) (*gethtypes.Receipt, error) {
-	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
+	tx, err := w.registryCoordinator.UpdateSocket(txOptions.Options, request.Socket.String())
 	if err != nil {
 		return nil, err
 	}
-	tx, err := w.registryCoordinator.UpdateSocket(noSendTxOpts, socket.String())
-	if err != nil {
-		return nil, err
-	}
-	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
+	receipt, err := w.txMgr.Send(ctx, tx, request.WaitForReceipt)
 	if err != nil {
 		return nil, errors.New("failed to send UpdateSocket tx with err: " + err.Error())
 	}

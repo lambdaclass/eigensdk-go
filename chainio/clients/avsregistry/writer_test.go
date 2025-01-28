@@ -35,6 +35,14 @@ func TestWriterMethods(t *testing.T) {
 	chainWriter, err := testclients.NewTestAvsRegistryWriterFromConfig(anvilHttpEndpoint, operatorPrivateKeyHex, config)
 	require.NoError(t, err)
 
+	txManager, err := testclients.NewTestTxManager(anvilHttpEndpoint, operatorPrivateKeyHex)
+	require.NoError(t, err)
+	opts, err := txManager.GetNoSendTxOpts()
+	require.NoError(t, err)
+	txOptions := &avsregistry.TxOptions{
+		Options: opts,
+	}
+
 	keypair, err := bls.NewKeyPairFromString("0x01")
 	require.NoError(t, err)
 
@@ -47,74 +55,101 @@ func TestWriterMethods(t *testing.T) {
 	t.Run("update socket without being registered", func(t *testing.T) {
 		receipt, err := chainWriter.UpdateSocket(
 			context.Background(),
-			types.Socket("102901920192019201902910291209"),
-			true,
+			avsregistry.SocketUpdateRequest{
+				Socket:         types.Socket("102901920192019201902910291209"),
+				WaitForReceipt: true,
+			},
+			txOptions,
 		)
 		assert.Error(t, err)
 		assert.Nil(t, receipt)
 	})
 
 	t.Run("register operator", func(t *testing.T) {
+		request := avsregistry.OperatorRegisterRequest{
+			OperatorEcdsaPrivateKey: ecdsaPrivateKey,
+			BlsKeyPair:              keypair,
+			QuorumNumbers:           quorumNumbers,
+			Socket:                  "",
+			WaitForReceipt:          true,
+		}
 		receipt, err := chainWriter.RegisterOperator(
 			context.Background(),
-			ecdsaPrivateKey,
-			keypair,
-			quorumNumbers,
-			"",
-			true,
+			request,
+			txOptions,
 		)
 		require.NoError(t, err)
 		require.NotNil(t, receipt)
 	})
 
 	t.Run("update stake of operator subset", func(t *testing.T) {
+		request := avsregistry.StakesOfOperatorSubsetForAllQuorumsRequest{
+			OperatorsAddresses: []gethcommon.Address{addr},
+			WaitForReceipt:     true,
+		}
 		receipt, err := chainWriter.UpdateStakesOfOperatorSubsetForAllQuorums(
 			context.Background(),
-			[]gethcommon.Address{addr},
-			true,
+			request,
+			txOptions,
 		)
 		require.NoError(t, err)
 		require.NotNil(t, receipt)
 	})
 
 	t.Run("update stake of entire operator set", func(t *testing.T) {
+		request := avsregistry.StakesOfEntireOperatorSetForQuorumsRequest{
+			OperatorsPerQuorum: [][]gethcommon.Address{{addr}},
+			QuorumNumbers:      quorumNumbers,
+			WaitForReceipt:     true,
+		}
 		receipt, err := chainWriter.UpdateStakesOfEntireOperatorSetForQuorums(
 			context.Background(),
-			[][]gethcommon.Address{{addr}},
-			quorumNumbers,
-			true,
+			request,
+			txOptions,
 		)
 		require.NoError(t, err)
 		require.NotNil(t, receipt)
 	})
 
 	t.Run("deregister operator", func(t *testing.T) {
+		request := avsregistry.OperatorDeregisterRequest{
+			QuorumNumbers:  quorumNumbers,
+			Pubkey:         chainioutils.ConvertToBN254G1Point(keypair.PubKey),
+			WaitForReceipt: true,
+		}
 		receipt, err := chainWriter.DeregisterOperator(
 			context.Background(),
-			quorumNumbers,
-			chainioutils.ConvertToBN254G1Point(keypair.PubKey),
-			true,
+			request,
+			txOptions,
 		)
 		require.NoError(t, err)
 		require.NotNil(t, receipt)
 	})
 
 	t.Run("update socket", func(t *testing.T) {
+		request := avsregistry.OperatorRegisterRequest{
+			OperatorEcdsaPrivateKey: ecdsaPrivateKey,
+			BlsKeyPair:              keypair,
+			QuorumNumbers:           quorumNumbers,
+			Socket:                  "",
+			WaitForReceipt:          true,
+		}
 		receipt, err := chainWriter.RegisterOperator(
 			context.Background(),
-			ecdsaPrivateKey,
-			keypair,
-			quorumNumbers,
-			"",
-			true,
+			request,
+			txOptions,
 		)
 		require.NoError(t, err)
 		require.NotNil(t, receipt)
 
+		requestSocket := avsregistry.SocketUpdateRequest{
+			Socket:         types.Socket(""),
+			WaitForReceipt: true,
+		}
 		receipt, err = chainWriter.UpdateSocket(
 			context.Background(),
-			types.Socket(""),
-			true,
+			requestSocket,
+			txOptions,
 		)
 		require.NoError(t, err)
 		require.NotNil(t, receipt)
@@ -126,11 +161,14 @@ func TestWriterMethods(t *testing.T) {
 		cancelFn()
 		receipt, err := chainWriter.RegisterOperator(
 			subCtx,
-			ecdsaPrivateKey,
-			keypair,
-			quorumNumbers,
-			"",
-			true,
+			avsregistry.OperatorRegisterRequest{
+				OperatorEcdsaPrivateKey: ecdsaPrivateKey,
+				BlsKeyPair:              keypair,
+				QuorumNumbers:           quorumNumbers,
+				Socket:                  "",
+				WaitForReceipt:          true,
+			},
+			txOptions,
 		)
 		assert.Error(t, err)
 		assert.Nil(t, receipt)
@@ -141,8 +179,11 @@ func TestWriterMethods(t *testing.T) {
 		cancelFn()
 		receipt, err := chainWriter.UpdateStakesOfOperatorSubsetForAllQuorums(
 			subCtx,
-			[]gethcommon.Address{addr},
-			true,
+			avsregistry.StakesOfOperatorSubsetForAllQuorumsRequest{
+				OperatorsAddresses: []gethcommon.Address{addr},
+				WaitForReceipt:     true,
+			},
+			txOptions,
 		)
 		assert.Error(t, err)
 		assert.Nil(t, receipt)
@@ -153,9 +194,12 @@ func TestWriterMethods(t *testing.T) {
 		cancelFn()
 		receipt, err := chainWriter.UpdateStakesOfEntireOperatorSetForQuorums(
 			subCtx,
-			[][]gethcommon.Address{{addr}},
-			quorumNumbers,
-			true,
+			avsregistry.StakesOfEntireOperatorSetForQuorumsRequest{
+				OperatorsPerQuorum: [][]gethcommon.Address{{addr}},
+				QuorumNumbers:      quorumNumbers,
+				WaitForReceipt:     true,
+			},
+			txOptions,
 		)
 		assert.Error(t, err)
 		assert.Nil(t, receipt)
@@ -165,9 +209,12 @@ func TestWriterMethods(t *testing.T) {
 		// Fails because operators per quorum length is distinct from quorum numbers
 		receipt, err := chainWriter.UpdateStakesOfEntireOperatorSetForQuorums(
 			context.Background(),
-			[][]gethcommon.Address{{addr, addr}},
-			quorumNumbers,
-			true,
+			avsregistry.StakesOfEntireOperatorSetForQuorumsRequest{
+				OperatorsPerQuorum: [][]gethcommon.Address{{addr}},
+				QuorumNumbers:      types.QuorumNums{0, 1},
+				WaitForReceipt:     true,
+			},
+			txOptions,
 		)
 		assert.Error(t, err)
 		assert.Nil(t, receipt)
@@ -178,21 +225,27 @@ func TestWriterMethods(t *testing.T) {
 		cancelFn()
 		receipt, err := chainWriter.DeregisterOperator(
 			subCtx,
-			quorumNumbers,
-			chainioutils.ConvertToBN254G1Point(keypair.PubKey),
-			true,
+			avsregistry.OperatorDeregisterRequest{
+				QuorumNumbers:  quorumNumbers,
+				Pubkey:         chainioutils.ConvertToBN254G1Point(keypair.PubKey),
+				WaitForReceipt: true,
+			},
+			txOptions,
 		)
 		assert.Error(t, err)
 		assert.Nil(t, receipt)
 	})
 
 	t.Run("fail deregister operator because of operator not registered", func(t *testing.T) {
-		quorumNumbers := types.QuorumNums{}
+		request := avsregistry.OperatorDeregisterRequest{
+			QuorumNumbers:  types.QuorumNums{},
+			Pubkey:         chainioutils.ConvertToBN254G1Point(keypair.PubKey),
+			WaitForReceipt: true,
+		}
 		receipt, err := chainWriter.DeregisterOperator(
 			context.Background(),
-			quorumNumbers,
-			chainioutils.ConvertToBN254G1Point(keypair.PubKey),
-			true,
+			request,
+			txOptions,
 		)
 		assert.Error(t, err)
 		assert.Nil(t, receipt)
@@ -204,8 +257,11 @@ func TestWriterMethods(t *testing.T) {
 		cancelFn()
 		receipt, err := chainWriter.UpdateSocket(
 			subCtx,
-			types.Socket(""),
-			true,
+			avsregistry.SocketUpdateRequest{
+				Socket:         types.Socket(""),
+				WaitForReceipt: true,
+			},
+			txOptions,
 		)
 		assert.Error(t, err)
 		assert.Nil(t, receipt)

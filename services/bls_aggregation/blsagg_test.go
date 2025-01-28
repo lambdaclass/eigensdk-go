@@ -24,6 +24,7 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/require"
 
+	avs "github.com/Layr-Labs/eigensdk-go/chainio/clients/avsregistry"
 	avssm "github.com/Layr-Labs/eigensdk-go/contracts/bindings/MockAvsServiceManager"
 )
 
@@ -1721,14 +1722,22 @@ func TestIntegrationBlsAgg(t *testing.T) {
 		blsAggServ := NewBlsAggregatorService(avsRegistryService, hashFunction, logger)
 
 		// register operator
+		opts, err := avsClients.TxManager.GetNoSendTxOpts()
+		require.NoError(t, err)
+		txOptions := &avs.TxOptions{
+			Options: opts,
+		}
 		quorumNumbers := testData.Input.QuorumNumbers
 		_, err = avsWriter.RegisterOperator(
 			context.Background(),
-			ecdsaPrivKey,
-			blsKeyPair,
-			quorumNumbers,
-			"socket",
-			true,
+			avs.OperatorRegisterRequest{
+				OperatorEcdsaPrivateKey: ecdsaPrivKey,
+				QuorumNumbers:           quorumNumbers,
+				BlsKeyPair:              blsKeyPair,
+				Socket:                  "socket",
+				WaitForReceipt:          true,
+			},
+			txOptions,
 		)
 		require.NoError(t, err)
 

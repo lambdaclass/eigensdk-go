@@ -1,12 +1,20 @@
 package avsregistry
 
 import (
+	"crypto/ecdsa"
 	"math/big"
 
 	opstateretriever "github.com/Layr-Labs/eigensdk-go/contracts/bindings/OperatorStateRetriever"
+	regcoord "github.com/Layr-Labs/eigensdk-go/contracts/bindings/RegistryCoordinator"
+	"github.com/Layr-Labs/eigensdk-go/crypto/bls"
 	"github.com/Layr-Labs/eigensdk-go/types"
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	gethcommon "github.com/ethereum/go-ethereum/common"
 )
+
+type TxOptions struct {
+	Options *bind.TransactOpts
+}
 
 type QuorumCountRequest struct {
 	BlockNumber *big.Int
@@ -126,4 +134,41 @@ type OperatorStakeInQuorumsOfOperatorAtCurrentBlockRequest struct {
 
 type OperatorStakeInQuorumsOfOperatorResponse struct {
 	QuorumStakes map[types.QuorumNum]types.StakeAmount
+}
+
+type OperatorRegisterRequest struct {
+	OperatorEcdsaPrivateKey *ecdsa.PrivateKey
+	BlsKeyPair              *bls.KeyPair
+	QuorumNumbers           types.QuorumNums
+	Socket                  string
+	WaitForReceipt          bool
+}
+
+type StakesOfEntireOperatorSetForQuorumsRequest struct {
+	OperatorsPerQuorum [][]gethcommon.Address
+	QuorumNumbers      types.QuorumNums
+	WaitForReceipt     bool
+}
+
+type StakesOfOperatorSubsetForAllQuorumsRequest struct {
+	OperatorsAddresses []gethcommon.Address
+	WaitForReceipt     bool
+}
+
+type OperatorDeregisterRequest struct {
+	QuorumNumbers  types.QuorumNums
+	Pubkey         regcoord.BN254G1Point
+	WaitForReceipt bool
+}
+
+type OperatorDeregisterOperatorSetsRequest struct {
+	OperatorSetIds types.OperatorSetIds
+	Operator       types.Operator
+	Pubkey         regcoord.BN254G1Point
+	WaitForReceipt bool
+}
+
+type SocketUpdateRequest struct {
+	Socket         types.Socket
+	WaitForReceipt bool
 }
