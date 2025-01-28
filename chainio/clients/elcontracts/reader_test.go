@@ -771,13 +771,13 @@ func TestContractErrorCases(t *testing.T) {
 	t.Run("GetStrategyAndUnderlyingToken", func(t *testing.T) {
 		_, _, err := chainReader.GetStrategyAndUnderlyingToken(ctx, strategyAddr)
 		assert.Error(t, err)
-		assert.Equal(t, err.Error(), "Failed to fetch token contract: no contract code at given address")
+		assert.Equal(t, err.Error(), "Binding error(2) - Error happened while fetching token contract: no contract code at given address")
 	})
 
 	t.Run("GetStrategyAndUnderlyingERC20Token", func(t *testing.T) {
 		_, _, _, err := chainReader.GetStrategyAndUnderlyingERC20Token(ctx, strategyAddr)
 		assert.Error(t, err)
-		assert.Equal(t, err.Error(), "Failed to fetch token contract: no contract code at given address")
+		assert.Equal(t, err.Error(), "Binding error(2) - Error happened while fetching token contract: no contract code at given address")
 	})
 }
 
