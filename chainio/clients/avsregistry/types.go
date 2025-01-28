@@ -63,8 +63,6 @@ type OperatorRegisteredResponse struct {
 	IsRegistered bool
 }
 
-// Uint64 or Uint32? There was a comment in the original code that
-// wants to use uint instead of big.Int
 type OperatorQueryRequest struct {
 	BlockNumber *big.Int
 	StartBlock  uint64

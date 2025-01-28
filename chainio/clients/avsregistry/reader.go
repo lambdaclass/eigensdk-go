@@ -22,7 +22,7 @@ import (
 
 // DefaultQueryBlockRange different node providers have different eth_getLogs range limits.
 // 10k is an arbitrary choice that should work for most
-var DefaultQueryBlockRange = big.NewInt(10_000)
+var DefaultQueryBlockRange uint64 = 10_000
 
 type Config struct {
 	RegistryCoordinatorAddress    common.Address
@@ -426,7 +426,7 @@ func (r *ChainReader) QueryExistingRegisteredOperatorPubKeys(
 		request.StopBlock = curBlockNum
 	}
 	if request.BlockRange == 0 {
-		request.BlockRange = DefaultQueryBlockRange.Uint64()
+		request.BlockRange = DefaultQueryBlockRange
 	}
 
 	operatorAddresses := make([]types.OperatorAddr, 0)
@@ -523,7 +523,7 @@ func (r *ChainReader) QueryExistingRegisteredOperatorSockets(
 		request.StopBlock = curBlockNum
 	}
 	if request.BlockRange == 0 {
-		request.BlockRange = DefaultQueryBlockRange.Uint64()
+		request.BlockRange = DefaultQueryBlockRange
 	}
 
 	operatorIdToSocketMap := make(map[types.OperatorId]types.Socket)
