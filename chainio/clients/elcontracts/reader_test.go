@@ -1339,7 +1339,7 @@ func TestCreateRederFromConfig(t *testing.T) {
 		assert.Equal(
 			t,
 			err.Error(),
-			"Other errors(3) - Error happened while calling NewBindingsFromConfig: Failed to fetch StrategyManager address: no contract code at given address",
+			"Nested error(2) - Error happened while calling NewBindingsFromConfig: Failed to fetch StrategyManager address: no contract code at given address",
 		)
 	})
 }

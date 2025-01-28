@@ -75,7 +75,7 @@ func NewReaderFromConfig(
 		logger,
 	)
 	if err != nil {
-		wrappedError := Error{3, "Other errors", "Error happened while calling NewBindingsFromConfig", err}
+		wrappedError := CreateForNestedError("NewBindingsFromConfig", err)
 		return nil, wrappedError
 	}
 	return NewChainReader(
