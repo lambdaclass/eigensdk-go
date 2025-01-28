@@ -100,7 +100,10 @@ func (r *ChainReader) IsOperatorRegistered(
 		return false, wrappedError
 	}
 
-	isRegistered, err := r.delegationManager.IsOperator(&bind.CallOpts{Context: ctx}, gethcommon.HexToAddress(operator.Address))
+	isRegistered, err := r.delegationManager.IsOperator(
+		&bind.CallOpts{Context: ctx},
+		gethcommon.HexToAddress(operator.Address),
+	)
 	if err != nil {
 		wrappedError := Error{0, "Binding error", "Error happened while calling delegationManager.IsOperator", err}
 		return false, wrappedError
@@ -122,7 +125,12 @@ func (r *ChainReader) GetStakerShares(
 
 	addresses, shares, err := r.delegationManager.GetDepositedShares(&bind.CallOpts{Context: ctx}, stakerAddress)
 	if err != nil {
-		wrappedError := Error{0, "Binding error", "Error happened while calling delegationManager.GetDepositedShares", err}
+		wrappedError := Error{
+			0,
+			"Binding error",
+			"Error happened while calling delegationManager.GetDepositedShares",
+			err,
+		}
 		return nil, nil, wrappedError
 	}
 
@@ -164,7 +172,12 @@ func (r *ChainReader) GetOperatorDetails(
 	)
 	// This call should not fail since it's a getter
 	if err != nil {
-		wrappedError := Error{0, "Binding error", "Error happened while calling delegationManager.DelegationApprover", err}
+		wrappedError := Error{
+			0,
+			"Binding error",
+			"Error happened while calling delegationManager.DelegationApprover",
+			err,
+		}
 		return types.Operator{}, wrappedError
 	}
 
@@ -177,7 +190,12 @@ func (r *ChainReader) GetOperatorDetails(
 	)
 	// This call should not fail
 	if err != nil {
-		wrappedError := Error{0, "Binding error", "Error happened while calling allocationManager.GetAllocationDelay", err}
+		wrappedError := Error{
+			0,
+			"Binding error",
+			"Error happened while calling allocationManager.GetAllocationDelay",
+			err,
+		}
 		return types.Operator{}, wrappedError
 	}
 
@@ -285,7 +303,12 @@ func (r *ChainReader) CalculateDelegationApprovalDigestHash(
 		expiry,
 	)
 	if err != nil {
-		wrappedError := Error{0, "Binding error", "Error happened while calling delegationManager.CalculateDelegationApprovalDigestHash", err}
+		wrappedError := Error{
+			0,
+			"Binding error",
+			"Error happened while calling delegationManager.CalculateDelegationApprovalDigestHash",
+			err,
+		}
 		return [32]byte{}, wrappedError
 	}
 
@@ -312,7 +335,12 @@ func (r *ChainReader) CalculateOperatorAVSRegistrationDigestHash(
 		expiry,
 	)
 	if err != nil {
-		wrappedError := Error{0, "Binding error", "Error happened while calling avsDirectory.CalculateOperatorAVSRegistrationDigestHash", err}
+		wrappedError := Error{
+			0,
+			"Binding error",
+			"Error happened while calling avsDirectory.CalculateOperatorAVSRegistrationDigestHash",
+			err,
+		}
 		return [32]byte{}, wrappedError
 	}
 
@@ -327,7 +355,12 @@ func (r *ChainReader) GetDistributionRootsLength(ctx context.Context) (*big.Int,
 
 	distributionRootsLength, err := r.rewardsCoordinator.GetDistributionRootsLength(&bind.CallOpts{Context: ctx})
 	if err != nil {
-		wrappedError := Error{0, "Binding error", "Error happened while calling rewardsCoordinator.GetDistributionRootsLength", err}
+		wrappedError := Error{
+			0,
+			"Binding error",
+			"Error happened while calling rewardsCoordinator.GetDistributionRootsLength",
+			err,
+		}
 		return &big.Int{}, wrappedError
 	}
 
@@ -342,7 +375,12 @@ func (r *ChainReader) CurrRewardsCalculationEndTimestamp(ctx context.Context) (u
 
 	endTimestamp, err := r.rewardsCoordinator.CurrRewardsCalculationEndTimestamp(&bind.CallOpts{Context: ctx})
 	if err != nil {
-		wrappedError := Error{0, "Binding error", "Error happened while calling rewardsCoordinator.CurrRewardsCalculationEndTimestamp", err}
+		wrappedError := Error{
+			0,
+			"Binding error",
+			"Error happened while calling rewardsCoordinator.CurrRewardsCalculationEndTimestamp",
+			err,
+		}
 		return 0, wrappedError
 	}
 
@@ -359,7 +397,12 @@ func (r *ChainReader) GetCurrentClaimableDistributionRoot(
 
 	distributionRoot, err := r.rewardsCoordinator.GetCurrentClaimableDistributionRoot(&bind.CallOpts{Context: ctx})
 	if err != nil {
-		wrappedError := Error{0, "Binding error", "Error happened while calling rewardsCoordinator.GetCurrentClaimableDistributionRoot", err}
+		wrappedError := Error{
+			0,
+			"Binding error",
+			"Error happened while calling rewardsCoordinator.GetCurrentClaimableDistributionRoot",
+			err,
+		}
 		return rewardscoordinator.IRewardsCoordinatorTypesDistributionRoot{}, wrappedError
 	}
 
@@ -377,7 +420,12 @@ func (r *ChainReader) GetRootIndexFromHash(
 
 	rootIndex, err := r.rewardsCoordinator.GetRootIndexFromHash(&bind.CallOpts{Context: ctx}, rootHash)
 	if err != nil {
-		wrappedError := Error{0, "Binding error", "Error happened while calling rewardsCoordinator.GetRootIndexFromHash", err}
+		wrappedError := Error{
+			0,
+			"Binding error",
+			"Error happened while calling rewardsCoordinator.GetRootIndexFromHash",
+			err,
+		}
 		return 0, wrappedError
 	}
 
@@ -396,7 +444,12 @@ func (r *ChainReader) GetCumulativeClaimed(
 
 	cumulativeClaimed, err := r.rewardsCoordinator.CumulativeClaimed(&bind.CallOpts{Context: ctx}, earner, token)
 	if err != nil {
-		wrappedError := Error{0, "Binding error", "Error happened while calling rewardsCoordinator.CumulativeClaimed", err}
+		wrappedError := Error{
+			0,
+			"Binding error",
+			"Error happened while calling rewardsCoordinator.CumulativeClaimed",
+			err,
+		}
 		return nil, wrappedError
 	}
 
@@ -433,7 +486,12 @@ func (r *ChainReader) GetOperatorAVSSplit(
 
 	operatorSplit, err := r.rewardsCoordinator.GetOperatorAVSSplit(&bind.CallOpts{Context: ctx}, operator, avs)
 	if err != nil {
-		wrappedError := Error{0, "Binding error", "Error happened while calling rewardsCoordinator.GetOperatorAVSSplit", err}
+		wrappedError := Error{
+			0,
+			"Binding error",
+			"Error happened while calling rewardsCoordinator.GetOperatorAVSSplit",
+			err,
+		}
 		return 0, wrappedError
 	}
 
@@ -451,7 +509,12 @@ func (r *ChainReader) GetOperatorPISplit(
 
 	operatorSplit, err := r.rewardsCoordinator.GetOperatorPISplit(&bind.CallOpts{Context: ctx}, operator)
 	if err != nil {
-		wrappedError := Error{0, "Binding error", "Error happened while calling rewardsCoordinator.GetOperatorPISplit", err}
+		wrappedError := Error{
+			0,
+			"Binding error",
+			"Error happened while calling rewardsCoordinator.GetOperatorPISplit",
+			err,
+		}
 		return 0, wrappedError
 	}
 
@@ -468,9 +531,18 @@ func (r *ChainReader) GetAllocatableMagnitude(
 		return 0, wrappedError
 	}
 
-	allocatableMagnitude, err := r.allocationManager.GetAllocatableMagnitude(&bind.CallOpts{Context: ctx}, operatorAddress, strategyAddress)
+	allocatableMagnitude, err := r.allocationManager.GetAllocatableMagnitude(
+		&bind.CallOpts{Context: ctx},
+		operatorAddress,
+		strategyAddress,
+	)
 	if err != nil {
-		wrappedError := Error{0, "Binding error", "Error happened while calling allocationManager.GetAllocatableMagnitude", err}
+		wrappedError := Error{
+			0,
+			"Binding error",
+			"Error happened while calling allocationManager.GetAllocatableMagnitude",
+			err,
+		}
 		return 0, wrappedError
 	}
 
@@ -487,9 +559,18 @@ func (r *ChainReader) GetMaxMagnitudes(
 		return []uint64{}, wrappedError
 	}
 
-	maxMagnitudes, err := r.allocationManager.GetMaxMagnitudes0(&bind.CallOpts{Context: ctx}, operatorAddress, strategyAddresses)
+	maxMagnitudes, err := r.allocationManager.GetMaxMagnitudes0(
+		&bind.CallOpts{Context: ctx},
+		operatorAddress,
+		strategyAddresses,
+	)
 	if err != nil {
-		wrappedError := Error{0, "Binding error", "Error happened while calling allocationManager.GetMaxMagnitudes0", err}
+		wrappedError := Error{
+			0,
+			"Binding error",
+			"Error happened while calling allocationManager.GetMaxMagnitudes0",
+			err,
+		}
 		return []uint64{}, wrappedError
 	}
 
@@ -513,7 +594,12 @@ func (r *ChainReader) GetAllocationInfo(
 	)
 	// This call should not fail since it's a getter
 	if err != nil {
-		wrappedError := Error{0, "Binding error", "Error happened while calling allocationManager.GetStrategyAllocations", err}
+		wrappedError := Error{
+			0,
+			"Binding error",
+			"Error happened while calling allocationManager.GetStrategyAllocations",
+			err,
+		}
 		return nil, wrappedError
 	}
 
@@ -545,7 +631,12 @@ func (r *ChainReader) GetOperatorShares(
 		Context: ctx,
 	}, operatorAddress, strategyAddresses)
 	if err != nil {
-		wrappedError := Error{0, "Binding error", "Error happened while calling delegationManager.GetOperatorShares", err}
+		wrappedError := Error{
+			0,
+			"Binding error",
+			"Error happened while calling delegationManager.GetOperatorShares",
+			err,
+		}
 		return nil, wrappedError
 	}
 
@@ -562,9 +653,18 @@ func (r *ChainReader) GetOperatorsShares(
 		return nil, wrappedError
 	}
 
-	operatorsShares, err := r.delegationManager.GetOperatorsShares(&bind.CallOpts{Context: ctx}, operatorAddresses, strategyAddresses)
+	operatorsShares, err := r.delegationManager.GetOperatorsShares(
+		&bind.CallOpts{Context: ctx},
+		operatorAddresses,
+		strategyAddresses,
+	)
 	if err != nil {
-		wrappedError := Error{0, "Binding error", "Error happened while calling delegationManager.GetOperatorsShares", err}
+		wrappedError := Error{
+			0,
+			"Binding error",
+			"Error happened while calling delegationManager.GetOperatorsShares",
+			err,
+		}
 		return nil, wrappedError
 	}
 
@@ -583,7 +683,12 @@ func (r *ChainReader) GetNumOperatorSetsForOperator(
 	}
 	opSets, err := r.allocationManager.GetAllocatedSets(&bind.CallOpts{Context: ctx}, operatorAddress)
 	if err != nil {
-		wrappedError := Error{0, "Binding error", "Error happened while calling allocationManager.GetAllocatedSets", err}
+		wrappedError := Error{
+			0,
+			"Binding error",
+			"Error happened while calling allocationManager.GetAllocatedSets",
+			err,
+		}
 		return nil, wrappedError
 	}
 	return big.NewInt(int64(len(opSets))), nil
@@ -603,7 +708,12 @@ func (r *ChainReader) GetOperatorSetsForOperator(
 	// paginate?
 	allocatedSets, err := r.allocationManager.GetAllocatedSets(&bind.CallOpts{Context: ctx}, operatorAddress)
 	if err != nil {
-		wrappedError := Error{0, "Binding error", "Error happened while calling allocationManager.GetAllocatedSets", err}
+		wrappedError := Error{
+			0,
+			"Binding error",
+			"Error happened while calling allocationManager.GetAllocatedSets",
+			err,
+		}
 		return nil, wrappedError
 	}
 
@@ -626,7 +736,12 @@ func (r *ChainReader) IsOperatorRegisteredWithOperatorSet(
 		status, err := r.avsDirectory.AvsOperatorStatus(&bind.CallOpts{Context: ctx}, operatorSet.Avs, operatorAddress)
 		// This call should not fail since it's a getter
 		if err != nil {
-			wrappedError := Error{0, "Binding error", "Error happened while calling avsDirectory.AvsOperatorStatus", err}
+			wrappedError := Error{
+				0,
+				"Binding error",
+				"Error happened while calling avsDirectory.AvsOperatorStatus",
+				err,
+			}
 			return false, wrappedError
 		}
 
@@ -750,7 +865,12 @@ func (r *ChainReader) GetSlashableShares(
 	)
 	// This call should not fail since it's a getter
 	if err != nil {
-		wrappedError := Error{0, "Binding error", "Error happened while calling allocationManager.GetMinimumSlashableStake", err}
+		wrappedError := Error{
+			0,
+			"Binding error",
+			"Error happened while calling allocationManager.GetMinimumSlashableStake",
+			err,
+		}
 		return nil, wrappedError
 	}
 	if len(slashableShares) == 0 {
@@ -783,7 +903,12 @@ func (r *ChainReader) GetSlashableSharesForOperatorSets(
 
 	operatorSetStakes, err := r.GetSlashableSharesForOperatorSetsBefore(ctx, operatorSets, uint32(currentBlock))
 	if err != nil {
-		wrappedError := Error{2, "Nested error", "Error happened while calling GetSlashableSharesForOperatorSetsBefore", err}
+		wrappedError := Error{
+			2,
+			"Nested error",
+			"Error happened while calling GetSlashableSharesForOperatorSetsBefore",
+			err,
+		}
 		return nil, wrappedError
 	}
 
@@ -827,7 +952,12 @@ func (r *ChainReader) GetSlashableSharesForOperatorSetsBefore(
 		)
 		// This call should not fail since it's a getter
 		if err != nil {
-			wrappedError := Error{0, "Binding error", "Error happened while calling allocationManager.GetMinimumSlashableStake", err}
+			wrappedError := Error{
+				0,
+				"Binding error",
+				"Error happened while calling allocationManager.GetMinimumSlashableStake",
+				err,
+			}
 			return nil, wrappedError
 		}
 
@@ -853,7 +983,12 @@ func (r *ChainReader) GetAllocationDelay(
 	isSet, delay, err := r.allocationManager.GetAllocationDelay(&bind.CallOpts{Context: ctx}, operatorAddress)
 	// This call should not fail since it's a getter
 	if err != nil {
-		wrappedError := Error{0, "Binding error", "Error happened while calling allocationManager.GetAllocationDelay", err}
+		wrappedError := Error{
+			0,
+			"Binding error",
+			"Error happened while calling allocationManager.GetAllocationDelay",
+			err,
+		}
 		return 0, wrappedError
 	}
 	if !isSet {
@@ -874,7 +1009,12 @@ func (r *ChainReader) GetRegisteredSets(
 
 	registeredSets, err := r.allocationManager.GetRegisteredSets(&bind.CallOpts{Context: ctx}, operatorAddress)
 	if err != nil {
-		wrappedError := Error{0, "Binding error", "Error happened while calling allocationManager.GetRegisteredSets", err}
+		wrappedError := Error{
+			0,
+			"Binding error",
+			"Error happened while calling allocationManager.GetRegisteredSets",
+			err,
+		}
 		return nil, wrappedError
 	}
 
