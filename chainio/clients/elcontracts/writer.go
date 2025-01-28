@@ -147,7 +147,8 @@ func (w *ChainWriter) RegisterAsOperator(
 		operator.MetadataUrl,
 	)
 	if err != nil {
-		return nil, err
+		wrappedError := CreateForTxGenerationError("delegationManager.RegisterAsOperator", err)
+		return nil, wrappedError
 	}
 	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
 	if err != nil {
@@ -182,7 +183,8 @@ func (w *ChainWriter) UpdateOperatorDetails(
 		gethcommon.HexToAddress(operator.DelegationApproverAddress),
 	)
 	if err != nil {
-		return nil, err
+		wrappedError := CreateForTxGenerationError("delegationManager.ModifyOperatorDetails", err)
+		return nil, wrappedError
 	}
 	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
 	if err != nil {
@@ -218,7 +220,8 @@ func (w *ChainWriter) UpdateMetadataURI(
 
 	tx, err := w.delegationManager.UpdateOperatorMetadataURI(noSendTxOpts, operatorAddress, uri)
 	if err != nil {
-		return nil, err
+		wrappedError := CreateForTxGenerationError("delegationManager.UpdateOperatorMetadataURI", err)
+		return nil, wrappedError
 	}
 	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
 	if err != nil {
@@ -269,7 +272,8 @@ func (w *ChainWriter) DepositERC20IntoStrategy(
 
 	tx, err = w.strategyManager.DepositIntoStrategy(noSendTxOpts, strategyAddr, underlyingTokenAddr, amount)
 	if err != nil {
-		return nil, err
+		wrappedError := CreateForTxGenerationError("strategyManager.DepositIntoStrategy", err)
+		return nil, wrappedError
 	}
 	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
 	if err != nil {
@@ -298,7 +302,8 @@ func (w *ChainWriter) SetClaimerFor(
 
 	tx, err := w.rewardsCoordinator.SetClaimerFor(noSendTxOpts, claimer)
 	if err != nil {
-		return nil, err
+		wrappedError := CreateForTxGenerationError("rewardsCoordinator.SetClaimerFor", err)
+		return nil, wrappedError
 	}
 	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
 	if err != nil {
@@ -327,7 +332,8 @@ func (w *ChainWriter) ProcessClaim(
 
 	tx, err := w.rewardsCoordinator.ProcessClaim(noSendTxOpts, claim, recipientAddress)
 	if err != nil {
-		return nil, utils.WrapError("failed to create ProcessClaim tx", err)
+		wrappedError := CreateForTxGenerationError("rewardsCoordinator.ProcessClaim", err)
+		return nil, wrappedError
 	}
 	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
 	if err != nil {
@@ -357,7 +363,8 @@ func (w *ChainWriter) SetOperatorAVSSplit(
 
 	tx, err := w.rewardsCoordinator.SetOperatorAVSSplit(noSendTxOpts, operator, avs, split)
 	if err != nil {
-		return nil, utils.WrapError("failed to create SetOperatorAVSSplit tx", err)
+		wrappedError := CreateForTxGenerationError("rewardsCoordinator.SetOperatorAVSSplit", err)
+		return nil, wrappedError
 	}
 	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
 	if err != nil {
@@ -386,7 +393,8 @@ func (w *ChainWriter) SetOperatorPISplit(
 
 	tx, err := w.rewardsCoordinator.SetOperatorPISplit(noSendTxOpts, operator, split)
 	if err != nil {
-		return nil, utils.WrapError("failed to create SetOperatorAVSSplit tx", err)
+		wrappedError := CreateForTxGenerationError("rewardsCoordinator.SetOperatorPISplit", err)
+		return nil, wrappedError
 	}
 	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
 	if err != nil {
@@ -419,7 +427,8 @@ func (w *ChainWriter) ProcessClaims(
 
 	tx, err := w.rewardsCoordinator.ProcessClaims(noSendTxOpts, claims, recipientAddress)
 	if err != nil {
-		return nil, utils.WrapError("failed to create ProcessClaims tx", err)
+		wrappedError := CreateForTxGenerationError("rewardsCoordinator.ProcessClaims", err)
+		return nil, wrappedError
 	}
 	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
 	if err != nil {
@@ -457,7 +466,8 @@ func (w *ChainWriter) ForceDeregisterFromOperatorSets(
 	)
 
 	if err != nil {
-		return nil, utils.WrapError("failed to create ForceDeregisterFromOperatorSets tx", err)
+		wrappedError := CreateForTxGenerationError("allocationManager.DeregisterFromOperatorSets", err)
+		return nil, wrappedError
 	}
 
 	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
@@ -487,7 +497,8 @@ func (w *ChainWriter) ModifyAllocations(
 
 	tx, err := w.allocationManager.ModifyAllocations(noSendTxOpts, operatorAddress, allocations)
 	if err != nil {
-		return nil, utils.WrapError("failed to create ModifyAllocations tx", err)
+		wrappedError := CreateForTxGenerationError("allocationManager.ModifyAllocations", err)
+		return nil, wrappedError
 	}
 
 	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
@@ -517,7 +528,8 @@ func (w *ChainWriter) SetAllocationDelay(
 
 	tx, err := w.allocationManager.SetAllocationDelay(noSendTxOpts, operatorAddress, delay)
 	if err != nil {
-		return nil, utils.WrapError("failed to create InitializeAllocationDelay tx", err)
+		wrappedError := CreateForTxGenerationError("allocationManager.SetAllocationDelay", err)
+		return nil, wrappedError
 	}
 	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
 	if err != nil {
@@ -551,7 +563,8 @@ func (w *ChainWriter) DeregisterFromOperatorSets(
 			OperatorSetIds: request.OperatorSetIds,
 		})
 	if err != nil {
-		return nil, utils.WrapError("failed to create DeregisterFromOperatorSets tx", err)
+		wrappedError := CreateForTxGenerationError("allocationManager.DeregisterFromOperatorSets", err)
+		return nil, wrappedError
 	}
 
 	receipt, err := w.txMgr.Send(ctx, tx, request.WaitForReceipt)
