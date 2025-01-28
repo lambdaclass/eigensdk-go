@@ -382,6 +382,7 @@ func (w *ChainWriter) UpdateStakesOfOperatorSubsetForAllQuorums(
 	return receipt, nil
 }
 
+// DeregisterOperator is used to deregister an operator from one or more quorums.
 func (w *ChainWriter) DeregisterOperator(
 	ctx context.Context,
 	request OperatorDeregisterRequest,
@@ -405,6 +406,7 @@ func (w *ChainWriter) DeregisterOperator(
 	return receipt, nil
 }
 
+// DeregisterOperatorOperatorSets is used to deregister an operator from one or more operator sets.
 func (w *ChainWriter) DeregisterOperatorOperatorSets(
 	ctx context.Context,
 	request OperatorDeregisterOperatorSetsRequest,
@@ -434,6 +436,7 @@ func (w *ChainWriter) DeregisterOperatorOperatorSets(
 	return receipt, nil
 }
 
+// UpdateSocket is used to update the socket of the msg.sender given they are a registered operator
 func (w *ChainWriter) UpdateSocket(
 	ctx context.Context,
 	request SocketUpdateRequest,
