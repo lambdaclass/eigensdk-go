@@ -321,30 +321,49 @@ func (r *ChainReader) CalculateOperatorAVSRegistrationDigestHash(
 
 func (r *ChainReader) GetDistributionRootsLength(ctx context.Context) (*big.Int, error) {
 	if r.rewardsCoordinator == nil {
-		return nil, errors.New("RewardsCoordinator contract not provided")
+		wrappedError := Error{1, "Missing needed contract", "RewardsCoordinator contract not provided", nil}
+		return &big.Int{}, wrappedError
 	}
 
-	return r.rewardsCoordinator.GetDistributionRootsLength(&bind.CallOpts{Context: ctx})
+	distributionRootsLength, err := r.rewardsCoordinator.GetDistributionRootsLength(&bind.CallOpts{Context: ctx})
+	if err != nil {
+		wrappedError := Error{0, "Binding error", "Error happened while calling rewardsCoordinator.GetDistributionRootsLength", err}
+		return &big.Int{}, wrappedError
+	}
+
+	return distributionRootsLength, nil
 }
 
 func (r *ChainReader) CurrRewardsCalculationEndTimestamp(ctx context.Context) (uint32, error) {
 	if r.rewardsCoordinator == nil {
-		return 0, errors.New("RewardsCoordinator contract not provided")
+		wrappedError := Error{1, "Missing needed contract", "RewardsCoordinator contract not provided", nil}
+		return 0, wrappedError
 	}
 
-	return r.rewardsCoordinator.CurrRewardsCalculationEndTimestamp(&bind.CallOpts{Context: ctx})
+	endTimestamp, err := r.rewardsCoordinator.CurrRewardsCalculationEndTimestamp(&bind.CallOpts{Context: ctx})
+	if err != nil {
+		wrappedError := Error{0, "Binding error", "Error happened while calling rewardsCoordinator.CurrRewardsCalculationEndTimestamp", err}
+		return 0, wrappedError
+	}
+
+	return endTimestamp, nil
 }
 
 func (r *ChainReader) GetCurrentClaimableDistributionRoot(
 	ctx context.Context,
 ) (rewardscoordinator.IRewardsCoordinatorTypesDistributionRoot, error) {
 	if r.rewardsCoordinator == nil {
-		return rewardscoordinator.IRewardsCoordinatorTypesDistributionRoot{}, errors.New(
-			"RewardsCoordinator contract not provided",
-		)
+		wrappedError := Error{1, "Missing needed contract", "RewardsCoordinator contract not provided", nil}
+		return rewardscoordinator.IRewardsCoordinatorTypesDistributionRoot{}, wrappedError
 	}
 
-	return r.rewardsCoordinator.GetCurrentClaimableDistributionRoot(&bind.CallOpts{Context: ctx})
+	distributionRoot, err := r.rewardsCoordinator.GetCurrentClaimableDistributionRoot(&bind.CallOpts{Context: ctx})
+	if err != nil {
+		wrappedError := Error{0, "Binding error", "Error happened while calling rewardsCoordinator.GetCurrentClaimableDistributionRoot", err}
+		return rewardscoordinator.IRewardsCoordinatorTypesDistributionRoot{}, wrappedError
+	}
+
+	return distributionRoot, nil
 }
 
 func (r *ChainReader) GetRootIndexFromHash(
@@ -352,10 +371,17 @@ func (r *ChainReader) GetRootIndexFromHash(
 	rootHash [32]byte,
 ) (uint32, error) {
 	if r.rewardsCoordinator == nil {
-		return 0, errors.New("RewardsCoordinator contract not provided")
+		wrappedError := Error{1, "Missing needed contract", "RewardsCoordinator contract not provided", nil}
+		return 0, wrappedError
 	}
 
-	return r.rewardsCoordinator.GetRootIndexFromHash(&bind.CallOpts{Context: ctx}, rootHash)
+	rootIndex, err := r.rewardsCoordinator.GetRootIndexFromHash(&bind.CallOpts{Context: ctx}, rootHash)
+	if err != nil {
+		wrappedError := Error{0, "Binding error", "Error happened while calling rewardsCoordinator.GetRootIndexFromHash", err}
+		return 0, wrappedError
+	}
+
+	return rootIndex, nil
 }
 
 func (r *ChainReader) GetCumulativeClaimed(
@@ -364,10 +390,17 @@ func (r *ChainReader) GetCumulativeClaimed(
 	token gethcommon.Address,
 ) (*big.Int, error) {
 	if r.rewardsCoordinator == nil {
-		return nil, errors.New("RewardsCoordinator contract not provided")
+		wrappedError := Error{1, "Missing needed contract", "RewardsCoordinator contract not provided", nil}
+		return nil, wrappedError
 	}
 
-	return r.rewardsCoordinator.CumulativeClaimed(&bind.CallOpts{Context: ctx}, earner, token)
+	cumulativeClaimed, err := r.rewardsCoordinator.CumulativeClaimed(&bind.CallOpts{Context: ctx}, earner, token)
+	if err != nil {
+		wrappedError := Error{0, "Binding error", "Error happened while calling rewardsCoordinator.CumulativeClaimed", err}
+		return nil, wrappedError
+	}
+
+	return cumulativeClaimed, nil
 }
 
 func (r *ChainReader) CheckClaim(
@@ -375,10 +408,17 @@ func (r *ChainReader) CheckClaim(
 	claim rewardscoordinator.IRewardsCoordinatorTypesRewardsMerkleClaim,
 ) (bool, error) {
 	if r.rewardsCoordinator == nil {
-		return false, errors.New("RewardsCoordinator contract not provided")
+		wrappedError := Error{1, "Missing needed contract", "RewardsCoordinator contract not provided", nil}
+		return false, wrappedError
 	}
 
-	return r.rewardsCoordinator.CheckClaim(&bind.CallOpts{Context: ctx}, claim)
+	claimChecked, err := r.rewardsCoordinator.CheckClaim(&bind.CallOpts{Context: ctx}, claim)
+	if err != nil {
+		wrappedError := Error{0, "Binding error", "Error happened while calling rewardsCoordinator.CheckClaim", err}
+		return false, wrappedError
+	}
+
+	return claimChecked, nil
 }
 
 func (r *ChainReader) GetOperatorAVSSplit(
@@ -387,10 +427,17 @@ func (r *ChainReader) GetOperatorAVSSplit(
 	avs gethcommon.Address,
 ) (uint16, error) {
 	if r.rewardsCoordinator == nil {
-		return 0, errors.New("RewardsCoordinator contract not provided")
+		wrappedError := Error{1, "Missing needed contract", "RewardsCoordinator contract not provided", nil}
+		return 0, wrappedError
 	}
 
-	return r.rewardsCoordinator.GetOperatorAVSSplit(&bind.CallOpts{Context: ctx}, operator, avs)
+	operatorSplit, err := r.rewardsCoordinator.GetOperatorAVSSplit(&bind.CallOpts{Context: ctx}, operator, avs)
+	if err != nil {
+		wrappedError := Error{0, "Binding error", "Error happened while calling rewardsCoordinator.GetOperatorAVSSplit", err}
+		return 0, wrappedError
+	}
+
+	return operatorSplit, nil
 }
 
 func (r *ChainReader) GetOperatorPISplit(
@@ -398,10 +445,17 @@ func (r *ChainReader) GetOperatorPISplit(
 	operator gethcommon.Address,
 ) (uint16, error) {
 	if r.rewardsCoordinator == nil {
-		return 0, errors.New("RewardsCoordinator contract not provided")
+		wrappedError := Error{1, "Missing needed contract", "RewardsCoordinator contract not provided", nil}
+		return 0, wrappedError
 	}
 
-	return r.rewardsCoordinator.GetOperatorPISplit(&bind.CallOpts{Context: ctx}, operator)
+	operatorSplit, err := r.rewardsCoordinator.GetOperatorPISplit(&bind.CallOpts{Context: ctx}, operator)
+	if err != nil {
+		wrappedError := Error{0, "Binding error", "Error happened while calling rewardsCoordinator.GetOperatorPISplit", err}
+		return 0, wrappedError
+	}
+
+	return operatorSplit, nil
 }
 
 func (r *ChainReader) GetAllocatableMagnitude(
