@@ -2,7 +2,6 @@ package elcontracts
 
 import (
 	"context"
-	"errors"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -39,7 +38,7 @@ type ChainReader struct {
 	ethClient            eth.HttpBackend
 }
 
-var errLegacyAVSsNotSupported = errors.New("method not supported for legacy AVSs")
+var errLegacyAVSsNotSupported = Error{3, "Other errors", "Method not supported for legacy AVSs", nil}
 
 func NewChainReader(
 	delegationManager *delegationmanager.ContractDelegationManager,
