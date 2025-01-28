@@ -246,7 +246,6 @@ func (w *ChainWriter) DepositERC20IntoStrategy(
 		StrategyAddress: strategyAddr,
 	}
 
-	// TODO: Review this function after finishing the refactor of the ChainReader
 	response, err := w.elChainReader.GetStrategyAndUnderlyingERC20Token(
 		ctx,
 		request,

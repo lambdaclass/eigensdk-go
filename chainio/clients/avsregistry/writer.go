@@ -158,7 +158,6 @@ func (w *ChainWriter) RegisterOperatorInQuorumWithAVSRegistryCoordinator(
 	}
 
 	// params to register operator in delegation manager's operator-avs mapping
-	// TODO: Review this function after finishing the refactor of the ChainReader
 	request := elcontracts.CalculateOperatorAVSRegistrationDigestHashRequest{
 		OperatorAddress: operatorAddr,
 		AVSAddress:      w.serviceManagerAddr,
@@ -284,7 +283,6 @@ func (w *ChainWriter) RegisterOperator(
 	).Add(new(big.Int).SetUint64(curBlock.Time()), big.NewInt(sigValidForSeconds))
 
 	// params to register operator in delegation manager's operator-avs mapping
-	// TODO: Review this function after finishing the refactor of the ChainReader
 	request := elcontracts.CalculateOperatorAVSRegistrationDigestHashRequest{
 		OperatorAddress: operatorAddr,
 		AVSAddress:      w.serviceManagerAddr,
