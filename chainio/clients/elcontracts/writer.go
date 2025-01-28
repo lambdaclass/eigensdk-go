@@ -137,7 +137,8 @@ func (w *ChainWriter) RegisterAsOperator(
 
 	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
 	if err != nil {
-		return nil, err
+		wrappedError := CreateNoSendTxOptsFailedError(err)
+		return nil, wrappedError
 	}
 	tx, err := w.delegationManager.RegisterAsOperator(
 		noSendTxOpts,
@@ -171,7 +172,8 @@ func (w *ChainWriter) UpdateOperatorDetails(
 
 	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
 	if err != nil {
-		return nil, err
+		wrappedError := CreateNoSendTxOptsFailedError(err)
+		return nil, wrappedError
 	}
 
 	tx, err := w.delegationManager.ModifyOperatorDetails(
@@ -210,7 +212,8 @@ func (w *ChainWriter) UpdateMetadataURI(
 
 	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
 	if err != nil {
-		return nil, err
+		wrappedError := CreateNoSendTxOptsFailedError(err)
+		return nil, wrappedError
 	}
 
 	tx, err := w.delegationManager.UpdateOperatorMetadataURI(noSendTxOpts, operatorAddress, uri)
@@ -244,7 +247,8 @@ func (w *ChainWriter) DepositERC20IntoStrategy(
 	w.logger.Infof("depositing %s tokens into strategy %s", amount.String(), strategyAddr)
 	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
 	if err != nil {
-		return nil, err
+		wrappedError := CreateNoSendTxOptsFailedError(err)
+		return nil, wrappedError
 	}
 	_, underlyingTokenContract, underlyingTokenAddr, err := w.elChainReader.GetStrategyAndUnderlyingERC20Token(
 		ctx,
@@ -288,7 +292,8 @@ func (w *ChainWriter) SetClaimerFor(
 
 	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
 	if err != nil {
-		return nil, err
+		wrappedError := CreateNoSendTxOptsFailedError(err)
+		return nil, wrappedError
 	}
 
 	tx, err := w.rewardsCoordinator.SetClaimerFor(noSendTxOpts, claimer)
@@ -316,7 +321,8 @@ func (w *ChainWriter) ProcessClaim(
 
 	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
 	if err != nil {
-		return nil, utils.WrapError("failed to get no send tx opts", err)
+		wrappedError := CreateNoSendTxOptsFailedError(err)
+		return nil, wrappedError
 	}
 
 	tx, err := w.rewardsCoordinator.ProcessClaim(noSendTxOpts, claim, recipientAddress)
@@ -345,7 +351,8 @@ func (w *ChainWriter) SetOperatorAVSSplit(
 
 	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
 	if err != nil {
-		return nil, utils.WrapError("failed to get no send tx opts", err)
+		wrappedError := CreateNoSendTxOptsFailedError(err)
+		return nil, wrappedError
 	}
 
 	tx, err := w.rewardsCoordinator.SetOperatorAVSSplit(noSendTxOpts, operator, avs, split)
@@ -373,7 +380,8 @@ func (w *ChainWriter) SetOperatorPISplit(
 
 	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
 	if err != nil {
-		return nil, utils.WrapError("failed to get no send tx opts", err)
+		wrappedError := CreateNoSendTxOptsFailedError(err)
+		return nil, wrappedError
 	}
 
 	tx, err := w.rewardsCoordinator.SetOperatorPISplit(noSendTxOpts, operator, split)
@@ -405,7 +413,8 @@ func (w *ChainWriter) ProcessClaims(
 
 	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
 	if err != nil {
-		return nil, utils.WrapError("failed to get no send tx opts", err)
+		wrappedError := CreateNoSendTxOptsFailedError(err)
+		return nil, wrappedError
 	}
 
 	tx, err := w.rewardsCoordinator.ProcessClaims(noSendTxOpts, claims, recipientAddress)
@@ -434,7 +443,8 @@ func (w *ChainWriter) ForceDeregisterFromOperatorSets(
 
 	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
 	if err != nil {
-		return nil, utils.WrapError("failed to get no send tx opts", err)
+		wrappedError := CreateNoSendTxOptsFailedError(err)
+		return nil, wrappedError
 	}
 
 	tx, err := w.allocationManager.DeregisterFromOperatorSets(
@@ -471,7 +481,8 @@ func (w *ChainWriter) ModifyAllocations(
 
 	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
 	if err != nil {
-		return nil, utils.WrapError("failed to get no send tx opts", err)
+		wrappedError := CreateNoSendTxOptsFailedError(err)
+		return nil, wrappedError
 	}
 
 	tx, err := w.allocationManager.ModifyAllocations(noSendTxOpts, operatorAddress, allocations)
@@ -500,7 +511,8 @@ func (w *ChainWriter) SetAllocationDelay(
 
 	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
 	if err != nil {
-		return nil, utils.WrapError("failed to get no send tx opts", err)
+		wrappedError := CreateNoSendTxOptsFailedError(err)
+		return nil, wrappedError
 	}
 
 	tx, err := w.allocationManager.SetAllocationDelay(noSendTxOpts, operatorAddress, delay)
@@ -527,7 +539,8 @@ func (w *ChainWriter) DeregisterFromOperatorSets(
 
 	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
 	if err != nil {
-		return nil, utils.WrapError("failed to get no send tx opts", err)
+		wrappedError := CreateNoSendTxOptsFailedError(err)
+		return nil, wrappedError
 	}
 
 	tx, err := w.allocationManager.DeregisterFromOperatorSets(
@@ -561,7 +574,8 @@ func (w *ChainWriter) RegisterForOperatorSets(
 
 	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
 	if err != nil {
-		return nil, utils.WrapError("failed to get no send tx opts", err)
+		wrappedError := CreateNoSendTxOptsFailedError(err)
+		return nil, wrappedError
 	}
 
 	pubkeyRegParams, err := getPubkeyRegistrationParams(
@@ -604,7 +618,8 @@ func (w *ChainWriter) RemovePermission(
 ) (*gethtypes.Receipt, error) {
 	txOpts, err := w.txMgr.GetNoSendTxOpts()
 	if err != nil {
-		return nil, utils.WrapError("failed to get no-send tx opts", err)
+		wrappedError := CreateNoSendTxOptsFailedError(err)
+		return nil, wrappedError
 	}
 	tx, err := w.NewRemovePermissionTx(txOpts, request)
 	if err != nil {
@@ -654,7 +669,8 @@ func (w *ChainWriter) SetPermission(
 ) (*gethtypes.Receipt, error) {
 	txOpts, err := w.txMgr.GetNoSendTxOpts()
 	if err != nil {
-		return nil, utils.WrapError("failed to get no-send tx opts", err)
+		wrappedError := CreateNoSendTxOptsFailedError(err)
+		return nil, wrappedError
 	}
 
 	tx, err := w.NewSetPermissionTx(txOpts, request)
@@ -682,7 +698,8 @@ func (w *ChainWriter) AcceptAdmin(
 ) (*gethtypes.Receipt, error) {
 	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
 	if err != nil {
-		return nil, utils.WrapError("failed to get no send tx opts", err)
+		wrappedError := CreateNoSendTxOptsFailedError(err)
+		return nil, wrappedError
 	}
 
 	tx, err := w.NewAcceptAdminTx(noSendTxOpts, request)
@@ -706,7 +723,8 @@ func (w *ChainWriter) NewAddPendingAdminTx(
 func (w *ChainWriter) AddPendingAdmin(ctx context.Context, request AddPendingAdminRequest) (*gethtypes.Receipt, error) {
 	txOpts, err := w.txMgr.GetNoSendTxOpts()
 	if err != nil {
-		return nil, utils.WrapError("failed to get no send tx opts", err)
+		wrappedError := CreateNoSendTxOptsFailedError(err)
+		return nil, wrappedError
 	}
 	tx, err := w.NewAddPendingAdminTx(txOpts, request)
 	if err != nil {
@@ -732,7 +750,8 @@ func (w *ChainWriter) RemoveAdmin(
 ) (*gethtypes.Receipt, error) {
 	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
 	if err != nil {
-		return nil, utils.WrapError("failed to get no send tx opts", err)
+		wrappedError := CreateNoSendTxOptsFailedError(err)
+		return nil, wrappedError
 	}
 
 	tx, err := w.NewRemoveAdminTx(noSendTxOpts, request)
@@ -759,7 +778,8 @@ func (w *ChainWriter) RemovePendingAdmin(
 ) (*gethtypes.Receipt, error) {
 	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
 	if err != nil {
-		return nil, utils.WrapError("failed to get no send tx opts", err)
+		wrappedError := CreateNoSendTxOptsFailedError(err)
+		return nil, wrappedError
 	}
 
 	tx, err := w.NewRemovePendingAdminTx(noSendTxOpts, request)

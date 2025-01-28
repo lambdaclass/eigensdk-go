@@ -43,6 +43,10 @@ func CreateForNestedError(functionName string, errorCause error) Error {
 	}
 }
 
+func CreateNoSendTxOptsFailedError(errorCause error) Error {
+	return Error{3, "Other errors", "Failed to get no send tx opts", errorCause}
+}
+
 func CommonErrorMissingContract(contractName string) string {
 	return fmt.Sprintf("Missing needed contract(1) - %s contract not provided", contractName)
 }
