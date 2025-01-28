@@ -229,6 +229,7 @@ func (r *ChainReader) GetOperatorsStakeInQuorumsOfOperatorAtCurrentBlock(
 // So, if the blockNumber and blockHash are not set in opts, blockNumber will be set
 // to the latest block.
 // All calls to the chain use `opts` parameter.
+// REVIEW THE COMMENT ABOVE. IT MAKES SENSE WITH THE NEW IMPLEMENTATION?
 func (r *ChainReader) GetOperatorStakeInQuorumsOfOperatorAtCurrentBlock(
 	ctx context.Context,
 	request OperatorStakeInQuorumsOfOperatorAtCurrentBlockRequest,
