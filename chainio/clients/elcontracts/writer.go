@@ -129,7 +129,8 @@ func (w *ChainWriter) RegisterAsOperator(
 	waitForReceipt bool,
 ) (*gethtypes.Receipt, error) {
 	if w.delegationManager == nil {
-		return nil, errors.New("DelegationManager contract not provided")
+		wrappedError := CreateErrorForMissingContract("DelegationManager")
+		return nil, wrappedError
 	}
 
 	w.logger.Infof("registering operator %s to EigenLayer", operator.Address)
@@ -162,7 +163,8 @@ func (w *ChainWriter) UpdateOperatorDetails(
 	waitForReceipt bool,
 ) (*gethtypes.Receipt, error) {
 	if w.delegationManager == nil {
-		return nil, errors.New("DelegationManager contract not provided")
+		wrappedError := CreateErrorForMissingContract("DelegationManager")
+		return nil, wrappedError
 	}
 
 	w.logger.Infof("updating operator details of operator %s to EigenLayer", operator.Address)
@@ -202,7 +204,8 @@ func (w *ChainWriter) UpdateMetadataURI(
 	waitForReceipt bool,
 ) (*gethtypes.Receipt, error) {
 	if w.delegationManager == nil {
-		return nil, errors.New("DelegationManager contract not provided")
+		wrappedError := CreateErrorForMissingContract("DelegationManager")
+		return nil, wrappedError
 	}
 
 	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
@@ -234,7 +237,8 @@ func (w *ChainWriter) DepositERC20IntoStrategy(
 	waitForReceipt bool,
 ) (*gethtypes.Receipt, error) {
 	if w.strategyManager == nil {
-		return nil, errors.New("StrategyManager contract not provided")
+		wrappedError := CreateErrorForMissingContract("StrategyManager")
+		return nil, wrappedError
 	}
 
 	w.logger.Infof("depositing %s tokens into strategy %s", amount.String(), strategyAddr)
@@ -278,7 +282,8 @@ func (w *ChainWriter) SetClaimerFor(
 	waitForReceipt bool,
 ) (*gethtypes.Receipt, error) {
 	if w.rewardsCoordinator == nil {
-		return nil, errors.New("RewardsCoordinator contract not provided")
+		wrappedError := CreateErrorForMissingContract("RewardsCoordinator")
+		return nil, wrappedError
 	}
 
 	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
@@ -305,7 +310,8 @@ func (w *ChainWriter) ProcessClaim(
 	waitForReceipt bool,
 ) (*gethtypes.Receipt, error) {
 	if w.rewardsCoordinator == nil {
-		return nil, errors.New("RewardsCoordinator contract not provided")
+		wrappedError := CreateErrorForMissingContract("RewardsCoordinator")
+		return nil, wrappedError
 	}
 
 	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
@@ -333,7 +339,8 @@ func (w *ChainWriter) SetOperatorAVSSplit(
 	waitForReceipt bool,
 ) (*gethtypes.Receipt, error) {
 	if w.rewardsCoordinator == nil {
-		return nil, errors.New("RewardsCoordinator contract not provided")
+		wrappedError := CreateErrorForMissingContract("RewardsCoordinator")
+		return nil, wrappedError
 	}
 
 	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
@@ -360,7 +367,8 @@ func (w *ChainWriter) SetOperatorPISplit(
 	waitForReceipt bool,
 ) (*gethtypes.Receipt, error) {
 	if w.rewardsCoordinator == nil {
-		return nil, errors.New("RewardsCoordinator contract not provided")
+		wrappedError := CreateErrorForMissingContract("RewardsCoordinator")
+		return nil, wrappedError
 	}
 
 	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
@@ -387,7 +395,8 @@ func (w *ChainWriter) ProcessClaims(
 	waitForReceipt bool,
 ) (*gethtypes.Receipt, error) {
 	if w.rewardsCoordinator == nil {
-		return nil, errors.New("RewardsCoordinator contract not provided")
+		wrappedError := CreateErrorForMissingContract("RewardsCoordinator")
+		return nil, wrappedError
 	}
 
 	if len(claims) == 0 {
@@ -419,7 +428,8 @@ func (w *ChainWriter) ForceDeregisterFromOperatorSets(
 	waitForReceipt bool,
 ) (*gethtypes.Receipt, error) {
 	if w.allocationManager == nil {
-		return nil, errors.New("AVSDirectory contract not provided")
+		wrappedError := CreateErrorForMissingContract("AllocationManager")
+		return nil, wrappedError
 	}
 
 	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
@@ -455,7 +465,8 @@ func (w *ChainWriter) ModifyAllocations(
 	waitForReceipt bool,
 ) (*gethtypes.Receipt, error) {
 	if w.allocationManager == nil {
-		return nil, errors.New("AllocationManager contract not provided")
+		wrappedError := CreateErrorForMissingContract("AllocationManager")
+		return nil, wrappedError
 	}
 
 	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
@@ -483,7 +494,8 @@ func (w *ChainWriter) SetAllocationDelay(
 	waitForReceipt bool,
 ) (*gethtypes.Receipt, error) {
 	if w.allocationManager == nil {
-		return nil, errors.New("AllocationManager contract not provided")
+		wrappedError := CreateErrorForMissingContract("AllocationManager")
+		return nil, wrappedError
 	}
 
 	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
@@ -509,7 +521,8 @@ func (w *ChainWriter) DeregisterFromOperatorSets(
 	request DeregistrationRequest,
 ) (*gethtypes.Receipt, error) {
 	if w.allocationManager == nil {
-		return nil, errors.New("AllocationManager contract not provided")
+		wrappedError := CreateErrorForMissingContract("AllocationManager")
+		return nil, wrappedError
 	}
 
 	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
@@ -542,7 +555,8 @@ func (w *ChainWriter) RegisterForOperatorSets(
 	request RegistrationRequest,
 ) (*gethtypes.Receipt, error) {
 	if w.allocationManager == nil {
-		return nil, errors.New("AllocationManager contract not provided")
+		wrappedError := CreateErrorForMissingContract("AllocationManager")
+		return nil, wrappedError
 	}
 
 	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
@@ -604,7 +618,8 @@ func (w *ChainWriter) NewRemovePermissionTx(
 	request RemovePermissionRequest,
 ) (*gethtypes.Transaction, error) {
 	if w.permissionController == nil {
-		return nil, errors.New("permission contract not provided")
+		wrappedError := CreateErrorForMissingContract("PermissionController")
+		return nil, wrappedError
 	}
 
 	return w.permissionController.RemoveAppointee(
@@ -621,7 +636,8 @@ func (w *ChainWriter) NewSetPermissionTx(
 	request SetPermissionRequest,
 ) (*gethtypes.Transaction, error) {
 	if w.permissionController == nil {
-		return nil, errors.New("permission contract not provided")
+		wrappedError := CreateErrorForMissingContract("PermissionController")
+		return nil, wrappedError
 	}
 	return w.permissionController.SetAppointee(
 		txOpts,
@@ -654,7 +670,8 @@ func (w *ChainWriter) NewAcceptAdminTx(
 	request AcceptAdminRequest,
 ) (*gethtypes.Transaction, error) {
 	if w.permissionController == nil {
-		return nil, errors.New("permission contract not provided")
+		wrappedError := CreateErrorForMissingContract("PermissionController")
+		return nil, wrappedError
 	}
 	return w.permissionController.AcceptAdmin(txOpts, request.AccountAddress)
 }
@@ -680,7 +697,8 @@ func (w *ChainWriter) NewAddPendingAdminTx(
 	request AddPendingAdminRequest,
 ) (*gethtypes.Transaction, error) {
 	if w.permissionController == nil {
-		return nil, errors.New("permission contract not provided")
+		wrappedError := CreateErrorForMissingContract("PermissionController")
+		return nil, wrappedError
 	}
 	return w.permissionController.AddPendingAdmin(txOpts, request.AccountAddress, request.AdminAddress)
 }
@@ -702,7 +720,8 @@ func (w *ChainWriter) NewRemoveAdminTx(
 	request RemoveAdminRequest,
 ) (*gethtypes.Transaction, error) {
 	if w.permissionController == nil {
-		return nil, errors.New("permission contract not provided")
+		wrappedError := CreateErrorForMissingContract("PermissionController")
+		return nil, wrappedError
 	}
 	return w.permissionController.RemoveAdmin(txOpts, request.AccountAddress, request.AdminAddress)
 }
@@ -728,7 +747,8 @@ func (w *ChainWriter) NewRemovePendingAdminTx(
 	request RemovePendingAdminRequest,
 ) (*gethtypes.Transaction, error) {
 	if w.permissionController == nil {
-		return nil, errors.New("permission contract not provided")
+		wrappedError := CreateErrorForMissingContract("PermissionController")
+		return nil, wrappedError
 	}
 	return w.permissionController.RemovePendingAdmin(txOpts, request.AccountAddress, request.AdminAddress)
 }
