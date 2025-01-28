@@ -172,3 +172,13 @@ type SocketUpdateRequest struct {
 	Socket         types.Socket
 	WaitForReceipt bool
 }
+
+type OperatorRegisterInQuourimWithAvsRequest struct {
+	OperatorEcdsaPrivateKey            *ecdsa.PrivateKey
+	OperatorToAvsRegistrationSigSalt   [32]byte
+	OperatorToAvsRegistrationSigExpiry *big.Int
+	BlsKeyPair                         *bls.KeyPair
+	QuorumNumbers                      types.QuorumNums
+	Socket                             string
+	WaitForReceipt                     bool
+}

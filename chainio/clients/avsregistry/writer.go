@@ -2,7 +2,6 @@ package avsregistry
 
 import (
 	"context"
-	"crypto/ecdsa"
 	"crypto/rand"
 	"errors"
 	"math/big"
@@ -20,9 +19,7 @@ import (
 	opstateretriever "github.com/Layr-Labs/eigensdk-go/contracts/bindings/OperatorStateRetriever"
 	regcoord "github.com/Layr-Labs/eigensdk-go/contracts/bindings/RegistryCoordinator"
 	stakeregistry "github.com/Layr-Labs/eigensdk-go/contracts/bindings/StakeRegistry"
-	"github.com/Layr-Labs/eigensdk-go/crypto/bls"
 	"github.com/Layr-Labs/eigensdk-go/logging"
-	"github.com/Layr-Labs/eigensdk-go/types"
 )
 
 type eLReader interface {
@@ -124,15 +121,10 @@ func (w *ChainWriter) RegisterOperatorInQuorumWithAVSRegistryCoordinator(
 	// https://github.com/Layr-Labs/eigenlayer-middleware/blob/m2-mainnet/docs/RegistryCoordinator.md#registeroperator
 	// TODO(madhur): check to see if we can make the signer and txmgr more flexible so we can use them (and remote
 	// signers) to sign non txs
-	operatorEcdsaPrivateKey *ecdsa.PrivateKey,
-	operatorToAvsRegistrationSigSalt [32]byte,
-	operatorToAvsRegistrationSigExpiry *big.Int,
-	blsKeyPair *bls.KeyPair,
-	quorumNumbers types.QuorumNums,
-	socket string,
-	waitForReceipt bool,
+	request OperatorRegisterInQuourimWithAvsRequest,
+	txOptions *TxOptions,
 ) (*gethtypes.Receipt, error) {
-	operatorAddr := crypto.PubkeyToAddress(operatorEcdsaPrivateKey.PublicKey)
+	operatorAddr := crypto.PubkeyToAddress(request.OperatorEcdsaPrivateKey.PublicKey)
 	w.logger.Info(
 		"registering operator with the AVS's registry coordinator",
 		"avs-service-manager",
@@ -140,9 +132,9 @@ func (w *ChainWriter) RegisterOperatorInQuorumWithAVSRegistryCoordinator(
 		"operator",
 		operatorAddr,
 		"quorumNumbers",
-		quorumNumbers,
+		request.QuorumNumbers,
 		"socket",
-		socket,
+		request.Socket,
 	)
 	// params to register bls pubkey with bls apk registry
 	g1HashedMsgToSign, err := w.registryCoordinator.PubkeyRegistrationMessageHash(&bind.CallOpts{}, operatorAddr)
@@ -150,10 +142,10 @@ func (w *ChainWriter) RegisterOperatorInQuorumWithAVSRegistryCoordinator(
 		return nil, err
 	}
 	signedMsg := chainioutils.ConvertToBN254G1Point(
-		blsKeyPair.SignHashedToCurveMessage(chainioutils.ConvertBn254GethToGnark(g1HashedMsgToSign)).G1Point,
+		request.BlsKeyPair.SignHashedToCurveMessage(chainioutils.ConvertBn254GethToGnark(g1HashedMsgToSign)).G1Point,
 	)
-	G1pubkeyBN254 := chainioutils.ConvertToBN254G1Point(blsKeyPair.GetPubKeyG1())
-	G2pubkeyBN254 := chainioutils.ConvertToBN254G2Point(blsKeyPair.GetPubKeyG2())
+	G1pubkeyBN254 := chainioutils.ConvertToBN254G1Point(request.BlsKeyPair.GetPubKeyG1())
+	G2pubkeyBN254 := chainioutils.ConvertToBN254G2Point(request.BlsKeyPair.GetPubKeyG2())
 	pubkeyRegParams := regcoord.IBLSApkRegistryPubkeyRegistrationParams{
 		PubkeyRegistrationSignature: signedMsg,
 		PubkeyG1:                    G1pubkeyBN254,
@@ -165,13 +157,13 @@ func (w *ChainWriter) RegisterOperatorInQuorumWithAVSRegistryCoordinator(
 		ctx,
 		operatorAddr,
 		w.serviceManagerAddr,
-		operatorToAvsRegistrationSigSalt,
-		operatorToAvsRegistrationSigExpiry,
+		request.OperatorToAvsRegistrationSigSalt,
+		request.OperatorToAvsRegistrationSigExpiry,
 	)
 	if err != nil {
 		return nil, err
 	}
-	operatorSignature, err := crypto.Sign(msgToSign[:], operatorEcdsaPrivateKey)
+	operatorSignature, err := crypto.Sign(msgToSign[:], request.OperatorEcdsaPrivateKey)
 	if err != nil {
 		return nil, err
 	}
@@ -181,27 +173,23 @@ func (w *ChainWriter) RegisterOperatorInQuorumWithAVSRegistryCoordinator(
 	operatorSignature[64] += 27
 	operatorSignatureWithSaltAndExpiry := regcoord.ISignatureUtilsSignatureWithSaltAndExpiry{
 		Signature: operatorSignature,
-		Salt:      operatorToAvsRegistrationSigSalt,
-		Expiry:    operatorToAvsRegistrationSigExpiry,
+		Salt:      request.OperatorToAvsRegistrationSigSalt,
+		Expiry:    request.OperatorToAvsRegistrationSigExpiry,
 	}
 
-	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
-	if err != nil {
-		return nil, err
-	}
 	// TODO: this call will fail if max number of operators are already registered
 	// in that case, need to call churner to kick out another operator. See eigenDA's node/operator.go implementation
 	tx, err := w.registryCoordinator.RegisterOperator(
-		noSendTxOpts,
-		quorumNumbers.UnderlyingType(),
-		socket,
+		txOptions.Options,
+		request.QuorumNumbers.UnderlyingType(),
+		request.Socket,
 		pubkeyRegParams,
 		operatorSignatureWithSaltAndExpiry,
 	)
 	if err != nil {
 		return nil, err
 	}
-	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
+	receipt, err := w.txMgr.Send(ctx, tx, request.WaitForReceipt)
 	if err != nil {
 		return nil, errors.New("failed to send tx with err: " + err.Error())
 	}
@@ -214,7 +202,7 @@ func (w *ChainWriter) RegisterOperatorInQuorumWithAVSRegistryCoordinator(
 		"operator",
 		operatorAddr,
 		"quorumNumbers",
-		quorumNumbers,
+		request.QuorumNumbers,
 	)
 	return receipt, nil
 }
