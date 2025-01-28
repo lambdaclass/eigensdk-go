@@ -68,7 +68,7 @@ func TestReaderMethods(t *testing.T) {
 			response, err := chainReader.GetOperatorId(context.Background(), request)
 			require.NoError(t, err)
 
-			operatorStakeRequest := avsregistry.OperatorsStakeInQuorumsOfOperatorAtBlockRequest{
+			operatorStakeRequest := avsregistry.OperatorsStakeInQuorumsByOperatorAtBlockRequest{
 				BlockNumber:           nil,
 				OperatorId:            response.OperatorId,
 				HistoricalBlockNumber: 100,
@@ -90,7 +90,7 @@ func TestReaderMethods(t *testing.T) {
 			response, err := chainReader.GetOperatorId(context.Background(), request)
 			require.NoError(t, err)
 
-			stakesRequest := avsregistry.OperatorStakeInQuorumsOfOperatorAtCurrentBlockRequest{
+			stakesRequest := avsregistry.OperatorQuorumStakeAtCurrentBlockRequest{
 				BlockNumber: nil,
 				OperatorId:  response.OperatorId,
 			}
@@ -164,7 +164,7 @@ func TestReaderMethods(t *testing.T) {
 
 	t.Run("is operator registered", func(t *testing.T) {
 		operatorAddress := common.HexToAddress("0x1234567890123456789012345678901234567890")
-		request := avsregistry.OperatorRegisteredRequest{
+		request := avsregistry.OperatorRegistrationRequest{
 			BlockNumber:     nil,
 			OperatorAddress: operatorAddress,
 		}

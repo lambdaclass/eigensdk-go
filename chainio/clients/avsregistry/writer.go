@@ -121,7 +121,7 @@ func (w *ChainWriter) RegisterOperatorInQuorumWithAVSRegistryCoordinator(
 	// https://github.com/Layr-Labs/eigenlayer-middleware/blob/m2-mainnet/docs/RegistryCoordinator.md#registeroperator
 	// TODO(madhur): check to see if we can make the signer and txmgr more flexible so we can use them (and remote
 	// signers) to sign non txs
-	request OperatorRegisterInQuourimWithAvsRequest,
+	request OperatorRegisterInQuorumWithAVSRequest,
 	txOptions *TxOptions,
 ) (*gethtypes.Receipt, error) {
 	operatorAddr := crypto.PubkeyToAddress(request.OperatorEcdsaPrivateKey.PublicKey)

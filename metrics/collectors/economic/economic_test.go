@@ -48,7 +48,7 @@ func (f *fakeAVSRegistryReader) GetOperatorId(
 
 func (f *fakeAVSRegistryReader) GetOperatorStakeInQuorumsOfOperatorAtCurrentBlock(
 	ctx context.Context,
-	request avsregistry.OperatorStakeInQuorumsOfOperatorAtCurrentBlockRequest,
+	request avsregistry.OperatorQuorumStakeAtCurrentBlockRequest,
 ) (avsregistry.OperatorStakeInQuorumsOfOperatorResponse, error) {
 	return avsregistry.OperatorStakeInQuorumsOfOperatorResponse{QuorumStakes: f.stakes}, nil
 }

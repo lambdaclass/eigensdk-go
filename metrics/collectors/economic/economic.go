@@ -22,7 +22,7 @@ type avsRegistryReader interface {
 
 	GetOperatorStakeInQuorumsOfOperatorAtCurrentBlock(
 		ctx context.Context,
-		request avsregistry.OperatorStakeInQuorumsOfOperatorAtCurrentBlockRequest,
+		request avsregistry.OperatorQuorumStakeAtCurrentBlockRequest,
 	) (avsregistry.OperatorStakeInQuorumsOfOperatorResponse, error)
 }
 
@@ -160,7 +160,7 @@ func (ec *Collector) Collect(ch chan<- prometheus.Metric) {
 	} else {
 		// probably should start using the avsregistry service instead of avsRegistryReader so that we can
 		// swap out backend for a subgraph eventually
-		response, err := ec.avsRegistryReader.GetOperatorStakeInQuorumsOfOperatorAtCurrentBlock(context.Background(), avsregistry.OperatorStakeInQuorumsOfOperatorAtCurrentBlockRequest{
+		response, err := ec.avsRegistryReader.GetOperatorStakeInQuorumsOfOperatorAtCurrentBlock(context.Background(), avsregistry.OperatorQuorumStakeAtCurrentBlockRequest{
 			BlockNumber: nil,
 			OperatorId:  ec.operatorId,
 		})

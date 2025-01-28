@@ -62,12 +62,12 @@ type RegistrationDetailResponse struct {
 	Quorums []bool
 }
 
-type OperatorRegisteredRequest struct {
+type OperatorRegistrationRequest struct {
 	BlockNumber     *big.Int
 	OperatorAddress gethcommon.Address
 }
 
-type OperatorRegisteredResponse struct {
+type OperatorRegistrationResponse struct {
 	IsRegistered bool
 }
 
@@ -111,23 +111,23 @@ type OperatorAddrsInQuorumsAtCurrentBlockResponse struct {
 	OperatorAddrsInQuorums [][]gethcommon.Address
 }
 
-type OperatorsStakeInQuorumsOfOperatorAtBlockRequest struct {
+type OperatorsStakeInQuorumsByOperatorAtBlockRequest struct {
 	BlockNumber           *big.Int
 	HistoricalBlockNumber uint32
 	OperatorId            types.OperatorId
 }
 
-type OperatorsStakeInQuorumsOfOperatorAtCurrentBlockRequest struct {
+type OperatorsStakeInQuorumsByOperatorAtCurrentBlockRequest struct {
 	BlockNumber *big.Int
 	OperatorId  types.OperatorId
 }
 
-type OperatorsStakeInQuorumsOfOperatorResponse struct {
+type OperatorsStakeInQuorumsByOperatorResponse struct {
 	QuorumNumbers           types.QuorumNums
 	OperatorsStakesInQuorum [][]opstateretriever.OperatorStateRetrieverOperator
 }
 
-type OperatorStakeInQuorumsOfOperatorAtCurrentBlockRequest struct {
+type OperatorQuorumStakeAtCurrentBlockRequest struct {
 	BlockNumber *big.Int
 	OperatorId  types.OperatorId
 }
@@ -173,7 +173,7 @@ type SocketUpdateRequest struct {
 	WaitForReceipt bool
 }
 
-type OperatorRegisterInQuourimWithAvsRequest struct {
+type OperatorRegisterInQuorumWithAVSRequest struct {
 	OperatorEcdsaPrivateKey            *ecdsa.PrivateKey
 	OperatorToAvsRegistrationSigSalt   [32]byte
 	OperatorToAvsRegistrationSigExpiry *big.Int

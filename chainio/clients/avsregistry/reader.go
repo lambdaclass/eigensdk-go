@@ -193,10 +193,10 @@ func (r *ChainReader) GetOperatorAddrsInQuorumsAtCurrentBlock(
 // block
 func (r *ChainReader) GetOperatorsStakeInQuorumsOfOperatorAtBlock(
 	ctx context.Context,
-	request OperatorsStakeInQuorumsOfOperatorAtBlockRequest,
-) (OperatorsStakeInQuorumsOfOperatorResponse, error) {
+	request OperatorsStakeInQuorumsByOperatorAtBlockRequest,
+) (OperatorsStakeInQuorumsByOperatorResponse, error) {
 	if r.operatorStateRetriever == nil {
-		return OperatorsStakeInQuorumsOfOperatorResponse{}, errors.New(
+		return OperatorsStakeInQuorumsByOperatorResponse{}, errors.New(
 			"OperatorStateRetriever contract not provided",
 		)
 	}
@@ -207,11 +207,11 @@ func (r *ChainReader) GetOperatorsStakeInQuorumsOfOperatorAtBlock(
 		request.OperatorId,
 		request.HistoricalBlockNumber)
 	if err != nil {
-		return OperatorsStakeInQuorumsOfOperatorResponse{}, utils.WrapError("Failed to get operators state", err)
+		return OperatorsStakeInQuorumsByOperatorResponse{}, utils.WrapError("Failed to get operators state", err)
 	}
 
 	quorums := types.BitmapToQuorumIds(quorumBitmap)
-	return OperatorsStakeInQuorumsOfOperatorResponse{
+	return OperatorsStakeInQuorumsByOperatorResponse{
 		QuorumNumbers:           quorums,
 		OperatorsStakesInQuorum: operatorStakes,
 	}, nil
@@ -221,14 +221,14 @@ func (r *ChainReader) GetOperatorsStakeInQuorumsOfOperatorAtBlock(
 // current block
 func (r *ChainReader) GetOperatorsStakeInQuorumsOfOperatorAtCurrentBlock(
 	ctx context.Context,
-	request OperatorsStakeInQuorumsOfOperatorAtCurrentBlockRequest,
-) (OperatorsStakeInQuorumsOfOperatorResponse, error) {
+	request OperatorsStakeInQuorumsByOperatorAtCurrentBlockRequest,
+) (OperatorsStakeInQuorumsByOperatorResponse, error) {
 	curBlock, err := r.ethClient.BlockNumber(ctx)
 	if err != nil {
-		return OperatorsStakeInQuorumsOfOperatorResponse{}, utils.WrapError("Failed to get current block number", err)
+		return OperatorsStakeInQuorumsByOperatorResponse{}, utils.WrapError("Failed to get current block number", err)
 	}
 
-	return r.GetOperatorsStakeInQuorumsOfOperatorAtBlock(ctx, OperatorsStakeInQuorumsOfOperatorAtBlockRequest{
+	return r.GetOperatorsStakeInQuorumsOfOperatorAtBlock(ctx, OperatorsStakeInQuorumsByOperatorAtBlockRequest{
 		BlockNumber:           request.BlockNumber,
 		HistoricalBlockNumber: uint32(curBlock),
 		OperatorId:            request.OperatorId,
@@ -239,7 +239,7 @@ func (r *ChainReader) GetOperatorsStakeInQuorumsOfOperatorAtCurrentBlock(
 // are registered
 func (r *ChainReader) GetOperatorStakeInQuorumsOfOperatorAtCurrentBlock(
 	ctx context.Context,
-	request OperatorStakeInQuorumsOfOperatorAtCurrentBlockRequest,
+	request OperatorQuorumStakeAtCurrentBlockRequest,
 ) (OperatorStakeInQuorumsOfOperatorResponse, error) {
 	if r.registryCoordinator == nil {
 		return OperatorStakeInQuorumsOfOperatorResponse{}, errors.New(
@@ -405,10 +405,10 @@ func (r *ChainReader) QueryRegistrationDetail(
 // IsOperatorRegistered checks if an operator is registered with an AVS
 func (r *ChainReader) IsOperatorRegistered(
 	ctx context.Context,
-	request OperatorRegisteredRequest,
-) (OperatorRegisteredResponse, error) {
+	request OperatorRegistrationRequest,
+) (OperatorRegistrationResponse, error) {
 	if r.registryCoordinator == nil {
-		return OperatorRegisteredResponse{}, errors.New("RegistryCoordinator contract not provided")
+		return OperatorRegistrationResponse{}, errors.New("RegistryCoordinator contract not provided")
 	}
 
 	operatorStatus, err := r.registryCoordinator.GetOperatorStatus(
@@ -416,12 +416,12 @@ func (r *ChainReader) IsOperatorRegistered(
 		request.OperatorAddress,
 	)
 	if err != nil {
-		return OperatorRegisteredResponse{}, utils.WrapError("Failed to get operator status", err)
+		return OperatorRegistrationResponse{}, utils.WrapError("Failed to get operator status", err)
 	}
 
 	// 0 = NEVER_REGISTERED, 1 = REGISTERED, 2 = DEREGISTERED
 	registeredWithAvs := operatorStatus == 1
-	return OperatorRegisteredResponse{IsRegistered: registeredWithAvs}, nil
+	return OperatorRegistrationResponse{IsRegistered: registeredWithAvs}, nil
 }
 
 // QueryExistingRegisteredOperatorPubKeys returns the public keys of registered operators
