@@ -75,7 +75,8 @@ func NewReaderFromConfig(
 		logger,
 	)
 	if err != nil {
-		return nil, err
+		wrappedError := Error{3, "Other errors", "Error happened while calling NewBindingsFromConfig", err}
+		return nil, wrappedError
 	}
 	return NewChainReader(
 		elContractBindings.DelegationManager,

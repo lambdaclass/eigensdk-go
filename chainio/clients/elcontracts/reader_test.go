@@ -1374,7 +1374,11 @@ func TestOperatorSetsWithWrongInput(t *testing.T) {
 
 		_, err = chainReader.GetSlashableSharesForOperatorSetsBefore(context.Background(), operatorSets, 10)
 		require.Error(t, err)
-		assert.Equal(t, err.Error(), "Nested error(2) - Error happened while calling GetOperatorsForOperatorSet: Other errors(3) - Method not supported for legacy AVSs")
+		assert.Equal(
+			t,
+			err.Error(),
+			"Nested error(2) - Error happened while calling GetOperatorsForOperatorSet: Other errors(3) - Method not supported for legacy AVSs",
+		)
 	})
 }
 
@@ -1404,5 +1408,10 @@ func TestCreateRederFromConfig(t *testing.T) {
 
 		_, err = elcontracts.NewReaderFromConfig(config, ethHttpClient, logger)
 		require.Error(t, err)
+		assert.Equal(
+			t,
+			err.Error(),
+			"Other errors(3) - Error happened while calling NewBindingsFromConfig: Failed to fetch StrategyManager address: no contract code at given address",
+		)
 	})
 }
