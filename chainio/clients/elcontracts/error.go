@@ -33,6 +33,16 @@ func CreateForBindingError(bindingName string, errorCause error) Error {
 	}
 }
 
+func CreateForNestedError(functionName string, errorCause error) Error {
+	errDescription := fmt.Sprintf("Error happened while calling %s", functionName)
+	return Error{
+		2,
+		"Nested error",
+		errDescription,
+		errorCause,
+	}
+}
+
 func CommonErrorMissingContract(contractName string) string {
 	return fmt.Sprintf("Missing needed contract(1) - %s contract not provided", contractName)
 }

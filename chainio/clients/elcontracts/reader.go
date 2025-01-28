@@ -797,12 +797,7 @@ func (r *ChainReader) GetSlashableSharesForOperatorSets(
 
 	operatorSetStakes, err := r.GetSlashableSharesForOperatorSetsBefore(ctx, operatorSets, uint32(currentBlock))
 	if err != nil {
-		wrappedError := Error{
-			2,
-			"Nested error",
-			"Error happened while calling GetSlashableSharesForOperatorSetsBefore",
-			err,
-		}
+		wrappedError := CreateForNestedError("GetSlashableSharesForOperatorSetsBefore", err)
 		return nil, wrappedError
 	}
 
@@ -823,14 +818,14 @@ func (r *ChainReader) GetSlashableSharesForOperatorSetsBefore(
 	for i, operatorSet := range operatorSets {
 		operators, err := r.GetOperatorsForOperatorSet(ctx, operatorSet)
 		if err != nil {
-			wrappedError := Error{2, "Nested error", "Error happened while calling GetOperatorsForOperatorSet", err}
+			wrappedError := CreateForNestedError("GetOperatorsForOperatorSet", err)
 			return nil, wrappedError
 		}
 
 		strategies, err := r.GetStrategiesForOperatorSet(ctx, operatorSet)
 		// If operator setId is 0 will fail on if above
 		if err != nil {
-			wrappedError := Error{2, "Nested error", "Error happened while calling GetStrategiesForOperatorSet", err}
+			wrappedError := CreateForNestedError("GetStrategiesForOperatorSet", err)
 			return nil, wrappedError
 		}
 
