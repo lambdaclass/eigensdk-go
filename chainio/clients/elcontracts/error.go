@@ -18,7 +18,7 @@ func (e Error) Error() string {
 	}
 }
 
-func CreateForMissingContractErr(contractName string) Error {
+func CreateErrorForMissingContract(contractName string) Error {
 	errDescription := fmt.Sprintf("%s contract not provided", contractName)
 	return Error{1, "Missing needed contract", errDescription, nil}
 }

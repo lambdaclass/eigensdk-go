@@ -95,7 +95,7 @@ func (r *ChainReader) IsOperatorRegistered(
 	operator types.Operator,
 ) (bool, error) {
 	if r.delegationManager == nil {
-		wrappedError := CreateForMissingContractErr("DelegationManager")
+		wrappedError := CreateErrorForMissingContract("DelegationManager")
 		return false, wrappedError
 	}
 
@@ -118,7 +118,7 @@ func (r *ChainReader) GetStakerShares(
 	stakerAddress gethcommon.Address,
 ) ([]gethcommon.Address, []*big.Int, error) {
 	if r.delegationManager == nil {
-		wrappedError := CreateForMissingContractErr("DelegationManager")
+		wrappedError := CreateErrorForMissingContract("DelegationManager")
 		return nil, nil, wrappedError
 	}
 
@@ -143,7 +143,7 @@ func (r *ChainReader) GetDelegatedOperator(
 	blockNumber *big.Int,
 ) (gethcommon.Address, error) {
 	if r.delegationManager == nil {
-		wrappedError := CreateForMissingContractErr("DelegationManager")
+		wrappedError := CreateErrorForMissingContract("DelegationManager")
 		return gethcommon.Address{}, wrappedError
 	}
 
@@ -161,7 +161,7 @@ func (r *ChainReader) GetOperatorDetails(
 	operator types.Operator,
 ) (types.Operator, error) {
 	if r.delegationManager == nil {
-		wrappedError := CreateForMissingContractErr("DelegationManager")
+		wrappedError := CreateErrorForMissingContract("DelegationManager")
 		return types.Operator{}, wrappedError
 	}
 
@@ -263,7 +263,7 @@ func (r *ChainReader) GetOperatorSharesInStrategy(
 	strategyAddr gethcommon.Address,
 ) (*big.Int, error) {
 	if r.delegationManager == nil {
-		wrappedError := CreateForMissingContractErr("DelegationManager")
+		wrappedError := CreateErrorForMissingContract("DelegationManager")
 		return &big.Int{}, wrappedError
 	}
 
@@ -289,7 +289,7 @@ func (r *ChainReader) CalculateDelegationApprovalDigestHash(
 	expiry *big.Int,
 ) ([32]byte, error) {
 	if r.delegationManager == nil {
-		wrappedError := CreateForMissingContractErr("DelegationManager")
+		wrappedError := CreateErrorForMissingContract("DelegationManager")
 		return [32]byte{}, wrappedError
 	}
 
@@ -322,7 +322,7 @@ func (r *ChainReader) CalculateOperatorAVSRegistrationDigestHash(
 	expiry *big.Int,
 ) ([32]byte, error) {
 	if r.avsDirectory == nil {
-		wrappedError := CreateForMissingContractErr("AVSDirectory")
+		wrappedError := CreateErrorForMissingContract("AVSDirectory")
 		return [32]byte{}, wrappedError
 	}
 
@@ -348,7 +348,7 @@ func (r *ChainReader) CalculateOperatorAVSRegistrationDigestHash(
 
 func (r *ChainReader) GetDistributionRootsLength(ctx context.Context) (*big.Int, error) {
 	if r.rewardsCoordinator == nil {
-		wrappedError := CreateForMissingContractErr("RewardsCoordinator")
+		wrappedError := CreateErrorForMissingContract("RewardsCoordinator")
 		return &big.Int{}, wrappedError
 	}
 
@@ -368,7 +368,7 @@ func (r *ChainReader) GetDistributionRootsLength(ctx context.Context) (*big.Int,
 
 func (r *ChainReader) CurrRewardsCalculationEndTimestamp(ctx context.Context) (uint32, error) {
 	if r.rewardsCoordinator == nil {
-		wrappedError := CreateForMissingContractErr("RewardsCoordinator")
+		wrappedError := CreateErrorForMissingContract("RewardsCoordinator")
 		return 0, wrappedError
 	}
 
@@ -390,7 +390,7 @@ func (r *ChainReader) GetCurrentClaimableDistributionRoot(
 	ctx context.Context,
 ) (rewardscoordinator.IRewardsCoordinatorTypesDistributionRoot, error) {
 	if r.rewardsCoordinator == nil {
-		wrappedError := CreateForMissingContractErr("RewardsCoordinator")
+		wrappedError := CreateErrorForMissingContract("RewardsCoordinator")
 		return rewardscoordinator.IRewardsCoordinatorTypesDistributionRoot{}, wrappedError
 	}
 
@@ -413,7 +413,7 @@ func (r *ChainReader) GetRootIndexFromHash(
 	rootHash [32]byte,
 ) (uint32, error) {
 	if r.rewardsCoordinator == nil {
-		wrappedError := CreateForMissingContractErr("RewardsCoordinator")
+		wrappedError := CreateErrorForMissingContract("RewardsCoordinator")
 		return 0, wrappedError
 	}
 
@@ -437,7 +437,7 @@ func (r *ChainReader) GetCumulativeClaimed(
 	token gethcommon.Address,
 ) (*big.Int, error) {
 	if r.rewardsCoordinator == nil {
-		wrappedError := CreateForMissingContractErr("RewardsCoordinator")
+		wrappedError := CreateErrorForMissingContract("RewardsCoordinator")
 		return nil, wrappedError
 	}
 
@@ -460,7 +460,7 @@ func (r *ChainReader) CheckClaim(
 	claim rewardscoordinator.IRewardsCoordinatorTypesRewardsMerkleClaim,
 ) (bool, error) {
 	if r.rewardsCoordinator == nil {
-		wrappedError := CreateForMissingContractErr("RewardsCoordinator")
+		wrappedError := CreateErrorForMissingContract("RewardsCoordinator")
 		return false, wrappedError
 	}
 
@@ -479,7 +479,7 @@ func (r *ChainReader) GetOperatorAVSSplit(
 	avs gethcommon.Address,
 ) (uint16, error) {
 	if r.rewardsCoordinator == nil {
-		wrappedError := CreateForMissingContractErr("RewardsCoordinator")
+		wrappedError := CreateErrorForMissingContract("RewardsCoordinator")
 		return 0, wrappedError
 	}
 
@@ -502,7 +502,7 @@ func (r *ChainReader) GetOperatorPISplit(
 	operator gethcommon.Address,
 ) (uint16, error) {
 	if r.rewardsCoordinator == nil {
-		wrappedError := CreateForMissingContractErr("RewardsCoordinator")
+		wrappedError := CreateErrorForMissingContract("RewardsCoordinator")
 		return 0, wrappedError
 	}
 
@@ -526,7 +526,7 @@ func (r *ChainReader) GetAllocatableMagnitude(
 	strategyAddress gethcommon.Address,
 ) (uint64, error) {
 	if r.allocationManager == nil {
-		wrappedError := CreateForMissingContractErr("AllocationManager")
+		wrappedError := CreateErrorForMissingContract("AllocationManager")
 		return 0, wrappedError
 	}
 
@@ -554,7 +554,7 @@ func (r *ChainReader) GetMaxMagnitudes(
 	strategyAddresses []gethcommon.Address,
 ) ([]uint64, error) {
 	if r.allocationManager == nil {
-		wrappedError := CreateForMissingContractErr("AllocationManager")
+		wrappedError := CreateErrorForMissingContract("AllocationManager")
 		return []uint64{}, wrappedError
 	}
 
@@ -582,7 +582,7 @@ func (r *ChainReader) GetAllocationInfo(
 	strategyAddress gethcommon.Address,
 ) ([]AllocationInfo, error) {
 	if r.allocationManager == nil {
-		wrappedError := CreateForMissingContractErr("AllocationManager")
+		wrappedError := CreateErrorForMissingContract("AllocationManager")
 		return nil, wrappedError
 	}
 
@@ -622,7 +622,7 @@ func (r *ChainReader) GetOperatorShares(
 	strategyAddresses []gethcommon.Address,
 ) ([]*big.Int, error) {
 	if r.delegationManager == nil {
-		wrappedError := CreateForMissingContractErr("DelegationManager")
+		wrappedError := CreateErrorForMissingContract("DelegationManager")
 		return nil, wrappedError
 	}
 
@@ -648,7 +648,7 @@ func (r *ChainReader) GetOperatorsShares(
 	strategyAddresses []gethcommon.Address,
 ) ([][]*big.Int, error) {
 	if r.delegationManager == nil {
-		wrappedError := CreateForMissingContractErr("DelegationManager")
+		wrappedError := CreateErrorForMissingContract("DelegationManager")
 		return nil, wrappedError
 	}
 
@@ -677,7 +677,7 @@ func (r *ChainReader) GetNumOperatorSetsForOperator(
 	operatorAddress gethcommon.Address,
 ) (*big.Int, error) {
 	if r.allocationManager == nil {
-		wrappedError := CreateForMissingContractErr("AllocationManager")
+		wrappedError := CreateErrorForMissingContract("AllocationManager")
 		return nil, wrappedError
 	}
 	opSets, err := r.allocationManager.GetAllocatedSets(&bind.CallOpts{Context: ctx}, operatorAddress)
@@ -700,7 +700,7 @@ func (r *ChainReader) GetOperatorSetsForOperator(
 	operatorAddress gethcommon.Address,
 ) ([]allocationmanager.OperatorSet, error) {
 	if r.allocationManager == nil {
-		wrappedError := CreateForMissingContractErr("AllocationManager")
+		wrappedError := CreateErrorForMissingContract("AllocationManager")
 		return nil, wrappedError
 	}
 	// TODO: we're fetching max int64 operatorSets here. What's the practical limit for timeout by RPC? do we need to
@@ -728,7 +728,7 @@ func (r *ChainReader) IsOperatorRegisteredWithOperatorSet(
 	if operatorSet.Id == 0 {
 		// this is an M2 AVS
 		if r.avsDirectory == nil {
-			wrappedError := CreateForMissingContractErr("AVSDirectory")
+			wrappedError := CreateErrorForMissingContract("AVSDirectory")
 			return false, wrappedError
 		}
 
@@ -747,7 +747,7 @@ func (r *ChainReader) IsOperatorRegisteredWithOperatorSet(
 		return status == 1, nil
 	} else {
 		if r.allocationManager == nil {
-			wrappedError := CreateForMissingContractErr("AllocationManager")
+			wrappedError := CreateErrorForMissingContract("AllocationManager")
 			return false, wrappedError
 		}
 		registeredOperatorSets, err := r.allocationManager.GetRegisteredSets(&bind.CallOpts{Context: ctx}, operatorAddress)
@@ -776,7 +776,7 @@ func (r *ChainReader) GetOperatorsForOperatorSet(
 		return nil, errLegacyAVSsNotSupported
 	} else {
 		if r.allocationManager == nil {
-			wrappedError := CreateForMissingContractErr("AllocationManager")
+			wrappedError := CreateErrorForMissingContract("AllocationManager")
 			return nil, wrappedError
 		}
 
@@ -799,7 +799,7 @@ func (r *ChainReader) GetNumOperatorsForOperatorSet(
 		return nil, errLegacyAVSsNotSupported
 	} else {
 		if r.allocationManager == nil {
-			wrappedError := CreateForMissingContractErr("AllocationManager")
+			wrappedError := CreateErrorForMissingContract("AllocationManager")
 			return nil, wrappedError
 		}
 
@@ -823,7 +823,7 @@ func (r *ChainReader) GetStrategiesForOperatorSet(
 		return nil, errLegacyAVSsNotSupported
 	} else {
 		if r.allocationManager == nil {
-			wrappedError := CreateForMissingContractErr("AllocationManager")
+			wrappedError := CreateErrorForMissingContract("AllocationManager")
 			return nil, wrappedError
 		}
 
@@ -844,7 +844,7 @@ func (r *ChainReader) GetSlashableShares(
 	strategies []gethcommon.Address,
 ) (map[gethcommon.Address]*big.Int, error) {
 	if r.allocationManager == nil {
-		wrappedError := CreateForMissingContractErr("AllocationManager")
+		wrappedError := CreateErrorForMissingContract("AllocationManager")
 		return nil, wrappedError
 	}
 
@@ -976,7 +976,7 @@ func (r *ChainReader) GetAllocationDelay(
 	operatorAddress gethcommon.Address,
 ) (uint32, error) {
 	if r.allocationManager == nil {
-		wrappedError := CreateForMissingContractErr("AllocationManager")
+		wrappedError := CreateErrorForMissingContract("AllocationManager")
 		return 0, wrappedError
 	}
 	isSet, delay, err := r.allocationManager.GetAllocationDelay(&bind.CallOpts{Context: ctx}, operatorAddress)
@@ -1002,7 +1002,7 @@ func (r *ChainReader) GetRegisteredSets(
 	operatorAddress gethcommon.Address,
 ) ([]allocationmanager.OperatorSet, error) {
 	if r.allocationManager == nil {
-		wrappedError := CreateForMissingContractErr("AllocationManager")
+		wrappedError := CreateErrorForMissingContract("AllocationManager")
 		return nil, wrappedError
 	}
 
@@ -1028,7 +1028,7 @@ func (r *ChainReader) CanCall(
 	selector [4]byte,
 ) (bool, error) {
 	if r.permissionController == nil {
-		wrappedError := CreateForMissingContractErr("PermissionController")
+		wrappedError := CreateErrorForMissingContract("PermissionController")
 		return false, wrappedError
 	}
 
@@ -1059,7 +1059,7 @@ func (r *ChainReader) ListAppointees(
 	selector [4]byte,
 ) ([]gethcommon.Address, error) {
 	if r.permissionController == nil {
-		wrappedError := CreateForMissingContractErr("PermissionController")
+		wrappedError := CreateErrorForMissingContract("PermissionController")
 		return nil, wrappedError
 	}
 
@@ -1088,7 +1088,7 @@ func (r *ChainReader) ListAppointeePermissions(
 	appointeeAddress gethcommon.Address,
 ) ([]gethcommon.Address, [][4]byte, error) {
 	if r.permissionController == nil {
-		wrappedError := CreateForMissingContractErr("PermissionController")
+		wrappedError := CreateErrorForMissingContract("PermissionController")
 		return nil, nil, wrappedError
 	}
 
@@ -1115,7 +1115,7 @@ func (r *ChainReader) ListPendingAdmins(
 	accountAddress gethcommon.Address,
 ) ([]gethcommon.Address, error) {
 	if r.permissionController == nil {
-		wrappedError := CreateForMissingContractErr("PermissionController")
+		wrappedError := CreateErrorForMissingContract("PermissionController")
 		return nil, wrappedError
 	}
 
@@ -1138,7 +1138,7 @@ func (r *ChainReader) ListAdmins(
 	accountAddress gethcommon.Address,
 ) ([]gethcommon.Address, error) {
 	if r.permissionController == nil {
-		wrappedError := CreateForMissingContractErr("PermissionController")
+		wrappedError := CreateErrorForMissingContract("PermissionController")
 		return nil, wrappedError
 	}
 
@@ -1162,7 +1162,7 @@ func (r *ChainReader) IsPendingAdmin(
 	pendingAdminAddress gethcommon.Address,
 ) (bool, error) {
 	if r.permissionController == nil {
-		wrappedError := CreateForMissingContractErr("PermissionController")
+		wrappedError := CreateErrorForMissingContract("PermissionController")
 		return false, wrappedError
 	}
 
@@ -1190,7 +1190,7 @@ func (r *ChainReader) IsAdmin(
 	adminAddress gethcommon.Address,
 ) (bool, error) {
 	if r.permissionController == nil {
-		wrappedError := CreateForMissingContractErr("PermissionController")
+		wrappedError := CreateErrorForMissingContract("PermissionController")
 		return false, wrappedError
 	}
 
