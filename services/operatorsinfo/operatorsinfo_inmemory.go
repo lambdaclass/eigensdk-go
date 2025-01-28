@@ -72,7 +72,6 @@ type resp struct {
 	operatorExists bool
 }
 
-// REVIEW: Could we do a refactor here and start using uint64?
 type Opts struct {
 	StartBlock uint64
 	StopBlock  uint64
