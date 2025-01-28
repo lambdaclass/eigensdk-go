@@ -815,12 +815,22 @@ func TestInvalidConfig(t *testing.T) {
 		// IsOperatorRegistered needs a correct DelegationManagerAddress
 		_, err := chainReader.IsOperatorRegistered(context.Background(), operator)
 		require.Error(t, err)
+		assert.Equal(
+			t,
+			err.Error(),
+			"Missing needed contract(1) - DelegationManager contract not provided",
+		)
 	})
 
 	t.Run("get operator details with invalid config", func(t *testing.T) {
 		// GetOperatorDetails needs a correct DelegationManagerAddress
 		_, err := chainReader.GetOperatorDetails(context.Background(), operator)
 		require.Error(t, err)
+		assert.Equal(
+			t,
+			err.Error(),
+			"Missing needed contract(1) - DelegationManager contract not provided",
+		)
 	})
 
 	t.Run("get operator avs", func(t *testing.T) {
@@ -830,9 +840,19 @@ func TestInvalidConfig(t *testing.T) {
 			common.MaxAddress,
 		)
 		require.Error(t, err)
+		assert.Equal(
+			t,
+			err.Error(),
+			"Missing needed contract(1) - RewardsCoordinator contract not provided",
+		)
 
 		_, err = chainReader.GetOperatorPISplit(context.Background(), common.HexToAddress(operatorAddr))
 		require.Error(t, err)
+		assert.Equal(
+			t,
+			err.Error(),
+			"Missing needed contract(1) - RewardsCoordinator contract not provided",
+		)
 	})
 
 	t.Run("try to get strategy and underlying token with wrong strategy address", func(t *testing.T) {
@@ -843,10 +863,20 @@ func TestInvalidConfig(t *testing.T) {
 		// GetOperatorSharesInStrategy needs a correct DelegationManagerAddress
 		_, err := chainReader.GetOperatorSharesInStrategy(context.Background(), operatorAddr, strategyAddr)
 		require.Error(t, err)
+		assert.Equal(
+			t,
+			err.Error(),
+			"Missing needed contract(1) - DelegationManager contract not provided",
+		)
 
 		// GetStrategyAndUnderlyingToken needs a correct StrategyAddress
 		_, _, err = chainReader.GetStrategyAndUnderlyingToken(context.Background(), strategyAddr)
 		require.Error(t, err)
+		assert.Equal(
+			t,
+			err.Error(),
+			"Binding error(2) - Error happened while fetching token contract: no contract code at given address",
+		)
 
 		_, _, _, err = chainReader.GetStrategyAndUnderlyingERC20Token(context.Background(), strategyAddr)
 		require.Error(t, err)
@@ -868,6 +898,11 @@ func TestInvalidConfig(t *testing.T) {
 			expiry,
 		)
 		require.Error(t, err)
+		assert.Equal(
+			t,
+			err.Error(),
+			"Missing needed contract(1) - DelegationManager contract not provided",
+		)
 
 		// CalculateOperatorAVSRegistrationDigestHash needs a correct AvsDirectoryAddress
 		_, err = chainReader.CalculateOperatorAVSRegistrationDigestHash(context.Background(),
@@ -875,19 +910,39 @@ func TestInvalidConfig(t *testing.T) {
 			staker,
 			approverSalt, expiry)
 		require.Error(t, err)
+		assert.Equal(
+			t,
+			err.Error(),
+			"Missing needed contract(1) - AVSDirectory contract not provided",
+		)
 	})
 
 	t.Run("get root with invalid config", func(t *testing.T) {
 		// GetDistributionRootsLength needs a correct RewardsCoordinatorAddress
 		_, err := chainReader.GetDistributionRootsLength(context.Background())
 		require.Error(t, err)
+		assert.Equal(
+			t,
+			err.Error(),
+			"Missing needed contract(1) - RewardsCoordinator contract not provided",
+		)
 
 		// GetRootIndexFromHash needs a correct RewardsCoordinatorAddress
 		_, err = chainReader.GetRootIndexFromHash(context.Background(), [32]byte{})
 		require.Error(t, err)
+		assert.Equal(
+			t,
+			err.Error(),
+			"Missing needed contract(1) - RewardsCoordinator contract not provided",
+		)
 
 		_, err = chainReader.GetCurrentClaimableDistributionRoot(context.Background())
 		require.Error(t, err)
+		assert.Equal(
+			t,
+			err.Error(),
+			"Missing needed contract(1) - RewardsCoordinator contract not provided",
+		)
 	})
 
 	t.Run("get magnitudes, rewards and claims with invalid config", func(t *testing.T) {
@@ -896,6 +951,11 @@ func TestInvalidConfig(t *testing.T) {
 
 		_, err = chainReader.GetCurrentClaimableDistributionRoot(context.Background())
 		require.Error(t, err)
+		assert.Equal(
+			t,
+			err.Error(),
+			"Missing needed contract(1) - RewardsCoordinator contract not provided",
+		)
 
 		_, err := chainReader.GetCumulativeClaimed(
 			context.Background(),
@@ -903,6 +963,11 @@ func TestInvalidConfig(t *testing.T) {
 			common.HexToAddress(testutils.ANVIL_SECOND_ADDRESS),
 		)
 		require.Error(t, err)
+		assert.Equal(
+			t,
+			err.Error(),
+			"Missing needed contract(1) - RewardsCoordinator contract not provided",
+		)
 
 		_, err = chainReader.GetMaxMagnitudes(
 			context.Background(),
@@ -910,6 +975,11 @@ func TestInvalidConfig(t *testing.T) {
 			[]common.Address{strategyAddr},
 		)
 		require.Error(t, err)
+		assert.Equal(
+			t,
+			err.Error(),
+			"Missing needed contract(1) - AllocationManager contract not provided",
+		)
 
 		_, err = chainReader.GetAllocatableMagnitude(
 			context.Background(),
@@ -917,21 +987,46 @@ func TestInvalidConfig(t *testing.T) {
 			strategyAddr,
 		)
 		require.Error(t, err)
+		assert.Equal(
+			t,
+			err.Error(),
+			"Missing needed contract(1) - AllocationManager contract not provided",
+		)
 
 		_, err = chainReader.GetAllocationInfo(context.Background(), common.HexToAddress(operatorAddr), strategyAddr)
 		require.Error(t, err)
+		assert.Equal(
+			t,
+			err.Error(),
+			"Missing needed contract(1) - AllocationManager contract not provided",
+		)
 
 		_, err = chainReader.GetAllocationDelay(context.Background(), common.HexToAddress(operatorAddr))
 		require.Error(t, err)
+		assert.Equal(
+			t,
+			err.Error(),
+			"Missing needed contract(1) - AllocationManager contract not provided",
+		)
 
 		_, err = chainReader.CheckClaim(
 			context.Background(),
 			rewardscoordinator.IRewardsCoordinatorTypesRewardsMerkleClaim{},
 		)
 		require.Error(t, err)
+		assert.Equal(
+			t,
+			err.Error(),
+			"Missing needed contract(1) - RewardsCoordinator contract not provided",
+		)
 
 		_, err = chainReader.CurrRewardsCalculationEndTimestamp(context.Background())
 		require.Error(t, err)
+		assert.Equal(
+			t,
+			err.Error(),
+			"Missing needed contract(1) - RewardsCoordinator contract not provided",
+		)
 	})
 
 	t.Run("try to get a staker shares with invalid config", func(t *testing.T) {
@@ -949,18 +1044,21 @@ func TestInvalidConfig(t *testing.T) {
 			big.NewInt(0),
 		)
 		require.Error(t, err)
+		assert.Equal(t, err.Error(), elcontracts.CommonErrorMissingContract("DelegationManager"))
 	})
 
 	t.Run("try to get the number of operator sets for an operator with invalid config", func(t *testing.T) {
 		// GetNumOperatorSetsForOperator needs a correct AllocationManagerAddress
 		_, err := chainReader.GetNumOperatorSetsForOperator(context.Background(), common.HexToAddress(operator.Address))
 		require.Error(t, err)
+		assert.Equal(t, err.Error(), elcontracts.CommonErrorMissingContract("AllocationManager"))
 	})
 
 	t.Run("try to get the operator sets for an operator with invalid config", func(t *testing.T) {
 		// GetOperatorSetsForOperator needs a correct AllocationManagerAddress
 		_, err := chainReader.GetOperatorSetsForOperator(context.Background(), common.HexToAddress(operator.Address))
 		require.Error(t, err)
+		assert.Equal(t, err.Error(), elcontracts.CommonErrorMissingContract("AllocationManager"))
 	})
 
 	t.Run("try to check if the operator is registered in an operator set with set id 0 and an invalid config",
@@ -978,6 +1076,7 @@ func TestInvalidConfig(t *testing.T) {
 				operatorSet,
 			)
 			require.Error(t, err)
+			assert.Equal(t, err.Error(), elcontracts.CommonErrorMissingContract("AVSDirectory"))
 		},
 	)
 
@@ -996,6 +1095,7 @@ func TestInvalidConfig(t *testing.T) {
 				operatorSet,
 			)
 			require.Error(t, err)
+			assert.Equal(t, err.Error(), elcontracts.CommonErrorMissingContract("AVSDirectory"))
 		},
 	)
 
@@ -1013,6 +1113,7 @@ func TestInvalidConfig(t *testing.T) {
 				operatorSet,
 			)
 			require.Error(t, err)
+			assert.Equal(t, err.Error(), elcontracts.CommonErrorMissingContract("AllocationManager"))
 		},
 	)
 
@@ -1030,6 +1131,7 @@ func TestInvalidConfig(t *testing.T) {
 				operatorSet,
 			)
 			require.Error(t, err)
+			assert.Equal(t, err.Error(), elcontracts.CommonErrorMissingContract("AllocationManager"))
 		},
 	)
 
@@ -1047,6 +1149,7 @@ func TestInvalidConfig(t *testing.T) {
 				operatorSet,
 			)
 			require.Error(t, err)
+			assert.Equal(t, err.Error(), elcontracts.CommonErrorMissingContract("AllocationManager"))
 		},
 	)
 }
@@ -1236,12 +1339,15 @@ func TestOperatorSetsWithWrongInput(t *testing.T) {
 	t.Run("test operator set with invalid id", func(t *testing.T) {
 		_, err := chainReader.GetOperatorsForOperatorSet(ctx, operatorSet)
 		require.Error(t, err)
+		assert.Equal(t, err.Error(), "Other errors(3) - Method not supported for legacy AVSs")
 
 		_, err = chainReader.GetNumOperatorsForOperatorSet(ctx, operatorSet)
 		require.Error(t, err)
+		assert.Equal(t, err.Error(), "Other errors(3) - Method not supported for legacy AVSs")
 
 		_, err = chainReader.GetStrategiesForOperatorSet(ctx, operatorSet)
 		require.Error(t, err)
+		assert.Equal(t, err.Error(), "Other errors(3) - Method not supported for legacy AVSs")
 
 		strategies := []common.Address{contractAddrs.Erc20MockStrategy}
 
@@ -1252,6 +1358,8 @@ func TestOperatorSetsWithWrongInput(t *testing.T) {
 			strategies,
 		)
 		require.Error(t, err)
+		// This is the returned error, but i don't think it's the inteded
+		// assert.Equal(t, err.Error(), "Missing needed contract(1) - AllocationManager contract not provided")
 	})
 
 	t.Run("get slashable shares with invalid operatorSet", func(t *testing.T) {
@@ -1266,6 +1374,7 @@ func TestOperatorSetsWithWrongInput(t *testing.T) {
 
 		_, err = chainReader.GetSlashableSharesForOperatorSetsBefore(context.Background(), operatorSets, 10)
 		require.Error(t, err)
+		assert.Equal(t, err.Error(), "Nested error(2) - Error happened while calling GetOperatorsForOperatorSet: Other errors(3) - Method not supported for legacy AVSs")
 	})
 }
 
