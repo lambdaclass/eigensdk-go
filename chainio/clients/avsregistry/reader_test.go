@@ -94,7 +94,10 @@ func TestReaderMethods(t *testing.T) {
 				BlockNumber: nil,
 				OperatorId:  response.OperatorId,
 			}
-			responseOperators, err := chainReader.GetOperatorStakeInQuorumsOfOperatorAtCurrentBlock(context.Background(), stakesRequest)
+			responseOperators, err := chainReader.GetOperatorStakeInQuorumsOfOperatorAtCurrentBlock(
+				context.Background(),
+				stakesRequest,
+			)
 			require.NoError(t, err)
 			require.Equal(t, 0, len(responseOperators.QuorumStakes))
 		})
