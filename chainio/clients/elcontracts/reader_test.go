@@ -777,7 +777,7 @@ func TestContractErrorCases(t *testing.T) {
 		assert.Equal(
 			t,
 			err.Error(),
-			"Binding error(2) - Error happened while fetching token contract: no contract code at given address",
+			"Binding error(0) - Error happened while calling token contract: no contract code at given address",
 		)
 	})
 
@@ -787,7 +787,7 @@ func TestContractErrorCases(t *testing.T) {
 		assert.Equal(
 			t,
 			err.Error(),
-			"Binding error(2) - Error happened while fetching token contract: no contract code at given address",
+			"Binding error(0) - Error happened while calling token contract: no contract code at given address",
 		)
 	})
 }
@@ -855,7 +855,7 @@ func TestInvalidConfig(t *testing.T) {
 		assert.Equal(
 			t,
 			err.Error(),
-			"Binding error(2) - Error happened while fetching token contract: no contract code at given address",
+			"Binding error(0) - Error happened while calling token contract: no contract code at given address",
 		)
 
 		_, _, _, err = chainReader.GetStrategyAndUnderlyingERC20Token(context.Background(), strategyAddr)

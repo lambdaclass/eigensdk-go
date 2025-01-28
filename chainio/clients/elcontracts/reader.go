@@ -205,12 +205,12 @@ func (r *ChainReader) GetStrategyAndUnderlyingToken(
 	contractStrategy, err := strategy.NewContractIStrategy(strategyAddr, r.ethClient)
 	// This call should not fail since it's an init
 	if err != nil {
-		wrappedError := Error{2, "Binding error", "Error happened while fetching strategy contract", err}
+		wrappedError := CreateForBindingError("strategy contract", err)
 		return nil, gethcommon.Address{}, wrappedError
 	}
 	underlyingTokenAddr, err := contractStrategy.UnderlyingToken(&bind.CallOpts{Context: ctx})
 	if err != nil {
-		wrappedError := Error{2, "Binding error", "Error happened while fetching token contract", err}
+		wrappedError := CreateForBindingError("token contract", err)
 		return nil, gethcommon.Address{}, wrappedError
 	}
 	return contractStrategy, underlyingTokenAddr, nil
@@ -225,18 +225,18 @@ func (r *ChainReader) GetStrategyAndUnderlyingERC20Token(
 	contractStrategy, err := strategy.NewContractIStrategy(strategyAddr, r.ethClient)
 	// This call should not fail since it's an init
 	if err != nil {
-		wrappedError := Error{2, "Binding error", "Error happened while fetching strategy contract", err}
+		wrappedError := CreateForBindingError("strategy contract", err)
 		return nil, nil, gethcommon.Address{}, wrappedError
 	}
 	underlyingTokenAddr, err := contractStrategy.UnderlyingToken(&bind.CallOpts{Context: ctx})
 	if err != nil {
-		wrappedError := Error{2, "Binding error", "Error happened while fetching token contract", err}
+		wrappedError := CreateForBindingError("token contract", err)
 		return nil, nil, gethcommon.Address{}, wrappedError
 	}
 	contractUnderlyingToken, err := erc20.NewContractIERC20(underlyingTokenAddr, r.ethClient)
 	// This call should not fail, if the strategy does not have an underlying token then it would enter the if above
 	if err != nil {
-		wrappedError := Error{2, "Binding error", "Error happened while fetching erc20 token contract", err}
+		wrappedError := CreateForBindingError("erc20 token contract", err)
 		return nil, nil, gethcommon.Address{}, wrappedError
 	}
 	return contractStrategy, contractUnderlyingToken, underlyingTokenAddr, nil
@@ -751,7 +751,7 @@ func (r *ChainReader) GetSlashableShares(
 	currentBlock, err := r.ethClient.BlockNumber(ctx)
 	// This call should not fail since it's a getter
 	if err != nil {
-		wrappedError := Error{2, "Binding error", "Error happened while fetching block number", err}
+		wrappedError := CreateForBindingError("ethClient.BlockNumber", err)
 		return nil, wrappedError
 	}
 
@@ -791,7 +791,7 @@ func (r *ChainReader) GetSlashableSharesForOperatorSets(
 	currentBlock, err := r.ethClient.BlockNumber(ctx)
 	// This call should not fail since it's a getter
 	if err != nil {
-		wrappedError := Error{2, "Binding error", "Error happened while fetching block number", err}
+		wrappedError := CreateForBindingError("ethClient.BlockNumber", err)
 		return nil, wrappedError
 	}
 
