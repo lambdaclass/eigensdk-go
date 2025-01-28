@@ -464,10 +464,17 @@ func (r *ChainReader) GetAllocatableMagnitude(
 	strategyAddress gethcommon.Address,
 ) (uint64, error) {
 	if r.allocationManager == nil {
-		return 0, errors.New("AllocationManager contract not provided")
+		wrappedError := Error{1, "Missing needed contract", "AllocationManager contract not provided", nil}
+		return 0, wrappedError
 	}
 
-	return r.allocationManager.GetAllocatableMagnitude(&bind.CallOpts{Context: ctx}, operatorAddress, strategyAddress)
+	allocatableMagnitude, err := r.allocationManager.GetAllocatableMagnitude(&bind.CallOpts{Context: ctx}, operatorAddress, strategyAddress)
+	if err != nil {
+		wrappedError := Error{0, "Binding error", "Error happened while calling allocationManager.GetAllocatableMagnitude", err}
+		return 0, wrappedError
+	}
+
+	return allocatableMagnitude, nil
 }
 
 func (r *ChainReader) GetMaxMagnitudes(
@@ -476,10 +483,17 @@ func (r *ChainReader) GetMaxMagnitudes(
 	strategyAddresses []gethcommon.Address,
 ) ([]uint64, error) {
 	if r.allocationManager == nil {
-		return []uint64{}, errors.New("AllocationManager contract not provided")
+		wrappedError := Error{1, "Missing needed contract", "AllocationManager contract not provided", nil}
+		return []uint64{}, wrappedError
 	}
 
-	return r.allocationManager.GetMaxMagnitudes0(&bind.CallOpts{Context: ctx}, operatorAddress, strategyAddresses)
+	maxMagnitudes, err := r.allocationManager.GetMaxMagnitudes0(&bind.CallOpts{Context: ctx}, operatorAddress, strategyAddresses)
+	if err != nil {
+		wrappedError := Error{0, "Binding error", "Error happened while calling allocationManager.GetMaxMagnitudes0", err}
+		return []uint64{}, wrappedError
+	}
+
+	return maxMagnitudes, nil
 }
 
 func (r *ChainReader) GetAllocationInfo(
@@ -488,7 +502,8 @@ func (r *ChainReader) GetAllocationInfo(
 	strategyAddress gethcommon.Address,
 ) ([]AllocationInfo, error) {
 	if r.allocationManager == nil {
-		return nil, errors.New("AllocationManager contract not provided")
+		wrappedError := Error{1, "Missing needed contract", "AllocationManager contract not provided", nil}
+		return nil, wrappedError
 	}
 
 	opSets, allocationInfo, err := r.allocationManager.GetStrategyAllocations(
@@ -498,7 +513,8 @@ func (r *ChainReader) GetAllocationInfo(
 	)
 	// This call should not fail since it's a getter
 	if err != nil {
-		return nil, err
+		wrappedError := Error{0, "Binding error", "Error happened while calling allocationManager.GetStrategyAllocations", err}
+		return nil, wrappedError
 	}
 
 	allocationsInfo := make([]AllocationInfo, len(opSets))
@@ -547,11 +563,13 @@ func (r *ChainReader) GetNumOperatorSetsForOperator(
 	operatorAddress gethcommon.Address,
 ) (*big.Int, error) {
 	if r.allocationManager == nil {
-		return nil, errors.New("AllocationManager contract not provided")
+		wrappedError := Error{1, "Missing needed contract", "AllocationManager contract not provided", nil}
+		return nil, wrappedError
 	}
 	opSets, err := r.allocationManager.GetAllocatedSets(&bind.CallOpts{Context: ctx}, operatorAddress)
 	if err != nil {
-		return nil, err
+		wrappedError := Error{0, "Binding error", "Error happened while calling allocationManager.GetAllocatedSets", err}
+		return nil, wrappedError
 	}
 	return big.NewInt(int64(len(opSets))), nil
 }
@@ -563,11 +581,18 @@ func (r *ChainReader) GetOperatorSetsForOperator(
 	operatorAddress gethcommon.Address,
 ) ([]allocationmanager.OperatorSet, error) {
 	if r.allocationManager == nil {
-		return nil, errors.New("AllocationManager contract not provided")
+		wrappedError := Error{1, "Missing needed contract", "AllocationManager contract not provided", nil}
+		return nil, wrappedError
 	}
 	// TODO: we're fetching max int64 operatorSets here. What's the practical limit for timeout by RPC? do we need to
 	// paginate?
-	return r.allocationManager.GetAllocatedSets(&bind.CallOpts{Context: ctx}, operatorAddress)
+	allocatedSets, err := r.allocationManager.GetAllocatedSets(&bind.CallOpts{Context: ctx}, operatorAddress)
+	if err != nil {
+		wrappedError := Error{0, "Binding error", "Error happened while calling allocationManager.GetAllocatedSets", err}
+		return nil, wrappedError
+	}
+
+	return allocatedSets, nil
 }
 
 // IsOperatorRegisteredWithOperatorSet returns if an operator is registered with a specific operator set
