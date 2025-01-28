@@ -3,9 +3,8 @@ package avsregistry
 import (
 	"context"
 
-	opstateretriever "github.com/Layr-Labs/eigensdk-go/contracts/bindings/OperatorStateRetriever"
+	"github.com/Layr-Labs/eigensdk-go/chainio/clients/avsregistry"
 	"github.com/Layr-Labs/eigensdk-go/types"
-	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 )
 
 // AvsRegistryServicemService is a service that indexes the Avs Registry contracts and provides a way to query for
@@ -31,9 +30,7 @@ type AvsRegistryService interface {
 	// GetCheckSignaturesIndices returns the registry indices of the nonsigner operators specified by
 	// nonSignerOperatorIds who were registered at referenceBlockNumber.
 	GetCheckSignaturesIndices(
-		opts *bind.CallOpts,
-		referenceBlockNumber types.BlockNum,
-		quorumNumbers types.QuorumNums,
-		nonSignerOperatorIds []types.OperatorId,
-	) (opstateretriever.OperatorStateRetrieverCheckSignaturesIndices, error)
+		ctx context.Context,
+		request avsregistry.SignaturesIndicesRequest,
+	) (avsregistry.SignaturesIndicesResponse, error)
 }

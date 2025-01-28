@@ -2,13 +2,14 @@
 package economic
 
 import (
+	"context"
 	"errors"
 	"strconv"
 
+	"github.com/Layr-Labs/eigensdk-go/chainio/clients/avsregistry"
 	"github.com/Layr-Labs/eigensdk-go/logging"
 	"github.com/Layr-Labs/eigensdk-go/types"
 	"github.com/Layr-Labs/eigensdk-go/utils"
-	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/prometheus/client_golang/prometheus"
 )
@@ -17,12 +18,12 @@ type eLReader interface {
 }
 
 type avsRegistryReader interface {
-	GetOperatorId(opts *bind.CallOpts, operatorAddr common.Address) ([32]byte, error)
+	GetOperatorId(ctx context.Context, request avsregistry.OperatorIdRequest) (avsregistry.OperatorIdResponse, error)
 
 	GetOperatorStakeInQuorumsOfOperatorAtCurrentBlock(
-		opts *bind.CallOpts,
-		operatorId types.OperatorId,
-	) (map[types.QuorumNum]types.StakeAmount, error)
+		ctx context.Context,
+		request avsregistry.OperatorStakeInQuorumsOfOperatorAtCurrentBlockRequest,
+	) (avsregistry.OperatorStakeInQuorumsOfOperatorResponse, error)
 }
 
 // Collector exports the economic metrics listed at
@@ -128,14 +129,17 @@ func (ec *Collector) Describe(ch chan<- *prometheus.Desc) {
 // initialize the operatorId if it hasn't already been initialized
 func (ec *Collector) initOperatorId() error {
 	if ec.operatorId == [32]byte{} {
-		operatorId, err := ec.avsRegistryReader.GetOperatorId(&bind.CallOpts{}, ec.operatorAddr)
+		response, err := ec.avsRegistryReader.GetOperatorId(
+			context.Background(),
+			avsregistry.OperatorIdRequest{OperatorAddress: ec.operatorAddr},
+		)
 		if err != nil {
 			return utils.WrapError("Failed to get operator id", err)
 		}
-		if operatorId == [32]byte{} {
+		if response.OperatorId == [32]byte{} {
 			return errors.New("operator not registered")
 		}
-		ec.operatorId = operatorId
+		ec.operatorId = response.OperatorId
 	}
 	return nil
 }
@@ -156,11 +160,14 @@ func (ec *Collector) Collect(ch chan<- prometheus.Metric) {
 	} else {
 		// probably should start using the avsregistry service instead of avsRegistryReader so that we can
 		// swap out backend for a subgraph eventually
-		quorumStakeMap, err := ec.avsRegistryReader.GetOperatorStakeInQuorumsOfOperatorAtCurrentBlock(&bind.CallOpts{}, ec.operatorId)
+		response, err := ec.avsRegistryReader.GetOperatorStakeInQuorumsOfOperatorAtCurrentBlock(context.Background(), avsregistry.OperatorStakeInQuorumsOfOperatorAtCurrentBlockRequest{
+			BlockNumber: nil,
+			OperatorId:  ec.operatorId,
+		})
 		if err != nil {
 			ec.logger.Error("Failed to get operator stake", "err", err)
 		} else {
-			for quorumNum, stake := range quorumStakeMap {
+			for quorumNum, stake := range response.QuorumStakes {
 				stakeFloat64, _ := stake.Float64()
 				ch <- prometheus.MustNewConstMetric(
 					ec.registeredStake, prometheus.GaugeValue, stakeFloat64, strconv.Itoa(int(quorumNum)), ec.quorumNames[quorumNum],

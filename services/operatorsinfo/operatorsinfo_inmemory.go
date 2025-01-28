@@ -6,6 +6,7 @@ import (
 	"math/big"
 	"sync"
 
+	"github.com/Layr-Labs/eigensdk-go/chainio/clients/avsregistry"
 	blsapkreg "github.com/Layr-Labs/eigensdk-go/contracts/bindings/BLSApkRegistry"
 	regcoord "github.com/Layr-Labs/eigensdk-go/contracts/bindings/RegistryCoordinator"
 	"github.com/ethereum/go-ethereum/event"
@@ -23,17 +24,13 @@ var defaultLogFilterQueryBlockRange = big.NewInt(10_000)
 type avsRegistryReader interface {
 	QueryExistingRegisteredOperatorSockets(
 		ctx context.Context,
-		startBlock *big.Int,
-		stopBlock *big.Int,
-		blockRange *big.Int,
-	) (map[types.OperatorId]types.Socket, error)
+		request avsregistry.OperatorQueryRequest,
+	) (avsregistry.OperatorSocketsResponse, error)
 
 	QueryExistingRegisteredOperatorPubKeys(
 		ctx context.Context,
-		startBlock *big.Int,
-		stopBlock *big.Int,
-		blockRange *big.Int,
-	) ([]types.OperatorAddr, []types.OperatorPubkeys, error)
+		request avsregistry.OperatorQueryRequest,
+	) (avsregistry.OperatorPubKeysResponse, error)
 }
 
 type avsRegistrySubscriber interface {
@@ -75,9 +72,10 @@ type resp struct {
 	operatorExists bool
 }
 
+// REVIEW: Could we do a refactor here and start using uint64?
 type Opts struct {
-	StartBlock *big.Int
-	StopBlock  *big.Int
+	StartBlock uint64
+	StopBlock  uint64
 }
 
 var _ OperatorsInfoService = (*OperatorsInfoServiceInMemory)(nil)
@@ -288,30 +286,33 @@ func (ops *OperatorsInfoServiceInMemory) queryPastRegisteredOperatorEventsAndFil
 	// we will receive again in the websocket,
 	// since we will just overwrite the pubkey dict with the same values.
 	wg := sync.WaitGroup{}
-	var alreadyRegisteredOperatorAddrs []common.Address
-	var alreadyRegisteredOperatorPubkeys []types.OperatorPubkeys
+	var responsePubKeys avsregistry.OperatorPubKeysResponse
 	var pubkeysErr error
 
 	// we make both Queries in parallel because they take time and we don't want to wait for one to finish before
 	// starting the other
 	wg.Add(2)
 	go func() {
-		alreadyRegisteredOperatorAddrs, alreadyRegisteredOperatorPubkeys, pubkeysErr = ops.avsRegistryReader.QueryExistingRegisteredOperatorPubKeys(
+		responsePubKeys, pubkeysErr = ops.avsRegistryReader.QueryExistingRegisteredOperatorPubKeys(
 			ctx,
-			opts.StartBlock,
-			opts.StopBlock,
-			ops.logFilterQueryBlockRange,
+			avsregistry.OperatorQueryRequest{
+				StartBlock: opts.StartBlock,
+				StopBlock:  opts.StopBlock,
+				BlockRange: ops.logFilterQueryBlockRange.Uint64(),
+			},
 		)
 		wg.Done()
 	}()
-	var socketsMap map[types.OperatorId]types.Socket
+	var socketsResponse avsregistry.OperatorSocketsResponse
 	var socketsErr error
 	go func() {
-		socketsMap, socketsErr = ops.avsRegistryReader.QueryExistingRegisteredOperatorSockets(
+		socketsResponse, socketsErr = ops.avsRegistryReader.QueryExistingRegisteredOperatorSockets(
 			ctx,
-			opts.StartBlock,
-			opts.StopBlock,
-			ops.logFilterQueryBlockRange,
+			avsregistry.OperatorQueryRequest{
+				StartBlock: opts.StartBlock,
+				StopBlock:  opts.StopBlock,
+				BlockRange: ops.logFilterQueryBlockRange.Uint64(),
+			},
 		)
 		wg.Done()
 	}()
@@ -326,13 +327,13 @@ func (ops *OperatorsInfoServiceInMemory) queryPastRegisteredOperatorEventsAndFil
 	ops.logger.Debug(
 		"List of queried operator registration events in blsApkRegistry",
 		"alreadyRegisteredOperatorAddr",
-		alreadyRegisteredOperatorAddrs,
+		responsePubKeys.OperatorAddresses,
 		"alreadyRegisteredOperatorPubkeys",
-		alreadyRegisteredOperatorPubkeys,
+		responsePubKeys.OperatorsPubkeys,
 		"service",
 		"OperatorPubkeysServiceInMemory",
 	)
-	for operatorId, socket := range socketsMap {
+	for operatorId, socket := range socketsResponse.Sockets {
 		// we print each socket info on a separate line because slog for some reason doesn't pass map keys via their
 		// LogValue() function, so operatorId (of custom type Bytes32) prints as a byte array instead of its hex
 		// representation from LogValue()
@@ -349,12 +350,12 @@ func (ops *OperatorsInfoServiceInMemory) queryPastRegisteredOperatorEventsAndFil
 	}
 
 	// Fill the pubkeydict db with the operators and pubkeys found
-	for i, operatorAddr := range alreadyRegisteredOperatorAddrs {
-		operatorPubkeys := alreadyRegisteredOperatorPubkeys[i]
+	for i, operatorAddr := range responsePubKeys.OperatorAddresses {
+		operatorPubkeys := responsePubKeys.OperatorsPubkeys[i]
 		ops.pubkeyDict[operatorAddr] = operatorPubkeys
 		operatorId := types.OperatorIdFromG1Pubkey(operatorPubkeys.G1Pubkey)
 		ops.operatorAddrToId[operatorAddr] = operatorId
-		ops.updateSocketMapping(operatorId, socketsMap[operatorId])
+		ops.updateSocketMapping(operatorId, socketsResponse.Sockets[operatorId])
 	}
 	return nil
 }

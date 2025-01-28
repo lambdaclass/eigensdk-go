@@ -5,10 +5,9 @@ import (
 	"errors"
 	"math/big"
 
-	opstateretriever "github.com/Layr-Labs/eigensdk-go/contracts/bindings/OperatorStateRetriever"
+	"github.com/Layr-Labs/eigensdk-go/chainio/clients/avsregistry"
 	"github.com/Layr-Labs/eigensdk-go/crypto/bls"
 	"github.com/Layr-Labs/eigensdk-go/types"
-	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 )
 
 type FakeAvsRegistryService struct {
@@ -83,8 +82,8 @@ func (f *FakeAvsRegistryService) GetQuorumsAvsStateAtBlock(
 }
 
 func (f *FakeAvsRegistryService) GetCheckSignaturesIndices(
-	opts *bind.CallOpts, referenceBlockNumber types.BlockNum,
-	quorumNumbers types.QuorumNums, nonSignerOperatorIds []types.OperatorId,
-) (opstateretriever.OperatorStateRetrieverCheckSignaturesIndices, error) {
-	return opstateretriever.OperatorStateRetrieverCheckSignaturesIndices{}, nil
+	ctx context.Context,
+	request avsregistry.SignaturesIndicesRequest,
+) (avsregistry.SignaturesIndicesResponse, error) {
+	return avsregistry.SignaturesIndicesResponse{}, nil
 }

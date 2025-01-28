@@ -9,12 +9,12 @@ import (
 	"sync"
 	"time"
 
+	avs "github.com/Layr-Labs/eigensdk-go/chainio/clients/avsregistry"
 	"github.com/Layr-Labs/eigensdk-go/crypto/bls"
 	"github.com/Layr-Labs/eigensdk-go/logging"
 	"github.com/Layr-Labs/eigensdk-go/services/avsregistry"
 	"github.com/Layr-Labs/eigensdk-go/types"
 	"github.com/Layr-Labs/eigensdk-go/utils"
-	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 )
 
 var (
@@ -562,11 +562,16 @@ func (a *BlsAggregatorService) sendAggregatedResponse(
 		nonSignersG1Pubkeys = append(nonSignersG1Pubkeys, operator.OperatorInfo.Pubkeys.G1Pubkey)
 	}
 
-	indices, err := a.avsRegistryService.GetCheckSignaturesIndices(
-		&bind.CallOpts{},
-		taskCreatedBlock,
-		quorumNumbers,
-		nonSignersOperatorIds,
+	response, err := a.avsRegistryService.GetCheckSignaturesIndices(
+		context.Background(),
+		// taskCreatedBlock,
+		// quorumNumbers,
+		// nonSignersOperatorIds,
+		avs.SignaturesIndicesRequest{
+			ReferenceBlockNumber: taskCreatedBlock,
+			QuorumNumbers:        quorumNumbers,
+			NonSignerOperatorIds: nonSignersOperatorIds,
+		},
 	)
 	if err != nil {
 		a.aggregatedResponsesC <- BlsAggregationServiceResponse{
@@ -585,10 +590,10 @@ func (a *BlsAggregatorService) sendAggregatedResponse(
 		QuorumApksG1:                 quorumApksG1,
 		SignersApkG2:                 digestAggregatedOperators.signersApkG2,
 		SignersAggSigG1:              digestAggregatedOperators.signersAggSigG1,
-		NonSignerQuorumBitmapIndices: indices.NonSignerQuorumBitmapIndices,
-		QuorumApkIndices:             indices.QuorumApkIndices,
-		TotalStakeIndices:            indices.TotalStakeIndices,
-		NonSignerStakeIndices:        indices.NonSignerStakeIndices,
+		NonSignerQuorumBitmapIndices: response.SignaturesIndices.NonSignerQuorumBitmapIndices,
+		QuorumApkIndices:             response.SignaturesIndices.QuorumApkIndices,
+		TotalStakeIndices:            response.SignaturesIndices.TotalStakeIndices,
+		NonSignerStakeIndices:        response.SignaturesIndices.NonSignerStakeIndices,
 	}
 	a.aggregatedResponsesC <- blsAggregationServiceResponse
 }

@@ -83,6 +83,7 @@ func NewReaderFromConfig(
 	), nil
 }
 
+// GetQuorumCount returns the total number of quorums the registry coordinator has created
 func (r *ChainReader) GetQuorumCount(ctx context.Context, request QuorumCountRequest) (QuorumCountResponse, error) {
 	if r.registryCoordinator == nil {
 		return QuorumCountResponse{}, errors.New("RegistryCoordinator contract not provided")
@@ -98,10 +99,16 @@ func (r *ChainReader) GetQuorumCount(ctx context.Context, request QuorumCountReq
 	return QuorumCountResponse{QuorumCount: quorumCount}, nil
 }
 
+// GetOperatorsStakeInQuorumsAtCurrentBlock returns the list of operators and their stakes for the specified quorums at
+// the current block
 func (r *ChainReader) GetOperatorsStakeInQuorumsAtCurrentBlock(
 	ctx context.Context,
 	request OperatorsStakeInQuorumAtCurrentBlockRequest,
 ) (OperatorsStakeInQuorumResponse, error) {
+	if r.operatorStateRetriever == nil {
+		return OperatorsStakeInQuorumResponse{}, errors.New("OperatorStateRetriever contract not provided")
+	}
+
 	curBlock, err := r.ethClient.BlockNumber(ctx)
 	if err != nil {
 		return OperatorsStakeInQuorumResponse{}, utils.WrapError("Cannot get current block number", err)
@@ -120,8 +127,8 @@ func (r *ChainReader) GetOperatorsStakeInQuorumsAtCurrentBlock(
 	return OperatorsStakeInQuorumResponse{OperatorsStakeInQuorum: operatorStakes}, nil
 }
 
-// the contract stores historical state, so blockNumber should be the block number of the state you want to query
-// and the blockNumber in opts should be the block number of the latest block (or set to nil, which is equivalent)
+// GetOperatorsStakeInQuorumsAtBlock returns the list of operators and their stakes for the specified quorums at a
+// historical block
 func (r *ChainReader) GetOperatorsStakeInQuorumsAtBlock(
 	ctx context.Context,
 	request OperatorsStakeInQuorumAtBlockRequest,
@@ -141,6 +148,8 @@ func (r *ChainReader) GetOperatorsStakeInQuorumsAtBlock(
 	return OperatorsStakeInQuorumResponse{OperatorsStakeInQuorum: operatorStakes}, nil
 }
 
+// GetOperatorAddrsInQuorumsAtCurrentBlock returns the addresses of operators registered in the specified quorums at the
+// current block
 func (r *ChainReader) GetOperatorAddrsInQuorumsAtCurrentBlock(
 	ctx context.Context,
 	request OperatorAddrsInQuorumsAtCurrentBlockRequest,
@@ -180,6 +189,8 @@ func (r *ChainReader) GetOperatorAddrsInQuorumsAtCurrentBlock(
 
 }
 
+// GetOperatorsStakeInQuorumsOfOperatorAtBlock returns the stakes of a specific operator in the quorums at a historical
+// block
 func (r *ChainReader) GetOperatorsStakeInQuorumsOfOperatorAtBlock(
 	ctx context.Context,
 	request OperatorsStakeInQuorumsOfOperatorAtBlockRequest,
@@ -206,8 +217,8 @@ func (r *ChainReader) GetOperatorsStakeInQuorumsOfOperatorAtBlock(
 	}, nil
 }
 
-// opts will be modified to have the latest blockNumber, so make sure not to reuse it
-// blockNumber in opts will be ignored, and the chain will be queried to get the latest blockNumber
+// GetOperatorsStakeInQuorumsOfOperatorAtCurrentBlock returns the stakes of a specific operator in the quorums at the
+// current block
 func (r *ChainReader) GetOperatorsStakeInQuorumsOfOperatorAtCurrentBlock(
 	ctx context.Context,
 	request OperatorsStakeInQuorumsOfOperatorAtCurrentBlockRequest,
@@ -224,17 +235,12 @@ func (r *ChainReader) GetOperatorsStakeInQuorumsOfOperatorAtCurrentBlock(
 	})
 }
 
-// To avoid a possible race condition, this method must assure that all the calls
-// are made with the same blockNumber.
-// So, if the blockNumber and blockHash are not set in opts, blockNumber will be set
-// to the latest block.
-// All calls to the chain use `opts` parameter.
-// REVIEW THE COMMENT ABOVE. IT MAKES SENSE WITH THE NEW IMPLEMENTATION?
+// GetOperatorStakeInQuorumsOfOperatorAtCurrentBlock returns the current stake of an operator in the quorums where they
+// are registered
 func (r *ChainReader) GetOperatorStakeInQuorumsOfOperatorAtCurrentBlock(
 	ctx context.Context,
 	request OperatorStakeInQuorumsOfOperatorAtCurrentBlockRequest,
 ) (OperatorStakeInQuorumsOfOperatorResponse, error) {
-	// 1. Validar que los contratos estén disponibles
 	if r.registryCoordinator == nil {
 		return OperatorStakeInQuorumsOfOperatorResponse{}, errors.New(
 			"registryCoordinator contract not provided",
@@ -288,6 +294,7 @@ func (r *ChainReader) GetOperatorStakeInQuorumsOfOperatorAtCurrentBlock(
 	}, nil
 }
 
+// GetCheckSignaturesIndices returns the indices needed to verify operator signatures
 func (r *ChainReader) GetCheckSignaturesIndices(
 	ctx context.Context,
 	request SignaturesIndicesRequest,
@@ -318,6 +325,7 @@ func (r *ChainReader) GetCheckSignaturesIndices(
 	return SignaturesIndicesResponse{SignaturesIndices: checkSignatureIndices}, nil
 }
 
+// GetOperatorId returns the ID of an operator given their address
 func (r *ChainReader) GetOperatorId(
 	ctx context.Context,
 	request OperatorIdRequest,
@@ -336,6 +344,7 @@ func (r *ChainReader) GetOperatorId(
 	return OperatorIdResponse{OperatorId: operatorId}, nil
 }
 
+// GetOperatorFromId returns the address of an operator given their ID
 func (r *ChainReader) GetOperatorFromId(
 	ctx context.Context,
 	request OperatorFromIdRequest,
@@ -358,6 +367,10 @@ func (r *ChainReader) QueryRegistrationDetail(
 	ctx context.Context,
 	request RegistrationDetailRequest,
 ) (RegistrationDetailResponse, error) {
+	if r.registryCoordinator == nil {
+		return RegistrationDetailResponse{}, errors.New("RegistryCoordinator contract not provided")
+	}
+
 	operatorIdResponse, err := r.GetOperatorId(ctx, OperatorIdRequest(request))
 	if err != nil {
 		return RegistrationDetailResponse{}, utils.WrapError("Failed to get operator id", err)
@@ -389,6 +402,7 @@ func (r *ChainReader) QueryRegistrationDetail(
 	return RegistrationDetailResponse{Quorums: quorums}, nil
 }
 
+// IsOperatorRegistered checks if an operator is registered with an AVS
 func (r *ChainReader) IsOperatorRegistered(
 	ctx context.Context,
 	request OperatorRegisteredRequest,
@@ -410,19 +424,20 @@ func (r *ChainReader) IsOperatorRegistered(
 	return OperatorRegisteredResponse{IsRegistered: registeredWithAvs}, nil
 }
 
+// QueryExistingRegisteredOperatorPubKeys returns the public keys of registered operators
 func (r *ChainReader) QueryExistingRegisteredOperatorPubKeys(
 	ctx context.Context,
 	request OperatorQueryRequest,
-) (OperatorPubKeysRequestResponse, error) {
+) (OperatorPubKeysResponse, error) {
 	blsApkRegistryAbi, err := apkreg.ContractBLSApkRegistryMetaData.GetAbi()
 	if err != nil {
-		return OperatorPubKeysRequestResponse{}, utils.WrapError("Cannot get Abi", err)
+		return OperatorPubKeysResponse{}, utils.WrapError("Cannot get Abi", err)
 	}
 
 	if request.StopBlock == 0 {
 		curBlockNum, err := r.ethClient.BlockNumber(ctx)
 		if err != nil {
-			return OperatorPubKeysRequestResponse{}, utils.WrapError("Cannot get current block number", err)
+			return OperatorPubKeysResponse{}, utils.WrapError("Cannot get current block number", err)
 		}
 		request.StopBlock = curBlockNum
 	}
@@ -455,7 +470,7 @@ func (r *ChainReader) QueryExistingRegisteredOperatorPubKeys(
 
 		logs, err := r.ethClient.FilterLogs(ctx, query)
 		if err != nil {
-			return OperatorPubKeysRequestResponse{}, utils.WrapError("Cannot filter logs", err)
+			return OperatorPubKeysResponse{}, utils.WrapError("Cannot filter logs", err)
 		}
 		r.logger.Debug(
 			"avsRegistryChainReader.QueryExistingRegisteredOperatorPubKeys",
@@ -474,7 +489,7 @@ func (r *ChainReader) QueryExistingRegisteredOperatorPubKeys(
 
 			event, err := blsApkRegistryAbi.Unpack("NewPubkeyRegistration", vLog.Data)
 			if err != nil {
-				return OperatorPubKeysRequestResponse{}, utils.WrapError("Cannot unpack event data", err)
+				return OperatorPubKeysResponse{}, utils.WrapError("Cannot unpack event data", err)
 			}
 
 			G1Pubkey := event[0].(struct {
@@ -502,12 +517,13 @@ func (r *ChainReader) QueryExistingRegisteredOperatorPubKeys(
 		}
 	}
 
-	return OperatorPubKeysRequestResponse{
+	return OperatorPubKeysResponse{
 		OperatorAddresses: operatorAddresses,
 		OperatorsPubkeys:  operatorPubkeys,
 	}, nil
 }
 
+// QueryExistingRegisteredOperatorSockets returns the sockets of registered operators
 func (r *ChainReader) QueryExistingRegisteredOperatorSockets(
 	ctx context.Context,
 	request OperatorQueryRequest,

@@ -4,11 +4,11 @@ import (
 	"context"
 	"math/big"
 
+	"github.com/Layr-Labs/eigensdk-go/chainio/clients/avsregistry"
 	apkregistrybindings "github.com/Layr-Labs/eigensdk-go/contracts/bindings/BLSApkRegistry"
 	opstateretriever "github.com/Layr-Labs/eigensdk-go/contracts/bindings/OperatorStateRetriever"
 	"github.com/Layr-Labs/eigensdk-go/types"
 
-	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 )
 
@@ -46,55 +46,50 @@ func NewFakeAVSRegistryReader(
 
 func (f *FakeAVSRegistryReader) QueryExistingRegisteredOperatorPubKeys(
 	ctx context.Context,
-	startBlock *big.Int,
-	stopBlock *big.Int,
-	blockRange *big.Int,
-) ([]types.OperatorAddr, []types.OperatorPubkeys, error) {
-	return f.opAddress, f.opPubKeys, f.err
+	request avsregistry.OperatorQueryRequest,
+) (avsregistry.OperatorPubKeysResponse, error) {
+	return avsregistry.OperatorPubKeysResponse{OperatorAddresses: f.opAddress, OperatorsPubkeys: f.opPubKeys}, f.err
 }
 
 func (f *FakeAVSRegistryReader) QueryExistingRegisteredOperatorSockets(
 	ctx context.Context,
-	startBlock *big.Int,
-	stopBlock *big.Int,
-	blockRange *big.Int,
-) (map[types.OperatorId]types.Socket, error) {
+	request avsregistry.OperatorQueryRequest,
+) (avsregistry.OperatorSocketsResponse, error) {
 	if len(f.opPubKeys) == 0 {
-		return nil, nil
+		return avsregistry.OperatorSocketsResponse{}, nil
 	}
 
-	return map[types.OperatorId]types.Socket{
+	return avsregistry.OperatorSocketsResponse{Sockets: map[types.OperatorId]types.Socket{
 		types.OperatorIdFromG1Pubkey(f.opPubKeys[0].G1Pubkey): f.socket,
-	}, nil
+	}}, nil
 }
 
 func (f *FakeAVSRegistryReader) GetOperatorFromId(
-	opts *bind.CallOpts,
-	operatorId types.OperatorId,
-) (common.Address, error) {
-	return f.opAddress[0], f.err
+	ctx context.Context,
+	request avsregistry.OperatorFromIdRequest,
+) (avsregistry.OperatorFromIdResponse, error) {
+	return avsregistry.OperatorFromIdResponse{OperatorAddress: f.opAddress[0]}, f.err
 }
 
 func (f *FakeAVSRegistryReader) GetOperatorsStakeInQuorumsAtBlock(
-	opts *bind.CallOpts,
-	quorumNumbers types.QuorumNums,
-	blockNumber types.BlockNum,
-) ([][]opstateretriever.OperatorStateRetrieverOperator, error) {
-	return [][]opstateretriever.OperatorStateRetrieverOperator{
-		{
+	ctx context.Context,
+	request avsregistry.OperatorsStakeInQuorumAtBlockRequest,
+) (avsregistry.OperatorsStakeInQuorumResponse, error) {
+	return avsregistry.OperatorsStakeInQuorumResponse{
+		OperatorsStakeInQuorum: [][]opstateretriever.OperatorStateRetrieverOperator{
 			{
-				OperatorId: f.operatorId,
-				Stake:      big.NewInt(123),
+				{
+					OperatorId: f.operatorId,
+					Stake:      big.NewInt(123),
+				},
 			},
 		},
 	}, nil
 }
 
 func (f *FakeAVSRegistryReader) GetCheckSignaturesIndices(
-	opts *bind.CallOpts,
-	referenceBlockNumber uint32,
-	quorumNumbers types.QuorumNums,
-	nonSignerOperatorIds []types.OperatorId,
-) (opstateretriever.OperatorStateRetrieverCheckSignaturesIndices, error) {
-	return opstateretriever.OperatorStateRetrieverCheckSignaturesIndices{}, nil
+	ctx context.Context,
+	request avsregistry.SignaturesIndicesRequest,
+) (avsregistry.SignaturesIndicesResponse, error) {
+	return avsregistry.SignaturesIndicesResponse{}, nil
 }

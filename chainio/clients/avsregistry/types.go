@@ -70,7 +70,7 @@ type OperatorQueryRequest struct {
 	BlockRange  uint64
 }
 
-type OperatorPubKeysRequestResponse struct {
+type OperatorPubKeysResponse struct {
 	OperatorAddresses []gethcommon.Address
 	OperatorsPubkeys  []types.OperatorPubkeys
 }

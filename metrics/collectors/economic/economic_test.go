@@ -5,13 +5,13 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/prometheus/client_golang/prometheus/testutil"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 
+	"github.com/Layr-Labs/eigensdk-go/chainio/clients/avsregistry"
 	"github.com/Layr-Labs/eigensdk-go/testutils"
 	"github.com/Layr-Labs/eigensdk-go/types"
 )
@@ -39,15 +39,18 @@ type fakeAVSRegistryReader struct {
 	stakes     map[types.QuorumNum]*big.Int
 }
 
-func (f *fakeAVSRegistryReader) GetOperatorId(opts *bind.CallOpts, operatorAddr common.Address) ([32]byte, error) {
-	return f.operatorId, nil
+func (f *fakeAVSRegistryReader) GetOperatorId(
+	ctx context.Context,
+	request avsregistry.OperatorIdRequest,
+) (avsregistry.OperatorIdResponse, error) {
+	return avsregistry.OperatorIdResponse{OperatorId: f.operatorId}, nil
 }
 
 func (f *fakeAVSRegistryReader) GetOperatorStakeInQuorumsOfOperatorAtCurrentBlock(
-	opts *bind.CallOpts,
-	operatorId types.OperatorId,
-) (map[types.QuorumNum]*big.Int, error) {
-	return f.stakes, nil
+	ctx context.Context,
+	request avsregistry.OperatorStakeInQuorumsOfOperatorAtCurrentBlockRequest,
+) (avsregistry.OperatorStakeInQuorumsOfOperatorResponse, error) {
+	return avsregistry.OperatorStakeInQuorumsOfOperatorResponse{QuorumStakes: f.stakes}, nil
 }
 
 func newFakeAVSRegistryReader() *fakeAVSRegistryReader {
