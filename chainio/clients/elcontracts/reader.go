@@ -272,10 +272,11 @@ func (r *ChainReader) CalculateDelegationApprovalDigestHash(
 	expiry *big.Int,
 ) ([32]byte, error) {
 	if r.delegationManager == nil {
-		return [32]byte{}, errors.New("DelegationManager contract not provided")
+		wrappedError := Error{1, "Missing needed contract", "DelegationManager contract not provided", nil}
+		return [32]byte{}, wrappedError
 	}
 
-	return r.delegationManager.CalculateDelegationApprovalDigestHash(
+	digestHash, err := r.delegationManager.CalculateDelegationApprovalDigestHash(
 		&bind.CallOpts{Context: ctx},
 		staker,
 		operator,
@@ -283,6 +284,12 @@ func (r *ChainReader) CalculateDelegationApprovalDigestHash(
 		approverSalt,
 		expiry,
 	)
+	if err != nil {
+		wrappedError := Error{0, "Binding error", "Error happened while calling delegationManager.CalculateDelegationApprovalDigestHash", err}
+		return [32]byte{}, wrappedError
+	}
+
+	return digestHash, nil
 }
 
 func (r *ChainReader) CalculateOperatorAVSRegistrationDigestHash(
@@ -293,16 +300,23 @@ func (r *ChainReader) CalculateOperatorAVSRegistrationDigestHash(
 	expiry *big.Int,
 ) ([32]byte, error) {
 	if r.avsDirectory == nil {
-		return [32]byte{}, errors.New("AVSDirectory contract not provided")
+		wrappedError := Error{1, "Missing needed contract", "AVSDirectory contract not provided", nil}
+		return [32]byte{}, wrappedError
 	}
 
-	return r.avsDirectory.CalculateOperatorAVSRegistrationDigestHash(
+	digestHash, err := r.avsDirectory.CalculateOperatorAVSRegistrationDigestHash(
 		&bind.CallOpts{Context: ctx},
 		operator,
 		avs,
 		salt,
 		expiry,
 	)
+	if err != nil {
+		wrappedError := Error{0, "Binding error", "Error happened while calling avsDirectory.CalculateOperatorAVSRegistrationDigestHash", err}
+		return [32]byte{}, wrappedError
+	}
+
+	return digestHash, nil
 }
 
 func (r *ChainReader) GetDistributionRootsLength(ctx context.Context) (*big.Int, error) {
