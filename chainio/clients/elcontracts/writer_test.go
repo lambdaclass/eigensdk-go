@@ -1123,6 +1123,339 @@ func setTestRewardsCoordinatorActivationDelay(
 	return receipt, err
 }
 
+// TestInvalidConfig tests the behavior of the chainWriter when the config is invalid (e.g. missing addresses, wrong
+// addresses)
+func TestInvalidConfigChainWriter(t *testing.T) {
+	testConfig := testutils.GetDefaultTestConfig()
+	anvilC, err := testutils.StartAnvilContainer(testConfig.AnvilStateFileName)
+	require.NoError(t, err)
+
+	anvilHttpEndpoint, err := anvilC.Endpoint(context.Background(), "http")
+	require.NoError(t, err)
+
+	contractAddrs := testutils.GetContractAddressesFromContractRegistry(anvilHttpEndpoint)
+	anvilFirstAddr := common.HexToAddress(testutils.ANVIL_FIRST_ADDRESS)
+
+	operatorAddr := testutils.ANVIL_FIRST_ADDRESS
+	operator := types.Operator{
+		Address: operatorAddr,
+	}
+
+	privateKeyHex := testutils.ANVIL_FIRST_PRIVATE_KEY
+
+	config := elcontracts.Config{}
+	chainWriter, err := testclients.NewTestChainWriterFromConfig(anvilHttpEndpoint, privateKeyHex, config)
+	require.NoError(t, err)
+
+	t.Run("register as operator", func(t *testing.T) {
+		receipt, err := chainWriter.RegisterAsOperator(
+			context.Background(),
+			operator,
+			true,
+		)
+		assert.Error(t, err)
+		assert.Nil(t, receipt)
+	})
+
+	t.Run("update operator details", func(t *testing.T) {
+		receipt, err := chainWriter.UpdateOperatorDetails(
+			context.Background(),
+			operator,
+			true,
+		)
+		assert.Error(t, err)
+		assert.Nil(t, receipt)
+	})
+
+	t.Run("update metadata URI", func(t *testing.T) {
+		receipt, err := chainWriter.UpdateMetadataURI(
+			context.Background(),
+			anvilFirstAddr,
+			"https://0.0.0.0",
+			true,
+		)
+		assert.Error(t, err)
+		assert.Nil(t, receipt)
+	})
+
+	t.Run("deposit erc20 into strategy", func(t *testing.T) {
+		receipt, err := chainWriter.DepositERC20IntoStrategy(
+			context.Background(),
+			contractAddrs.Erc20MockStrategy,
+			big.NewInt(1),
+			true,
+		)
+		assert.Error(t, err)
+		assert.Nil(t, receipt)
+	})
+
+	t.Run("set claimer for", func(t *testing.T) {
+		receipt, err := chainWriter.SetClaimerFor(
+			context.Background(),
+			anvilFirstAddr,
+			true,
+		)
+		assert.Error(t, err)
+		assert.Nil(t, receipt)
+	})
+
+	t.Run("process claim and process claims", func(t *testing.T) {
+		rewardsCoordinatorAddr := contractAddrs.RewardsCoordinator
+		config := elcontracts.Config{
+			DelegationManagerAddress:  contractAddrs.DelegationManager,
+			RewardsCoordinatorAddress: rewardsCoordinatorAddr,
+		}
+		chainReader, err := testclients.NewTestChainReaderFromConfig(anvilHttpEndpoint, config)
+		require.NoError(t, err)
+
+		activationDelay := uint32(0)
+		receipt, err := setTestRewardsCoordinatorActivationDelay(anvilHttpEndpoint, privateKeyHex, activationDelay)
+		require.NoError(t, err)
+		require.Equal(t, gethtypes.ReceiptStatusSuccessful, receipt.Status)
+
+		cumulativeEarnings := int64(42)
+		claim, err := newTestClaim(chainReader, anvilHttpEndpoint, cumulativeEarnings, privateKeyHex)
+		require.NoError(t, err)
+
+		receipt, err = chainWriter.ProcessClaim(
+			context.Background(),
+			*claim,
+			anvilFirstAddr,
+			true,
+		)
+		assert.Error(t, err)
+		assert.Nil(t, receipt)
+
+		receipt, err = chainWriter.ProcessClaims(
+			context.Background(),
+			[]rewardscoordinator.IRewardsCoordinatorTypesRewardsMerkleClaim{*claim},
+			anvilFirstAddr,
+			true,
+		)
+		assert.Error(t, err)
+		assert.Nil(t, receipt)
+	})
+
+	t.Run("set operator AVS split", func(t *testing.T) {
+		receipt, err := chainWriter.SetOperatorAVSSplit(
+			context.Background(),
+			common.HexToAddress(operatorAddr),
+			anvilFirstAddr,
+			uint16(1),
+			true,
+		)
+		assert.Error(t, err)
+		assert.Nil(t, receipt)
+	})
+
+	t.Run("set operator PI split", func(t *testing.T) {
+		receipt, err := chainWriter.SetOperatorPISplit(
+			context.Background(),
+			common.HexToAddress(operatorAddr),
+			uint16(1),
+			true,
+		)
+		assert.Error(t, err)
+		assert.Nil(t, receipt)
+	})
+
+	t.Run("modify allocations", func(t *testing.T) {
+		strategyAddr := contractAddrs.Erc20MockStrategy
+		avsAddr := anvilFirstAddr
+		operatorSetId := uint32(1)
+
+		operatorSet := allocationmanager.OperatorSet{
+			Avs: avsAddr,
+			Id:  operatorSetId,
+		}
+		newAllocation := uint64(100)
+		allocateParams := []allocationmanager.IAllocationManagerTypesAllocateParams{
+			{
+				OperatorSet:   operatorSet,
+				Strategies:    []common.Address{strategyAddr},
+				NewMagnitudes: []uint64{newAllocation},
+			},
+		}
+
+		receipt, err := chainWriter.ModifyAllocations(
+			context.Background(),
+			common.HexToAddress(operatorAddr),
+			allocateParams,
+			true,
+		)
+		assert.Error(t, err)
+		assert.Nil(t, receipt)
+	})
+
+	t.Run("set allocation delay", func(t *testing.T) {
+		receipt, err := chainWriter.SetAllocationDelay(
+			context.Background(),
+			common.HexToAddress(operatorAddr),
+			uint32(0),
+			true,
+		)
+		assert.Error(t, err)
+		assert.Nil(t, receipt)
+	})
+
+	t.Run("deregister from operator sets", func(t *testing.T) {
+		avsAddress := common.HexToAddress(testutils.ANVIL_FIRST_ADDRESS)
+		operatorSetId := uint32(1)
+		deregistrationRequest := elcontracts.DeregistrationRequest{
+			AVSAddress:     avsAddress,
+			OperatorSetIds: []uint32{operatorSetId},
+			WaitForReceipt: true,
+		}
+
+		receipt, err := chainWriter.DeregisterFromOperatorSets(
+			context.Background(),
+			common.HexToAddress(operatorAddr),
+			deregistrationRequest,
+		)
+		assert.Error(t, err)
+		assert.Nil(t, receipt)
+	})
+
+	t.Run("register for operator sets", func(t *testing.T) {
+		operatorAddress := common.HexToAddress(testutils.ANVIL_SECOND_ADDRESS)
+		keypair, err := bls.NewKeyPairFromString("0x01")
+		require.NoError(t, err)
+
+		avsAddress := common.HexToAddress(testutils.ANVIL_FIRST_ADDRESS)
+		operatorSetId := uint32(1)
+
+		request := elcontracts.RegistrationRequest{
+			OperatorAddress: operatorAddress,
+			AVSAddress:      avsAddress,
+			OperatorSetIds:  []uint32{operatorSetId},
+			WaitForReceipt:  true,
+			Socket:          "socket",
+			BlsKeyPair:      keypair,
+		}
+
+		receipt, err := chainWriter.RegisterForOperatorSets(
+			context.Background(),
+			common.HexToAddress(operatorAddr),
+			request,
+		)
+		assert.Error(t, err)
+		assert.Nil(t, receipt)
+	})
+
+	t.Run("remove permission", func(t *testing.T) {
+		accountAddress := anvilFirstAddr
+		appointeeAddress := common.HexToAddress(testutils.ANVIL_SECOND_ADDRESS)
+		target := common.HexToAddress(testutils.ANVIL_THIRD_ADDRESS)
+		selector := [4]byte{0, 1, 2, 3}
+		waitForReceipt := true
+
+		removePermissionRequest := elcontracts.RemovePermissionRequest{
+			AccountAddress:   accountAddress,
+			AppointeeAddress: appointeeAddress,
+			Target:           target,
+			Selector:         selector,
+			WaitForReceipt:   waitForReceipt,
+		}
+
+		receipt, err := chainWriter.RemovePermission(
+			context.Background(),
+			removePermissionRequest,
+		)
+		assert.Error(t, err)
+		assert.Nil(t, receipt)
+	})
+
+	t.Run("set permission", func(t *testing.T) {
+		accountAddress := anvilFirstAddr
+		appointeeAddress := common.HexToAddress(testutils.ANVIL_SECOND_ADDRESS)
+		target := common.HexToAddress(testutils.ANVIL_THIRD_ADDRESS)
+		selector := [4]byte{0, 1, 2, 3}
+		waitForReceipt := true
+
+		setPermissionRequest := elcontracts.SetPermissionRequest{
+			AccountAddress:   accountAddress,
+			AppointeeAddress: appointeeAddress,
+			Target:           target,
+			Selector:         selector,
+			WaitForReceipt:   waitForReceipt,
+		}
+
+		receipt, err := chainWriter.SetPermission(
+			context.Background(),
+			setPermissionRequest,
+		)
+		assert.Error(t, err)
+		assert.Nil(t, receipt)
+	})
+
+	t.Run("accept admin", func(t *testing.T) {
+		accountAddress := anvilFirstAddr
+		acceptAdminRequest := elcontracts.AcceptAdminRequest{
+			AccountAddress: accountAddress,
+			WaitForReceipt: true,
+		}
+
+		receipt, err := chainWriter.AcceptAdmin(
+			context.Background(),
+			acceptAdminRequest,
+		)
+		assert.Error(t, err)
+		assert.Nil(t, receipt)
+	})
+
+	t.Run("add pending admin", func(t *testing.T) {
+		accountAddress := anvilFirstAddr
+		admin1 := common.HexToAddress(testutils.ANVIL_SECOND_ADDRESS)
+
+		addAdmin1Request := elcontracts.AddPendingAdminRequest{
+			AccountAddress: accountAddress,
+			AdminAddress:   admin1,
+			WaitForReceipt: true,
+		}
+
+		receipt, err := chainWriter.AddPendingAdmin(
+			context.Background(),
+			addAdmin1Request,
+		)
+		assert.Error(t, err)
+		assert.Nil(t, receipt)
+	})
+
+	t.Run("remove admin", func(t *testing.T) {
+		accountAddress := anvilFirstAddr
+		admin2 := common.HexToAddress(testutils.ANVIL_THIRD_ADDRESS)
+
+		removeAdminRequest := elcontracts.RemoveAdminRequest{
+			AccountAddress: accountAddress,
+			AdminAddress:   admin2,
+			WaitForReceipt: true,
+		}
+
+		receipt, err := chainWriter.RemoveAdmin(
+			context.Background(),
+			removeAdminRequest,
+		)
+		assert.Error(t, err)
+		assert.Nil(t, receipt)
+	})
+
+	t.Run("remove pending admin", func(t *testing.T) {
+		pendingAdmin := common.HexToAddress("009440d62dc85c73dbf889b7ad1f4da8b231d2ef")
+		removePendingAdminRequest := elcontracts.RemovePendingAdminRequest{
+			AccountAddress: common.HexToAddress(operatorAddr),
+			AdminAddress:   pendingAdmin,
+			WaitForReceipt: true,
+		}
+
+		receipt, err := chainWriter.RemovePendingAdmin(
+			context.Background(),
+			removePendingAdminRequest,
+		)
+		assert.Error(t, err)
+		assert.Nil(t, receipt)
+	})
+}
+
 // Returns a (test) claim for the given cumulativeEarnings, whose earner is
 // the account given by the testutils.ANVIL_FIRST_ADDRESS address.
 // This was taken from the eigensdk-rs
