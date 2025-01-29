@@ -457,15 +457,13 @@ func TestBlsAgg(t *testing.T) {
 		blsAggServ := NewBlsAggregatorService(fakeAvsRegistryService, hashFunction, logger)
 
 		logger.Info("Initializing new task", "taskIndex", taskIndex)
-		windowDuration := 10 * time.Second // Longer expiry time for testing,
 		err := blsAggServ.InitializeNewTask(
 			TaskMetadata{
 				TaskIndex:                  taskIndex,
 				TaskCreatedBlock:           blockNum,
 				QuorumNumbers:              quorumNumbers,
 				QuorumThresholdPercentages: quorumThresholdPercentages,
-				// TimeToExpiry:               tasksTimeToExpiry,
-				WindowDuration: windowDuration,
+				TimeToExpiry:               10 * time.Second, // Longer expiry time for testing
 			},
 		)
 		require.NoError(t, err)
