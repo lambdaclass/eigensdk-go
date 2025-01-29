@@ -2,7 +2,6 @@ package elcontracts
 
 import (
 	"context"
-	"errors"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -28,7 +27,6 @@ import (
 	"github.com/Layr-Labs/eigensdk-go/logging"
 	"github.com/Layr-Labs/eigensdk-go/metrics"
 	"github.com/Layr-Labs/eigensdk-go/types"
-	"github.com/Layr-Labs/eigensdk-go/utils"
 )
 
 type Reader interface {
@@ -268,7 +266,8 @@ func (w *ChainWriter) DepositERC20IntoStrategy(
 
 	tx, err := underlyingTokenContract.Approve(noSendTxOpts, w.strategyManagerAddr, amount)
 	if err != nil {
-		return nil, errors.Join(errors.New("failed to approve token transfer"), err)
+		wrappedError := Error{3, "Other errors", "failed to approve token transfer", err}
+		return nil, wrappedError
 	}
 	_, err = w.txMgr.Send(ctx, tx, waitForReceipt)
 	if err != nil {
@@ -427,7 +426,8 @@ func (w *ChainWriter) ProcessClaims(
 	}
 
 	if len(claims) == 0 {
-		return nil, errors.New("claims is empty, at least one claim must be provided")
+		wrappedError := Error{3, "Other errors", "No claims were found to process, at least one claim must be provided", nil}
+		return nil, wrappedError
 	}
 
 	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
@@ -955,7 +955,8 @@ func abiEncodeRegistrationParams(
 		}},
 	})
 	if err != nil {
-		return nil, err
+		wrappedError := Error{3, "Other errors", "Failed to encode abi params", err}
+		return nil, wrappedError
 	}
 
 	registrationParams := struct {
@@ -972,7 +973,8 @@ func abiEncodeRegistrationParams(
 
 	data, err := args.Pack(&registrationParams)
 	if err != nil {
-		return nil, err
+		wrappedError := Error{3, "Other errors", "Failed to pack arguments", err}
+		return nil, wrappedError
 	}
 	// The encoder is prepending 32 bytes to the data as if it was used in a dynamic function parameter.
 	// This is not used when decoding the bytes directly, so we need to remove it.
