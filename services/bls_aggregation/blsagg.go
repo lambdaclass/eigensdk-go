@@ -241,12 +241,7 @@ func (a *BlsAggregatorService) InitializeNewTask(
 	a.signedTaskRespsCs[metadata.TaskIndex] = signedTaskRespsC
 
 	go a.singleTaskAggregatorGoroutineFunc(
-		metadata.TaskIndex,
-		metadata.TaskCreatedBlock,
-		metadata.QuorumNumbers,
-		metadata.QuorumThresholdPercentages,
-		metadata.TimeToExpiry,
-		*metadata.WindowDuration,
+		metadata,
 		signedTaskRespsC,
 	)
 	return nil
@@ -288,62 +283,57 @@ func (a *BlsAggregatorService) ProcessNewSignature(
 }
 
 func (a *BlsAggregatorService) singleTaskAggregatorGoroutineFunc(
-	taskIndex types.TaskIndex,
-	taskCreatedBlock uint32,
-	quorumNumbers types.QuorumNums,
-	quorumThresholdPercentages []types.QuorumThresholdPercentage,
-	timeToExpiry time.Duration,
-	windowDuration time.Duration,
+	metadata TaskMetadata,
 	signedTaskRespsC <-chan types.SignedTaskResponseDigest,
 ) {
 	a.logger.Debug("AggregatorService goroutine processing new task",
-		"taskIndex", taskIndex,
-		"taskCreatedBlock", taskCreatedBlock)
+		"taskIndex", metadata.TaskIndex,
+		"taskCreatedBlock", metadata.TaskCreatedBlock)
 
-	defer a.closeTaskGoroutine(taskIndex)
+	defer a.closeTaskGoroutine(metadata.TaskIndex)
 	quorumThresholdPercentagesMap := make(map[types.QuorumNum]types.QuorumThresholdPercentage)
-	for i, quorumNumber := range quorumNumbers {
-		quorumThresholdPercentagesMap[quorumNumber] = quorumThresholdPercentages[i]
+	for i, quorumNumber := range metadata.QuorumNumbers {
+		quorumThresholdPercentagesMap[quorumNumber] = metadata.QuorumThresholdPercentages[i]
 		a.logger.Debug("AggregatorService goroutine quorum threshold percentage",
-			"taskIndex", taskIndex,
+			"taskIndex", metadata.TaskIndex,
 			"quorumNumber", quorumNumber,
-			"quorumThresholdPercentage", quorumThresholdPercentages[i])
+			"quorumThresholdPercentage", metadata.QuorumThresholdPercentages[i])
 	}
 	operatorsAvsStateDict, err := a.avsRegistryService.GetOperatorsAvsStateAtBlock(
 		context.Background(),
-		quorumNumbers,
-		taskCreatedBlock,
+		metadata.QuorumNumbers,
+		metadata.TaskCreatedBlock,
 	)
 	if err != nil {
 		a.logger.Error(
 			"Task goroutine failed to get operators state from avs registry",
 			"taskIndex",
-			taskIndex,
+			metadata.TaskIndex,
 			"err",
 			err,
 		)
 		a.aggregatedResponsesC <- BlsAggregationServiceResponse{
-			Err:       TaskInitializationErrorFn(fmt.Errorf("AggregatorService failed to get operators state from avs registry at blockNum %d: %w", taskCreatedBlock, err), taskIndex),
-			TaskIndex: taskIndex,
+			Err:       TaskInitializationErrorFn(fmt.Errorf("AggregatorService failed to get operators state from avs registry at blockNum %d: %w", metadata.TaskCreatedBlock, err), metadata.TaskIndex),
+			TaskIndex: metadata.TaskIndex,
 		}
 		return
 	}
 	quorumsAvsStakeDict, err := a.avsRegistryService.GetQuorumsAvsStateAtBlock(
 		context.Background(),
-		quorumNumbers,
-		taskCreatedBlock,
+		metadata.QuorumNumbers,
+		metadata.TaskCreatedBlock,
 	)
 	if err != nil {
 		a.logger.Error(
 			"Task goroutine failed to get quorums state from avs registry",
 			"taskIndex",
-			taskIndex,
+			metadata.TaskIndex,
 			"err",
 			err,
 		)
 		a.aggregatedResponsesC <- BlsAggregationServiceResponse{
-			Err:       TaskInitializationErrorFn(fmt.Errorf("Aggregator failed to get quorums state from avs registry: %w", err), taskIndex),
-			TaskIndex: taskIndex,
+			Err:       TaskInitializationErrorFn(fmt.Errorf("Aggregator failed to get quorums state from avs registry: %w", err), metadata.TaskIndex),
+			TaskIndex: metadata.TaskIndex,
 		}
 		return
 	}
@@ -351,23 +341,23 @@ func (a *BlsAggregatorService) singleTaskAggregatorGoroutineFunc(
 	for quorumNum, quorumAvsState := range quorumsAvsStakeDict {
 		totalStakePerQuorum[quorumNum] = quorumAvsState.TotalStake
 		a.logger.Debug("Task goroutine quorum total stake",
-			"taskIndex", taskIndex,
+			"taskIndex", metadata.TaskIndex,
 			"quorumNum", quorumNum,
 			"totalStake", quorumAvsState.TotalStake)
 	}
 	quorumApksG1 := []*bls.G1Point{}
-	for _, quorumNumber := range quorumNumbers {
+	for _, quorumNumber := range metadata.QuorumNumbers {
 		quorumApksG1 = append(quorumApksG1, quorumsAvsStakeDict[quorumNumber].AggPubkeyG1)
 	}
 
 	// TODO(samlaf): instead of taking a TTE, we should take a block as input
 	// and monitor the chain and only close the task goroutine when that block is reached
-	taskExpiredTimer := time.NewTimer(timeToExpiry)
+	taskExpiredTimer := time.NewTimer(metadata.TimeToExpiry)
 
 	aggregatedOperatorsDict := map[types.TaskResponseDigest]aggregatedOperators{}
 	// The windowTimer is initialized to be longer than the taskExpiredTimer as it will
 	// be overwritten once the stake threshold is met
-	windowTimer := time.NewTimer(timeToExpiry + 1*time.Second)
+	windowTimer := time.NewTimer(metadata.TimeToExpiry + 1*time.Second)
 	openWindow := false
 	var lastSignedTaskResponseDigest types.SignedTaskResponseDigest
 	var lastDigestAggregatedOperators aggregatedOperators
@@ -378,7 +368,7 @@ func (a *BlsAggregatorService) singleTaskAggregatorGoroutineFunc(
 			a.logger.Debug(
 				"Task goroutine received new signed task response digest",
 				"taskIndex",
-				taskIndex,
+				metadata.TaskIndex,
 				"signedTaskResponseDigest",
 				signedTaskResponseDigest,
 			)
@@ -399,14 +389,14 @@ func (a *BlsAggregatorService) singleTaskAggregatorGoroutineFunc(
 					a.logger.Info(
 						"Duplicate signature received",
 						"operatorId", fmt.Sprintf("%x", signedTaskResponseDigest.OperatorId),
-						"taskIndex", taskIndex,
+						"taskIndex", metadata.TaskIndex,
 					)
-					signedTaskResponseDigest.SignatureVerificationErrorC <- fmt.Errorf("duplicate signature from operator %x for task %d", signedTaskResponseDigest.OperatorId, taskIndex)
+					signedTaskResponseDigest.SignatureVerificationErrorC <- fmt.Errorf("duplicate signature from operator %x for task %d", signedTaskResponseDigest.OperatorId, metadata.TaskIndex)
 					continue
 				}
 			}
 
-			err = a.verifySignature(taskIndex, signedTaskResponseDigest, operatorsAvsStateDict)
+			err = a.verifySignature(metadata.TaskIndex, signedTaskResponseDigest, operatorsAvsStateDict)
 			// return the err (or nil) to the operator, and then proceed to do aggregation logic asynchronously (when no
 			// error)
 			signedTaskResponseDigest.SignatureVerificationErrorC <- err
@@ -430,7 +420,7 @@ func (a *BlsAggregatorService) singleTaskAggregatorGoroutineFunc(
 				}
 			} else {
 				a.logger.Debug("Task goroutine updating existing aggregated operator signatures",
-					"taskIndex", taskIndex,
+					"taskIndex", metadata.TaskIndex,
 					"taskResponseDigest", taskResponseDigest)
 
 				digestAggregatedOperators.signersAggSigG1.Add(signedTaskResponseDigest.BlsSignature)
@@ -462,41 +452,41 @@ func (a *BlsAggregatorService) singleTaskAggregatorGoroutineFunc(
 				quorumThresholdPercentagesMap,
 			) {
 				a.logger.Debug("Task goroutine stake threshold reached",
-					"taskIndex", taskIndex,
+					"taskIndex", metadata.TaskIndex,
 					"taskResponseDigest", taskResponseDigest)
 
 				openWindow = true
-				windowTimer = time.NewTimer(windowDuration)
+				windowTimer = time.NewTimer(*metadata.WindowDuration)
 				a.logger.Debug("Window timer started")
 			}
 		case <-taskExpiredTimer.C:
 			if openWindow {
 				a.sendAggregatedResponse(
 					operatorsAvsStateDict,
-					taskIndex,
-					taskCreatedBlock,
+					metadata.TaskIndex,
+					metadata.TaskCreatedBlock,
 					lastSignedTaskResponseDigest,
 					lastDigestAggregatedOperators,
-					quorumNumbers,
+					metadata.QuorumNumbers,
 					lastTaskResponseDigest,
 					quorumApksG1,
 				)
 			}
 
 			a.aggregatedResponsesC <- BlsAggregationServiceResponse{
-				Err:       TaskExpiredErrorFn(taskIndex),
-				TaskIndex: taskIndex,
+				Err:       TaskExpiredErrorFn(metadata.TaskIndex),
+				TaskIndex: metadata.TaskIndex,
 			}
 			return
 		case <-windowTimer.C:
 			a.logger.Debug("Window timer expired")
 			a.sendAggregatedResponse(
 				operatorsAvsStateDict,
-				taskIndex,
-				taskCreatedBlock,
+				metadata.TaskIndex,
+				metadata.TaskCreatedBlock,
 				lastSignedTaskResponseDigest,
 				lastDigestAggregatedOperators,
-				quorumNumbers,
+				metadata.QuorumNumbers,
 				lastTaskResponseDigest,
 				quorumApksG1,
 			)
