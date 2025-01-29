@@ -18,6 +18,10 @@ func (e Error) Error() string {
 	}
 }
 
+func (e Error) Unwrap() error {
+	return e.cause
+}
+
 func CreateErrorForMissingContract(contractName string) Error {
 	errDescription := fmt.Sprintf("%s contract not provided", contractName)
 	return Error{1, "Missing needed contract", errDescription, nil}
