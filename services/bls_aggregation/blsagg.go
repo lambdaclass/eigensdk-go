@@ -126,10 +126,7 @@ type BlsAggregationService interface {
 	// BlsAggregationService does not verify semantic integrity of the taskResponses)
 	ProcessNewSignature(
 		ctx context.Context,
-		taskIndex types.TaskIndex,
-		taskResponse types.TaskResponse,
-		blsSignature *bls.Signature,
-		operatorId types.OperatorId,
+		metadata SignatureMetadata,
 	) error
 
 	// GetResponseChannel returns the single channel that meant to be used as the response channel
@@ -279,18 +276,22 @@ func (a *BlsAggregatorService) InitializeNewTaskWithWindow(
 	return nil
 }
 
+type SignatureMetadata struct {
+	TaskIndex    types.TaskIndex
+	TaskResponse types.TaskResponse
+	BlsSignature *bls.Signature
+	OperatorId   types.OperatorId
+}
+
 func (a *BlsAggregatorService) ProcessNewSignature(
 	ctx context.Context,
-	taskIndex types.TaskIndex,
-	taskResponse types.TaskResponse,
-	blsSignature *bls.Signature,
-	operatorId types.OperatorId,
+	metadata SignatureMetadata,
 ) error {
 	a.taskChansMutex.Lock()
-	taskC, taskInitialized := a.signedTaskRespsCs[taskIndex]
+	taskC, taskInitialized := a.signedTaskRespsCs[metadata.TaskIndex]
 	a.taskChansMutex.Unlock()
 	if !taskInitialized {
-		return TaskNotFoundErrorFn(taskIndex)
+		return TaskNotFoundErrorFn(metadata.TaskIndex)
 	}
 
 	signatureVerificationErrorC := make(chan error)
@@ -301,9 +302,9 @@ func (a *BlsAggregatorService) ProcessNewSignature(
 	// we need to send this as part of select because if the goroutine is processing another SignedTaskResponseDigest
 	// and cannot receive this one, we want the context to be able to cancel the request
 	case taskC <- types.SignedTaskResponseDigest{
-		TaskResponse:                taskResponse,
-		BlsSignature:                blsSignature,
-		OperatorId:                  operatorId,
+		TaskResponse:                metadata.TaskResponse,
+		BlsSignature:                metadata.BlsSignature,
+		OperatorId:                  metadata.OperatorId,
 		SignatureVerificationErrorC: signatureVerificationErrorC,
 	}:
 		// note that we need to wait synchronously here for this response because we want to
