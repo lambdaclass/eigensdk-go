@@ -426,7 +426,12 @@ func (w *ChainWriter) ProcessClaims(
 	}
 
 	if len(claims) == 0 {
-		wrappedError := Error{3, "Other errors", "No claims were found to process, at least one claim must be provided", nil}
+		wrappedError := Error{
+			3,
+			"Other errors",
+			"No claims were found to process, at least one claim must be provided",
+			nil,
+		}
 		return nil, wrappedError
 	}
 
