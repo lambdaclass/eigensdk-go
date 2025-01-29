@@ -642,7 +642,8 @@ func (w *ChainWriter) RegisterForOperatorSets(
 			Data:           data,
 		})
 	if err != nil {
-		return nil, utils.WrapError("failed to create RegisterForOperatorSets tx", err)
+		wrappedError := CreateForTxGenerationError("allocationManager.RegisterForOperatorSets", err)
+		return nil, wrappedError
 	}
 
 	receipt, err := w.txMgr.Send(ctx, tx, request.WaitForReceipt)
@@ -691,13 +692,19 @@ func (w *ChainWriter) NewRemovePermissionTx(
 		return nil, wrappedError
 	}
 
-	return w.permissionController.RemoveAppointee(
+	tx, err := w.permissionController.RemoveAppointee(
 		txOpts,
 		request.AccountAddress,
 		request.AppointeeAddress,
 		request.Target,
 		request.Selector,
 	)
+	if err != nil {
+		wrappedError := CreateForTxGenerationError("permissionController.RemoveAppointee", err)
+		return nil, wrappedError
+	}
+
+	return tx, nil
 }
 
 func (w *ChainWriter) NewSetPermissionTx(
@@ -708,13 +715,20 @@ func (w *ChainWriter) NewSetPermissionTx(
 		wrappedError := CreateErrorForMissingContract("PermissionController")
 		return nil, wrappedError
 	}
-	return w.permissionController.SetAppointee(
+
+	tx, err := w.permissionController.SetAppointee(
 		txOpts,
 		request.AccountAddress,
 		request.AppointeeAddress,
 		request.Target,
 		request.Selector,
 	)
+	if err != nil {
+		wrappedError := CreateForTxGenerationError("permissionController.SetAppointee", err)
+		return nil, wrappedError
+	}
+
+	return tx, nil
 }
 
 func (w *ChainWriter) SetPermission(
@@ -754,7 +768,14 @@ func (w *ChainWriter) NewAcceptAdminTx(
 		wrappedError := CreateErrorForMissingContract("PermissionController")
 		return nil, wrappedError
 	}
-	return w.permissionController.AcceptAdmin(txOpts, request.AccountAddress)
+
+	tx, err := w.permissionController.AcceptAdmin(txOpts, request.AccountAddress)
+	if err != nil {
+		wrappedError := CreateForTxGenerationError("permissionController.AcceptAdmin", err)
+		return nil, wrappedError
+	}
+
+	return tx, nil
 }
 
 func (w *ChainWriter) AcceptAdmin(
@@ -794,7 +815,14 @@ func (w *ChainWriter) NewAddPendingAdminTx(
 		wrappedError := CreateErrorForMissingContract("PermissionController")
 		return nil, wrappedError
 	}
-	return w.permissionController.AddPendingAdmin(txOpts, request.AccountAddress, request.AdminAddress)
+
+	tx, err := w.permissionController.AddPendingAdmin(txOpts, request.AccountAddress, request.AdminAddress)
+	if err != nil {
+		wrappedError := CreateForTxGenerationError("permissionController.AddPendingAdmin", err)
+		return nil, wrappedError
+	}
+
+	return tx, nil
 }
 
 func (w *ChainWriter) AddPendingAdmin(ctx context.Context, request AddPendingAdminRequest) (*gethtypes.Receipt, error) {
@@ -830,7 +858,14 @@ func (w *ChainWriter) NewRemoveAdminTx(
 		wrappedError := CreateErrorForMissingContract("PermissionController")
 		return nil, wrappedError
 	}
-	return w.permissionController.RemoveAdmin(txOpts, request.AccountAddress, request.AdminAddress)
+
+	tx, err := w.permissionController.RemoveAdmin(txOpts, request.AccountAddress, request.AdminAddress)
+	if err != nil {
+		wrappedError := CreateForTxGenerationError("permissionController.RemoveAdmin", err)
+		return nil, wrappedError
+	}
+
+	return tx, nil
 }
 
 func (w *ChainWriter) RemoveAdmin(
@@ -870,7 +905,14 @@ func (w *ChainWriter) NewRemovePendingAdminTx(
 		wrappedError := CreateErrorForMissingContract("PermissionController")
 		return nil, wrappedError
 	}
-	return w.permissionController.RemovePendingAdmin(txOpts, request.AccountAddress, request.AdminAddress)
+
+	tx, err := w.permissionController.RemovePendingAdmin(txOpts, request.AccountAddress, request.AdminAddress)
+	if err != nil {
+		wrappedError := CreateForTxGenerationError("permissionController.RemovePendingAdmin", err)
+		return nil, wrappedError
+	}
+
+	return tx, nil
 }
 
 func (w *ChainWriter) RemovePendingAdmin(
