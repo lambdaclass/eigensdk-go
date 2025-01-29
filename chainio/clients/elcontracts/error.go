@@ -57,6 +57,10 @@ func CreateForTxGenerationError(bindingName string, errorCause error) Error {
 	}
 }
 
+func CreateForSendError(errorCause error) Error {
+	return Error{5, "Send error", "Failed to send tx with err", errorCause}
+}
+
 func CommonErrorMissingContract(contractName string) string {
 	return fmt.Sprintf("Missing needed contract(1) - %s contract not provided", contractName)
 }
