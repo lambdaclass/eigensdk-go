@@ -91,10 +91,12 @@ func TestBlsAgg(t *testing.T) {
 		require.Nil(t, err)
 		err = blsAggServ.ProcessNewSignature(
 			context.Background(),
-			taskIndex,
-			taskResponse,
-			blsSig,
-			testOperator1.OperatorId,
+			SignatureMetadata{
+				TaskIndex:    taskIndex,
+				TaskResponse: taskResponse,
+				BlsSignature: blsSig,
+				OperatorId:   testOperator1.OperatorId,
+			},
 		)
 		require.Nil(t, err)
 		wantAggregationServiceResponse := BlsAggregationServiceResponse{
@@ -158,28 +160,34 @@ func TestBlsAgg(t *testing.T) {
 		blsSigOp1 := testOperator1.BlsKeypair.SignMessage(taskResponseDigest)
 		err = blsAggServ.ProcessNewSignature(
 			context.Background(),
-			taskIndex,
-			taskResponse,
-			blsSigOp1,
-			testOperator1.OperatorId,
+			SignatureMetadata{
+				TaskIndex:    taskIndex,
+				TaskResponse: taskResponse,
+				BlsSignature: blsSigOp1,
+				OperatorId:   testOperator1.OperatorId,
+			},
 		)
 		require.Nil(t, err)
 		blsSigOp2 := testOperator2.BlsKeypair.SignMessage(taskResponseDigest)
 		err = blsAggServ.ProcessNewSignature(
 			context.Background(),
-			taskIndex,
-			taskResponse,
-			blsSigOp2,
-			testOperator2.OperatorId,
+			SignatureMetadata{
+				TaskIndex:    taskIndex,
+				TaskResponse: taskResponse,
+				BlsSignature: blsSigOp2,
+				OperatorId:   testOperator2.OperatorId,
+			},
 		)
 		require.Nil(t, err)
 		blsSigOp3 := testOperator3.BlsKeypair.SignMessage(taskResponseDigest)
 		err = blsAggServ.ProcessNewSignature(
 			context.Background(),
-			taskIndex,
-			taskResponse,
-			blsSigOp3,
-			testOperator3.OperatorId,
+			SignatureMetadata{
+				TaskIndex:    taskIndex,
+				TaskResponse: taskResponse,
+				BlsSignature: blsSigOp3,
+				OperatorId:   testOperator3.OperatorId,
+			},
 		)
 		require.Nil(t, err)
 
@@ -244,19 +252,23 @@ func TestBlsAgg(t *testing.T) {
 		blsSigOp1 := testOperator1.BlsKeypair.SignMessage(taskResponseDigest)
 		err = blsAggServ.ProcessNewSignature(
 			context.Background(),
-			taskIndex,
-			taskResponse,
-			blsSigOp1,
-			testOperator1.OperatorId,
+			SignatureMetadata{
+				TaskIndex:    taskIndex,
+				TaskResponse: taskResponse,
+				BlsSignature: blsSigOp1,
+				OperatorId:   testOperator1.OperatorId,
+			},
 		)
 		require.Nil(t, err)
 		blsSigOp2 := testOperator2.BlsKeypair.SignMessage(taskResponseDigest)
 		err = blsAggServ.ProcessNewSignature(
 			context.Background(),
-			taskIndex,
-			taskResponse,
-			blsSigOp2,
-			testOperator2.OperatorId,
+			SignatureMetadata{
+				TaskIndex:    taskIndex,
+				TaskResponse: taskResponse,
+				BlsSignature: blsSigOp2,
+				OperatorId:   testOperator2.OperatorId,
+			},
 		)
 		require.Nil(t, err)
 
@@ -335,37 +347,45 @@ func TestBlsAgg(t *testing.T) {
 		blsSigTask1Op1 := testOperator1.BlsKeypair.SignMessage(task1ResponseDigest)
 		err = blsAggServ.ProcessNewSignature(
 			context.Background(),
-			task1Index,
-			task1Response,
-			blsSigTask1Op1,
-			testOperator1.OperatorId,
+			SignatureMetadata{
+				TaskIndex:    task1Index,
+				TaskResponse: task1Response,
+				BlsSignature: blsSigTask1Op1,
+				OperatorId:   testOperator1.OperatorId,
+			},
 		)
 		require.Nil(t, err)
 		blsSigTask2Op1 := testOperator1.BlsKeypair.SignMessage(task2ResponseDigest)
 		err = blsAggServ.ProcessNewSignature(
 			context.Background(),
-			task2Index,
-			task2Response,
-			blsSigTask2Op1,
-			testOperator1.OperatorId,
+			SignatureMetadata{
+				TaskIndex:    task2Index,
+				TaskResponse: task2Response,
+				BlsSignature: blsSigTask2Op1,
+				OperatorId:   testOperator1.OperatorId,
+			},
 		)
 		require.Nil(t, err)
 		blsSigTask1Op2 := testOperator2.BlsKeypair.SignMessage(task1ResponseDigest)
 		err = blsAggServ.ProcessNewSignature(
 			context.Background(),
-			task1Index,
-			task1Response,
-			blsSigTask1Op2,
-			testOperator2.OperatorId,
+			SignatureMetadata{
+				TaskIndex:    task1Index,
+				TaskResponse: task1Response,
+				BlsSignature: blsSigTask1Op2,
+				OperatorId:   testOperator2.OperatorId,
+			},
 		)
 		require.Nil(t, err)
 		blsSigTask2Op2 := testOperator2.BlsKeypair.SignMessage(task2ResponseDigest)
 		err = blsAggServ.ProcessNewSignature(
 			context.Background(),
-			task2Index,
-			task2Response,
-			blsSigTask2Op2,
-			testOperator2.OperatorId,
+			SignatureMetadata{
+				TaskIndex:    task2Index,
+				TaskResponse: task2Response,
+				BlsSignature: blsSigTask2Op2,
+				OperatorId:   testOperator2.OperatorId,
+			},
 		)
 		require.Nil(t, err)
 
@@ -464,10 +484,12 @@ func TestBlsAgg(t *testing.T) {
 		blsSigOp1 := testOperator1.BlsKeypair.SignMessage(taskResponseDigest)
 		err = blsAggServ.ProcessNewSignature(
 			context.Background(),
-			taskIndex,
-			taskResponse,
-			blsSigOp1,
-			testOperator1.OperatorId,
+			SignatureMetadata{
+				TaskIndex:    taskIndex,
+				TaskResponse: taskResponse,
+				BlsSignature: blsSigOp1,
+				OperatorId:   testOperator1.OperatorId,
+			},
 		)
 		require.NoError(t, err)
 
@@ -475,10 +497,12 @@ func TestBlsAgg(t *testing.T) {
 		blsSigOp1Dup := testOperator1.BlsKeypair.SignMessage(taskResponseDigest)
 		err = blsAggServ.ProcessNewSignature(
 			context.Background(),
-			taskIndex,
-			taskResponse,
-			blsSigOp1Dup,
-			testOperator1.OperatorId,
+			SignatureMetadata{
+				TaskIndex:    taskIndex,
+				TaskResponse: taskResponse,
+				BlsSignature: blsSigOp1Dup,
+				OperatorId:   testOperator1.OperatorId,
+			},
 		)
 
 		if err != nil {
@@ -492,10 +516,12 @@ func TestBlsAgg(t *testing.T) {
 		blsSigOp2 := testOperator2.BlsKeypair.SignMessage(taskResponseDigest)
 		err = blsAggServ.ProcessNewSignature(
 			context.Background(),
-			taskIndex,
-			taskResponse,
-			blsSigOp2,
-			testOperator2.OperatorId,
+			SignatureMetadata{
+				TaskIndex:    taskIndex,
+				TaskResponse: taskResponse,
+				BlsSignature: blsSigOp2,
+				OperatorId:   testOperator2.OperatorId,
+			},
 		)
 		require.NoError(t, err)
 
@@ -587,10 +613,12 @@ func TestBlsAgg(t *testing.T) {
 		require.Nil(t, err)
 		err = blsAggServ.ProcessNewSignature(
 			context.Background(),
-			taskIndex,
-			taskResponse,
-			blsSig,
-			testOperator1.OperatorId,
+			SignatureMetadata{
+				TaskIndex:    taskIndex,
+				TaskResponse: taskResponse,
+				BlsSignature: blsSig,
+				OperatorId:   testOperator1.OperatorId,
+			},
 		)
 		require.Nil(t, err)
 		wantAggregationServiceResponse := BlsAggregationServiceResponse{
@@ -648,10 +676,12 @@ func TestBlsAgg(t *testing.T) {
 		require.Nil(t, err)
 		err = blsAggServ.ProcessNewSignature(
 			context.Background(),
-			taskIndex,
-			taskResponse,
-			blsSig,
-			testOperator1.OperatorId,
+			SignatureMetadata{
+				TaskIndex:    taskIndex,
+				TaskResponse: taskResponse,
+				BlsSignature: blsSig,
+				OperatorId:   testOperator1.OperatorId,
+			},
 		)
 		require.Nil(t, err)
 		wantAggregationServiceResponse := BlsAggregationServiceResponse{
@@ -702,19 +732,23 @@ func TestBlsAgg(t *testing.T) {
 		blsSigOp1 := testOperator1.BlsKeypair.SignMessage(taskResponseDigest)
 		err = blsAggServ.ProcessNewSignature(
 			context.Background(),
-			taskIndex,
-			taskResponse,
-			blsSigOp1,
-			testOperator1.OperatorId,
+			SignatureMetadata{
+				TaskIndex:    taskIndex,
+				TaskResponse: taskResponse,
+				BlsSignature: blsSigOp1,
+				OperatorId:   testOperator1.OperatorId,
+			},
 		)
 		require.Nil(t, err)
 		blsSigOp2 := testOperator2.BlsKeypair.SignMessage(taskResponseDigest)
 		err = blsAggServ.ProcessNewSignature(
 			context.Background(),
-			taskIndex,
-			taskResponse,
-			blsSigOp2,
-			testOperator2.OperatorId,
+			SignatureMetadata{
+				TaskIndex:    taskIndex,
+				TaskResponse: taskResponse,
+				BlsSignature: blsSigOp2,
+				OperatorId:   testOperator2.OperatorId,
+			},
 		)
 		require.Nil(t, err)
 
@@ -785,19 +819,23 @@ func TestBlsAgg(t *testing.T) {
 			blsSigOp1 := testOperator1.BlsKeypair.SignMessage(taskResponseDigest)
 			err = blsAggServ.ProcessNewSignature(
 				context.Background(),
-				taskIndex,
-				taskResponse,
-				blsSigOp1,
-				testOperator1.OperatorId,
+				SignatureMetadata{
+					TaskIndex:    taskIndex,
+					TaskResponse: taskResponse,
+					BlsSignature: blsSigOp1,
+					OperatorId:   testOperator1.OperatorId,
+				},
 			)
 			require.Nil(t, err)
 			blsSigOp2 := testOperator2.BlsKeypair.SignMessage(taskResponseDigest)
 			err = blsAggServ.ProcessNewSignature(
 				context.Background(),
-				taskIndex,
-				taskResponse,
-				blsSigOp2,
-				testOperator2.OperatorId,
+				SignatureMetadata{
+					TaskIndex:    taskIndex,
+					TaskResponse: taskResponse,
+					BlsSignature: blsSigOp2,
+					OperatorId:   testOperator2.OperatorId,
+				},
 			)
 			require.Nil(t, err)
 
@@ -875,19 +913,23 @@ func TestBlsAgg(t *testing.T) {
 			blsSigOp1 := testOperator1.BlsKeypair.SignMessage(taskResponseDigest)
 			err = blsAggServ.ProcessNewSignature(
 				context.Background(),
-				taskIndex,
-				taskResponse,
-				blsSigOp1,
-				testOperator1.OperatorId,
+				SignatureMetadata{
+					TaskIndex:    taskIndex,
+					TaskResponse: taskResponse,
+					BlsSignature: blsSigOp1,
+					OperatorId:   testOperator1.OperatorId,
+				},
 			)
 			require.Nil(t, err)
 			blsSigOp2 := testOperator2.BlsKeypair.SignMessage(taskResponseDigest)
 			err = blsAggServ.ProcessNewSignature(
 				context.Background(),
-				taskIndex,
-				taskResponse,
-				blsSigOp2,
-				testOperator2.OperatorId,
+				SignatureMetadata{
+					TaskIndex:    taskIndex,
+					TaskResponse: taskResponse,
+					BlsSignature: blsSigOp2,
+					OperatorId:   testOperator2.OperatorId,
+				},
 			)
 			require.Nil(t, err)
 
@@ -930,10 +972,12 @@ func TestBlsAgg(t *testing.T) {
 		blsSigOp1 := testOperator1.BlsKeypair.SignMessage(taskResponseDigest)
 		err = blsAggServ.ProcessNewSignature(
 			context.Background(),
-			taskIndex,
-			taskResponse,
-			blsSigOp1,
-			testOperator1.OperatorId,
+			SignatureMetadata{
+				TaskIndex:    taskIndex,
+				TaskResponse: taskResponse,
+				BlsSignature: blsSigOp1,
+				OperatorId:   testOperator1.OperatorId,
+			},
 		)
 		require.Nil(t, err)
 
@@ -987,10 +1031,12 @@ func TestBlsAgg(t *testing.T) {
 			blsSigOp1 := testOperator1.BlsKeypair.SignMessage(taskResponseDigest)
 			err = blsAggServ.ProcessNewSignature(
 				context.Background(),
-				taskIndex,
-				taskResponse,
-				blsSigOp1,
-				testOperator1.OperatorId,
+				SignatureMetadata{
+					TaskIndex:    taskIndex,
+					TaskResponse: taskResponse,
+					BlsSignature: blsSigOp1,
+					OperatorId:   testOperator1.OperatorId,
+				},
 			)
 			require.Nil(t, err)
 
@@ -1022,10 +1068,12 @@ func TestBlsAgg(t *testing.T) {
 
 		err = blsAggServ.ProcessNewSignature(
 			context.Background(),
-			taskIndex,
-			taskResponse,
-			blsSig,
-			testOperator1.OperatorId,
+			SignatureMetadata{
+				TaskIndex:    taskIndex,
+				TaskResponse: taskResponse,
+				BlsSignature: blsSig,
+				OperatorId:   testOperator1.OperatorId,
+			},
 		)
 		require.Equal(t, TaskNotFoundErrorFn(taskIndex), err)
 	})
@@ -1073,10 +1121,12 @@ func TestBlsAgg(t *testing.T) {
 			blsSigOp1 := testOperator1.BlsKeypair.SignMessage(taskResponseDigest1)
 			err = blsAggServ.ProcessNewSignature(
 				context.Background(),
-				taskIndex,
-				taskResponse1,
-				blsSigOp1,
-				testOperator1.OperatorId,
+				SignatureMetadata{
+					TaskIndex:    taskIndex,
+					TaskResponse: taskResponse1,
+					BlsSignature: blsSigOp1,
+					OperatorId:   testOperator1.OperatorId,
+				},
 			)
 			require.Nil(t, err)
 
@@ -1086,7 +1136,15 @@ func TestBlsAgg(t *testing.T) {
 			blsSigOp2 := testOperator2.BlsKeypair.SignMessage(taskResponseDigest2)
 			ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 			defer cancel()
-			err = blsAggServ.ProcessNewSignature(ctx, taskIndex, taskResponse2, blsSigOp2, testOperator2.OperatorId)
+			err = blsAggServ.ProcessNewSignature(
+				ctx,
+				SignatureMetadata{
+					TaskIndex:    taskIndex,
+					TaskResponse: taskResponse2,
+					BlsSignature: blsSigOp2,
+					OperatorId:   testOperator2.OperatorId,
+				},
+			)
 			// this should timeout because the task goroutine is blocked on the response channel (since we only listen
 			// for it below)
 			require.Equal(t, context.DeadlineExceeded, err)
@@ -1146,10 +1204,12 @@ func TestBlsAgg(t *testing.T) {
 		blsSigOp1 := testOperator1.BlsKeypair.SignMessage(taskResponseDigest1)
 		err = blsAggServ.ProcessNewSignature(
 			context.Background(),
-			taskIndex,
-			taskResponse1,
-			blsSigOp1,
-			testOperator1.OperatorId,
+			SignatureMetadata{
+				TaskIndex:    taskIndex,
+				TaskResponse: taskResponse1,
+				BlsSignature: blsSigOp1,
+				OperatorId:   testOperator1.OperatorId,
+			},
 		)
 		require.Nil(t, err)
 		taskResponse2 := mockTaskResponse{2}
@@ -1158,10 +1218,12 @@ func TestBlsAgg(t *testing.T) {
 		blsSigOp2 := testOperator2.BlsKeypair.SignMessage(taskResponseDigest2)
 		err = blsAggServ.ProcessNewSignature(
 			context.Background(),
-			taskIndex,
-			taskResponse2,
-			blsSigOp2,
-			testOperator2.OperatorId,
+			SignatureMetadata{
+				TaskIndex:    taskIndex,
+				TaskResponse: taskResponse2,
+				BlsSignature: blsSigOp2,
+				OperatorId:   testOperator2.OperatorId,
+			},
 		)
 		require.Nil(t, err)
 		wantAggregationServiceResponse := BlsAggregationServiceResponse{
@@ -1208,10 +1270,12 @@ func TestBlsAgg(t *testing.T) {
 			require.Nil(t, err)
 			err = blsAggServ.ProcessNewSignature(
 				context.Background(),
-				taskIndex,
-				taskResponse,
-				blsSig,
-				testOperator1.OperatorId,
+				SignatureMetadata{
+					TaskIndex:    taskIndex,
+					TaskResponse: taskResponse,
+					BlsSignature: blsSig,
+					OperatorId:   testOperator1.OperatorId,
+				},
 			)
 			require.EqualError(t, err, "Signature verification failed. Incorrect Signature.")
 		},
@@ -1269,29 +1333,35 @@ func TestBlsAgg(t *testing.T) {
 		blsSigOp1 := testOperator1.BlsKeypair.SignMessage(taskResponseDigest)
 		err = blsAggServ.ProcessNewSignature(
 			context.Background(),
-			taskIndex,
-			taskResponse,
-			blsSigOp1,
-			testOperator1.OperatorId,
+			SignatureMetadata{
+				TaskIndex:    taskIndex,
+				TaskResponse: taskResponse,
+				BlsSignature: blsSigOp1,
+				OperatorId:   testOperator1.OperatorId,
+			},
 		)
 		require.Nil(t, err)
 		blsSigOp2 := testOperator2.BlsKeypair.SignMessage(taskResponseDigest)
 		err = blsAggServ.ProcessNewSignature(
 			context.Background(),
-			taskIndex,
-			taskResponse,
-			blsSigOp2,
-			testOperator2.OperatorId,
+			SignatureMetadata{
+				TaskIndex:    taskIndex,
+				TaskResponse: taskResponse,
+				BlsSignature: blsSigOp2,
+				OperatorId:   testOperator2.OperatorId,
+			},
 		)
 		// quorum has already been reached, but window should still be open
 		require.Nil(t, err)
 		blsSigOp3 := testOperator3.BlsKeypair.SignMessage(taskResponseDigest)
 		err = blsAggServ.ProcessNewSignature(
 			context.Background(),
-			taskIndex,
-			taskResponse,
-			blsSigOp3,
-			testOperator3.OperatorId,
+			SignatureMetadata{
+				TaskIndex:    taskIndex,
+				TaskResponse: taskResponse,
+				BlsSignature: blsSigOp3,
+				OperatorId:   testOperator3.OperatorId,
+			},
 		)
 		require.Nil(t, err)
 
@@ -1377,19 +1447,23 @@ func TestBlsAgg(t *testing.T) {
 		blsSigOp1 := testOperator1.BlsKeypair.SignMessage(taskResponseDigest)
 		err = blsAggServ.ProcessNewSignature(
 			context.Background(),
-			taskIndex,
-			taskResponse,
-			blsSigOp1,
-			testOperator1.OperatorId,
+			SignatureMetadata{
+				TaskIndex:    taskIndex,
+				TaskResponse: taskResponse,
+				BlsSignature: blsSigOp1,
+				OperatorId:   testOperator1.OperatorId,
+			},
 		)
 		require.Nil(t, err)
 		blsSigOp2 := testOperator2.BlsKeypair.SignMessage(taskResponseDigest)
 		err = blsAggServ.ProcessNewSignature(
 			context.Background(),
-			taskIndex,
-			taskResponse,
-			blsSigOp2,
-			testOperator2.OperatorId,
+			SignatureMetadata{
+				TaskIndex:    taskIndex,
+				TaskResponse: taskResponse,
+				BlsSignature: blsSigOp2,
+				OperatorId:   testOperator2.OperatorId,
+			},
 		)
 		require.Nil(t, err)
 
@@ -1398,10 +1472,12 @@ func TestBlsAgg(t *testing.T) {
 		blsSigOp3 := testOperator3.BlsKeypair.SignMessage(taskResponseDigest)
 		err = blsAggServ.ProcessNewSignature(
 			context.Background(),
-			taskIndex,
-			taskResponse,
-			blsSigOp3,
-			testOperator3.OperatorId,
+			SignatureMetadata{
+				TaskIndex:    taskIndex,
+				TaskResponse: taskResponse,
+				BlsSignature: blsSigOp3,
+				OperatorId:   testOperator3.OperatorId,
+			},
 		)
 		require.Nil(t, err)
 
@@ -1481,19 +1557,23 @@ func TestBlsAgg(t *testing.T) {
 		blsSigOp1 := testOperator1.BlsKeypair.SignMessage(taskResponseDigest)
 		err = blsAggServ.ProcessNewSignature(
 			context.Background(),
-			taskIndex,
-			taskResponse,
-			blsSigOp1,
-			testOperator1.OperatorId,
+			SignatureMetadata{
+				TaskIndex:    taskIndex,
+				TaskResponse: taskResponse,
+				BlsSignature: blsSigOp1,
+				OperatorId:   testOperator1.OperatorId,
+			},
 		)
 		require.Nil(t, err)
 		blsSigOp2 := testOperator2.BlsKeypair.SignMessage(taskResponseDigest)
 		err = blsAggServ.ProcessNewSignature(
 			context.Background(),
-			taskIndex,
-			taskResponse,
-			blsSigOp2,
-			testOperator2.OperatorId,
+			SignatureMetadata{
+				TaskIndex:    taskIndex,
+				TaskResponse: taskResponse,
+				BlsSignature: blsSigOp2,
+				OperatorId:   testOperator2.OperatorId,
+			},
 		)
 		require.Nil(t, err)
 
@@ -1505,10 +1585,12 @@ func TestBlsAgg(t *testing.T) {
 		blsSigOp3 := testOperator3.BlsKeypair.SignMessage(taskResponseDigest)
 		err = blsAggServ.ProcessNewSignature(
 			ctx,
-			taskIndex,
-			taskResponse,
-			blsSigOp3,
-			testOperator3.OperatorId,
+			SignatureMetadata{
+				TaskIndex:    taskIndex,
+				TaskResponse: taskResponse,
+				BlsSignature: blsSigOp3,
+				OperatorId:   testOperator3.OperatorId,
+			},
 		)
 		require.Equal(t, context.DeadlineExceeded, err)
 
@@ -1588,19 +1670,23 @@ func TestBlsAgg(t *testing.T) {
 		blsSigOp1 := testOperator1.BlsKeypair.SignMessage(taskResponseDigest)
 		err = blsAggServ.ProcessNewSignature(
 			context.Background(),
-			taskIndex,
-			taskResponse,
-			blsSigOp1,
-			testOperator1.OperatorId,
+			SignatureMetadata{
+				TaskIndex:    taskIndex,
+				TaskResponse: taskResponse,
+				BlsSignature: blsSigOp1,
+				OperatorId:   testOperator1.OperatorId,
+			},
 		)
 		require.Nil(t, err)
 		blsSigOp2 := testOperator2.BlsKeypair.SignMessage(taskResponseDigest)
 		err = blsAggServ.ProcessNewSignature(
 			context.Background(),
-			taskIndex,
-			taskResponse,
-			blsSigOp2,
-			testOperator2.OperatorId,
+			SignatureMetadata{
+				TaskIndex:    taskIndex,
+				TaskResponse: taskResponse,
+				BlsSignature: blsSigOp2,
+				OperatorId:   testOperator2.OperatorId,
+			},
 		)
 		require.Nil(t, err)
 
@@ -1613,10 +1699,12 @@ func TestBlsAgg(t *testing.T) {
 		blsSigOp3 := testOperator3.BlsKeypair.SignMessage(taskResponseDigest)
 		err = blsAggServ.ProcessNewSignature(
 			ctx,
-			taskIndex,
-			taskResponse,
-			blsSigOp3,
-			testOperator3.OperatorId,
+			SignatureMetadata{
+				TaskIndex:    taskIndex,
+				TaskResponse: taskResponse,
+				BlsSignature: blsSigOp3,
+				OperatorId:   testOperator3.OperatorId,
+			},
 		)
 		require.Equal(t, context.DeadlineExceeded, err)
 
@@ -1757,7 +1845,15 @@ func TestIntegrationBlsAgg(t *testing.T) {
 		taskResponseDigest, err := hashFunction(taskResponse)
 		require.Nil(t, err)
 		blsSig := blsKeyPair.SignMessage(taskResponseDigest)
-		err = blsAggServ.ProcessNewSignature(context.Background(), taskIndex, taskResponse, blsSig, operatorId)
+		err = blsAggServ.ProcessNewSignature(
+			context.Background(),
+			SignatureMetadata{
+				TaskIndex:    taskIndex,
+				TaskResponse: taskResponse,
+				BlsSignature: blsSig,
+				OperatorId:   operatorId,
+			},
+		)
 		require.Nil(t, err)
 
 		// wait for the response from the aggregation service and check the signature
