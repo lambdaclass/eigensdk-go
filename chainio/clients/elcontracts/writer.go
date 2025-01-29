@@ -952,7 +952,8 @@ func getPubkeyRegistrationParams(
 ) (*regcoord.IBLSApkRegistryPubkeyRegistrationParams, error) {
 	registryCoordinator, err := regcoord.NewContractRegistryCoordinator(registryCoordinatorAddr, ethClient)
 	if err != nil {
-		return nil, utils.WrapError("failed to create registry coordinator", err)
+		wrappedError := CreateForBindingError("regcoord.NewContractRegistryCoordinator", err)
+		return nil, wrappedError
 	}
 	// params to register bls pubkey with bls apk registry
 	g1HashedMsgToSign, err := registryCoordinator.PubkeyRegistrationMessageHash(
@@ -960,7 +961,8 @@ func getPubkeyRegistrationParams(
 		operatorAddress,
 	)
 	if err != nil {
-		return nil, err
+		wrappedError := CreateForBindingError("registryCoordinator.PubkeyRegistrationMessageHash", err)
+		return nil, wrappedError
 	}
 	signedMsg := chainioutils.ConvertToBN254G1Point(
 		blsKeyPair.SignHashedToCurveMessage(chainioutils.ConvertBn254GethToGnark(g1HashedMsgToSign)).G1Point,
