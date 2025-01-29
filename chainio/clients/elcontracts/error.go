@@ -16,6 +16,10 @@ func (e Error) Error() string {
 	return fmt.Sprintf("%s(%d) - %s", e.message, e.code, e.description)
 }
 
+func (e Error) Unwrap() error {
+	return e.cause
+}
+
 func CreateErrorForMissingContract(contractName string) Error {
 	errDescription := fmt.Sprintf("%s contract not provided", contractName)
 	return Error{1, "Missing needed contract", errDescription, nil}
