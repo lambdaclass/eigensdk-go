@@ -78,25 +78,26 @@ type aggregatedOperators struct {
 	signersOperatorIdsSet map[types.OperatorId]bool
 }
 
+// TaskMetadata encapsulates the necessary parameters to initialize a task
+type TaskMetadata struct {
+	// unique identifier for the task
+	TaskIndex types.TaskIndex
+	// block number at which the task was created.
+	TaskCreatedBlock uint32
+	// list of quorum numbers involved in the task.
+	QuorumNumbers types.QuorumNums
+	// threshold percentages required for each quorum to consider the task complete
+	QuorumThresholdPercentages types.QuorumThresholdPercentages
+	// duration before the task expires if not completed.
+	TimeToExpiry time.Duration
+	// time window to receive more signatures
+	WindowDuration time.Duration
+}
+
 // BlsAggregationService is the interface provided to avs aggregator code for doing bls aggregation
 // Currently its only implementation is the BlsAggregatorService, so see the comment there for more details
 type BlsAggregationService interface {
 	// InitializeNewTask creates a new task goroutine meant to process new signed task responses for that task
-	// (that are sent via ProcessNewSignature) and adds a channel to a.taskChans to send the signed task responses to
-	// it. The quorumNumbers and quorumThresholdPercentages set the requirements for this task to be considered
-	// complete, which
-	// happens when a particular TaskResponseDigest (received via the a.taskChans[taskIndex]) has been signed by signers
-	// whose stake in each of the listed quorums adds up to at least quorumThresholdPercentages[i] of the total stake in
-	// that quorum
-	InitializeNewTask(
-		taskIndex types.TaskIndex,
-		taskCreatedBlock uint32,
-		quorumNumbers types.QuorumNums,
-		quorumThresholdPercentages types.QuorumThresholdPercentages,
-		timeToExpiry time.Duration,
-	) error
-
-	// InitializeNewTaskWithWindow creates a new task goroutine meant to process new signed task responses for that task
 	// (that are sent via ProcessNewSignature) and adds a channel to a.taskChans to send the signed task responses to
 	// it. The quorumNumbers and quorumThresholdPercentages set the requirements for this task to be considered
 	// complete, which
@@ -108,13 +109,8 @@ type BlsAggregationService interface {
 	// before sending the aggregation response through the aggregatedResponsesC channel.
 	// If the task expiration is reached before the window finishes, the task response will still be sent to the
 	// aggregatedResponsesC channel.
-	InitializeNewTaskWithWindow(
-		taskIndex types.TaskIndex,
-		taskCreatedBlock uint32,
-		quorumNumbers types.QuorumNums,
-		quorumThresholdPercentages types.QuorumThresholdPercentages,
-		timeToExpiry time.Duration,
-		windowDuration time.Duration,
+	InitializeNewTask(
+		metadata TaskMetadata,
 	) error
 
 	// ProcessNewSignature processes a new signature over a taskResponseDigest for a particular taskIndex by a
@@ -211,69 +207,41 @@ func (a *BlsAggregatorService) GetResponseChannel() <-chan BlsAggregationService
 // The quorumNumbers and quorumThresholdPercentages set the requirements for this task to be considered complete, which
 // happens when a particular TaskResponseDigest (received via the a.taskChans[taskIndex]) has been signed by signers
 // whose stake in each of the listed quorums adds up to at least quorumThresholdPercentages[i] of the total stake in
-// that quorum
-func (a *BlsAggregatorService) InitializeNewTask(
-	taskIndex types.TaskIndex,
-	taskCreatedBlock uint32,
-	quorumNumbers types.QuorumNums,
-	quorumThresholdPercentages types.QuorumThresholdPercentages,
-	timeToExpiry time.Duration,
-) error {
-	return a.InitializeNewTaskWithWindow(
-		taskIndex,
-		taskCreatedBlock,
-		quorumNumbers,
-		quorumThresholdPercentages,
-		timeToExpiry,
-		0,
-	)
-}
-
-// InitializeNewTaskWithWindow creates a new task goroutine meant to process new signed task responses for that task
-// (that are sent via ProcessNewSignature) and adds a channel to a.taskChans to send the signed task responses to it.
-// The quorumNumbers and quorumThresholdPercentages set the requirements for this task to be considered complete, which
-// happens when a particular TaskResponseDigest (received via the a.taskChans[taskIndex]) has been signed by signers
-// whose stake in each of the listed quorums adds up to at least quorumThresholdPercentages[i] of the total stake in
 // that quorum.
 // Once the quorum is reached, the task is still open for a window of `windowDuration` time to receive more signatures,
 // before sending the aggregation response through the aggregatedResponsesC channel.
-func (a *BlsAggregatorService) InitializeNewTaskWithWindow(
-	taskIndex types.TaskIndex,
-	taskCreatedBlock uint32,
-	quorumNumbers types.QuorumNums,
-	quorumThresholdPercentages types.QuorumThresholdPercentages,
-	timeToExpiry time.Duration,
-	windowDuration time.Duration,
+func (a *BlsAggregatorService) InitializeNewTask(
+	metadata TaskMetadata,
 ) error {
 	a.logger.Debug(
 		"AggregatorService initializing new task",
 		"taskIndex",
-		taskIndex,
+		metadata.TaskIndex,
 		"taskCreatedBlock",
-		taskCreatedBlock,
+		metadata.TaskCreatedBlock,
 		"quorumNumbers",
-		quorumNumbers,
+		metadata.QuorumNumbers,
 		"quorumThresholdPercentages",
-		quorumThresholdPercentages,
+		metadata.QuorumThresholdPercentages,
 		"timeToExpiry",
-		timeToExpiry,
+		metadata.TimeToExpiry,
 	)
 
 	a.taskChansMutex.Lock()
 	defer a.taskChansMutex.Unlock()
-	if _, taskExists := a.signedTaskRespsCs[taskIndex]; taskExists {
-		return TaskAlreadyInitializedErrorFn(taskIndex)
+	if _, taskExists := a.signedTaskRespsCs[metadata.TaskIndex]; taskExists {
+		return TaskAlreadyInitializedErrorFn(metadata.TaskIndex)
 	}
 	signedTaskRespsC := make(chan types.SignedTaskResponseDigest)
-	a.signedTaskRespsCs[taskIndex] = signedTaskRespsC
+	a.signedTaskRespsCs[metadata.TaskIndex] = signedTaskRespsC
 
 	go a.singleTaskAggregatorGoroutineFunc(
-		taskIndex,
-		taskCreatedBlock,
-		quorumNumbers,
-		quorumThresholdPercentages,
-		timeToExpiry,
-		windowDuration,
+		metadata.TaskIndex,
+		metadata.TaskCreatedBlock,
+		metadata.QuorumNumbers,
+		metadata.QuorumThresholdPercentages,
+		metadata.TimeToExpiry,
+		metadata.WindowDuration,
 		signedTaskRespsC,
 	)
 	return nil
