@@ -90,8 +90,8 @@ type TaskMetadata struct {
 	QuorumThresholdPercentages types.QuorumThresholdPercentages
 	// duration before the task expires if not completed
 	TimeToExpiry time.Duration
-	// time window to receive more signatures
-	WindowDuration *time.Duration
+	// time window to receive more signatures.
+	WindowDuration time.Duration
 }
 
 // BlsAggregationService is the interface provided to avs aggregator code for doing bls aggregation
@@ -213,11 +213,6 @@ func (a *BlsAggregatorService) GetResponseChannel() <-chan BlsAggregationService
 func (a *BlsAggregatorService) InitializeNewTask(
 	metadata TaskMetadata,
 ) error {
-	if metadata.WindowDuration == nil {
-		zeroDuration := time.Duration(0)
-		metadata.WindowDuration = &zeroDuration
-	}
-
 	a.logger.Debug(
 		"AggregatorService initializing new task",
 		"taskIndex",
@@ -456,7 +451,7 @@ func (a *BlsAggregatorService) singleTaskAggregatorGoroutineFunc(
 					"taskResponseDigest", taskResponseDigest)
 
 				openWindow = true
-				windowTimer = time.NewTimer(*metadata.WindowDuration)
+				windowTimer = time.NewTimer(metadata.WindowDuration)
 				a.logger.Debug("Window timer started")
 			}
 		case <-taskExpiredTimer.C:
