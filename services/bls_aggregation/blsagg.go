@@ -90,7 +90,7 @@ type TaskMetadata struct {
 	QuorumThresholdPercentages types.QuorumThresholdPercentages
 	// duration before the task expires if not completed
 	TimeToExpiry time.Duration
-	// time window to receive more signatures, defaults to 0 if not specified
+	// time window to collect signatures after reaching quorum, defaults to 0 if not specified
 	WindowDuration time.Duration
 }
 
@@ -203,6 +203,15 @@ func (a *BlsAggregatorService) GetResponseChannel() <-chan BlsAggregationService
 
 // InitializeNewTask creates a new task goroutine meant to process new signed task responses for that task
 // (that are sent via ProcessNewSignature) and adds a channel to a.taskChans to send the signed task responses to it.
+//
+// The metadata parameter contains:
+//   - TaskIndex: Unique identifier for the task
+//   - TaskCreatedBlock: Block number at which the task was created
+//   - QuorumNumbers: List of quorums that must validate this task
+//   - QuorumThresholdPercentages: Threshold percentage required per quorum
+//   - TimeToExpiry: Duration before the task expires
+//   - WindowDuration: Additional time window to collect signatures after reaching quorum (default 0)
+//
 // The quorumNumbers and quorumThresholdPercentages set the requirements for this task to be considered complete, which
 // happens when a particular TaskResponseDigest (received via the a.taskChans[taskIndex]) has been signed by signers
 // whose stake in each of the listed quorums adds up to at least quorumThresholdPercentages[i] of the total stake in
@@ -226,6 +235,8 @@ func (a *BlsAggregatorService) InitializeNewTask(
 		metadata.QuorumThresholdPercentages,
 		"timeToExpiry",
 		metadata.TimeToExpiry,
+		"windowDuration",
+		metadata.WindowDuration,
 	)
 
 	a.taskChansMutex.Lock()
