@@ -90,7 +90,7 @@ type TaskMetadata struct {
 	QuorumThresholdPercentages types.QuorumThresholdPercentages
 	// duration before the task expires if not completed
 	TimeToExpiry time.Duration
-	// time window to receive more signatures.
+	// time window to receive more signatures, defaults to 0 if not specified
 	WindowDuration time.Duration
 }
 
@@ -104,9 +104,8 @@ type BlsAggregationService interface {
 	// happens when a particular TaskResponseDigest (received via the a.taskChans[taskIndex]) has been signed by signers
 	// whose stake in each of the listed quorums adds up to at least quorumThresholdPercentages[i] of the total stake in
 	// that quorum.
-	// Once the quorum is reached, the task is still open for a window of `windowDuration` time to receive more
-	// signatures,
-	// before sending the aggregation response through the aggregatedResponsesC channel.
+	// Once the quorum is reached, the task is still open for a window of `windowDuration` time (default 0) to receive
+	// more signatures, before sending the aggregation response through the aggregatedResponsesC channel.
 	// If the task expiration is reached before the window finishes, the task response will still be sent to the
 	// aggregatedResponsesC channel.
 	InitializeNewTask(
@@ -208,8 +207,10 @@ func (a *BlsAggregatorService) GetResponseChannel() <-chan BlsAggregationService
 // happens when a particular TaskResponseDigest (received via the a.taskChans[taskIndex]) has been signed by signers
 // whose stake in each of the listed quorums adds up to at least quorumThresholdPercentages[i] of the total stake in
 // that quorum.
-// Once the quorum is reached, the task is still open for a window of `windowDuration` time to receive more signatures,
-// before sending the aggregation response through the aggregatedResponsesC channel.
+// Once the quorum is reached, the task is still open for a window of `windowDuration` time (default 0) to receive more
+// signatures, before sending the aggregation response through the aggregatedResponsesC channel.
+// If the task expiration is reached before the window finishes, the task response will still be sent to the
+// aggregatedResponsesC channel.
 func (a *BlsAggregatorService) InitializeNewTask(
 	metadata TaskMetadata,
 ) error {
