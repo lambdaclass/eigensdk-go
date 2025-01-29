@@ -45,6 +45,15 @@ func CreateForNestedError(functionName string, errorCause error) Error {
 	}
 }
 
+func CreateForOtherError(errDescription string, errorCause error) Error {
+	return Error{
+		3,
+		"Other error",
+		errDescription,
+		errorCause,
+	}
+}
+
 func CommonErrorMissingContract(contractName string) string {
 	return fmt.Sprintf("Missing needed contract(1) - %s contract not provided", contractName)
 }

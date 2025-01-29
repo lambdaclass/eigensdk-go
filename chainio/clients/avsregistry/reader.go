@@ -2,7 +2,6 @@ package avsregistry
 
 import (
 	"context"
-	"errors"
 	"math"
 	"math/big"
 
@@ -19,7 +18,6 @@ import (
 	"github.com/Layr-Labs/eigensdk-go/crypto/bls"
 	"github.com/Layr-Labs/eigensdk-go/logging"
 	"github.com/Layr-Labs/eigensdk-go/types"
-	"github.com/Layr-Labs/eigensdk-go/utils"
 )
 
 // DefaultQueryBlockRange different node providers have different eth_getLogs range limits.
@@ -113,13 +111,15 @@ func (r *ChainReader) GetOperatorsStakeInQuorumsAtCurrentBlock(
 		wrappedError := elcontracts.CreateForBindingError("ethClient.BlockNumber", err)
 		return nil, wrappedError
 	}
-	if curBlock > math.MaxUint32 { // other error
-		return nil, utils.WrapError("Current block number is too large to be converted to uint32", err)
+	if curBlock > math.MaxUint32 {
+		wrappedError := elcontracts.CreateForOtherError("Current block number is too large to fit into an uint32", err)
+		return nil, wrappedError
 	}
 
 	operatorStakes, err := r.GetOperatorsStakeInQuorumsAtBlock(opts, quorumNumbers, uint32(curBlock))
-	if err != nil { // Nested error
-		return nil, err
+	if err != nil {
+		wrappedError := elcontracts.CreateForNestedError("GetOperatorsStakeInQuorumsAtBlock", err)
+		return nil, wrappedError
 	}
 
 	return operatorStakes, nil
@@ -133,7 +133,8 @@ func (r *ChainReader) GetOperatorsStakeInQuorumsAtBlock(
 	blockNumber uint32,
 ) ([][]opstateretriever.OperatorStateRetrieverOperator, error) {
 	if r.operatorStateRetriever == nil {
-		return nil, errors.New("OperatorStateRetriever contract not provided")
+		wrappedError := elcontracts.CreateErrorForMissingContract("OperatorStateRetriever")
+		return nil, wrappedError
 	}
 
 	operatorStakes, err := r.operatorStateRetriever.GetOperatorState(
@@ -142,7 +143,8 @@ func (r *ChainReader) GetOperatorsStakeInQuorumsAtBlock(
 		quorumNumbers.UnderlyingType(),
 		blockNumber)
 	if err != nil {
-		return nil, utils.WrapError("Failed to get operators state", err)
+		wrappedError := elcontracts.CreateForBindingError("operatorStateRetriever.GetOperatorState", err)
+		return nil, wrappedError
 	}
 	return operatorStakes, nil
 }
@@ -164,8 +166,9 @@ func (r *ChainReader) GetOperatorAddrsInQuorumsAtCurrentBlock(
 		wrappedError := elcontracts.CreateForBindingError("ethClient.BlockNumber", err)
 		return nil, wrappedError
 	}
-	if curBlock > math.MaxUint32 { // other error
-		return nil, utils.WrapError("Current block number is too large to be converted to uint32", err)
+	if curBlock > math.MaxUint32 {
+		wrappedError := elcontracts.CreateForOtherError("Current block number is too large to fit into an uint32", err)
+		return nil, wrappedError
 	}
 	operatorStakes, err := r.operatorStateRetriever.GetOperatorState(
 		opts,
@@ -225,13 +228,15 @@ func (r *ChainReader) GetOperatorsStakeInQuorumsOfOperatorAtCurrentBlock(
 		wrappedError := elcontracts.CreateForBindingError("ethClient.BlockNumber", err)
 		return nil, nil, wrappedError
 	}
-	if curBlock > math.MaxUint32 { // other error
-		return nil, nil, utils.WrapError("Current block number is too large to be converted to uint32", err)
+	if curBlock > math.MaxUint32 {
+		wrappedError := elcontracts.CreateForOtherError("Current block number is too large to fit into an uint32", err)
+		return nil, nil, wrappedError
 	}
 	opts.BlockNumber = big.NewInt(int64(curBlock))
 	quorums, operatorsStake, err := r.GetOperatorsStakeInQuorumsOfOperatorAtBlock(opts, operatorId, uint32(curBlock))
 	if err != nil {
-		return nil, nil, err
+		wrappedError := elcontracts.CreateForNestedError("GetOperatorsStakeInQuorumsOfOperatorAtBlock", err)
+		return nil, nil, wrappedError
 	}
 
 	return quorums, operatorsStake, nil
@@ -367,8 +372,9 @@ func (r *ChainReader) QueryRegistrationDetail(
 	operatorAddress common.Address,
 ) ([]bool, error) {
 	operatorId, err := r.GetOperatorId(opts, operatorAddress)
-	if err != nil { // Nested error
-		return nil, utils.WrapError("Failed to get operator id", err)
+	if err != nil {
+		wrappedError := elcontracts.CreateForNestedError("GetOperatorId", err)
+		return nil, wrappedError
 	}
 	value, err := r.registryCoordinator.GetCurrentQuorumBitmap(opts, operatorId)
 	if err != nil {
@@ -382,8 +388,9 @@ func (r *ChainReader) QueryRegistrationDetail(
 	}
 	if len(quorums) == 0 {
 		numQuorums, err := r.GetQuorumCount(opts)
-		if err != nil { // Nested error
-			return nil, utils.WrapError("Failed to get quorum count", err)
+		if err != nil {
+			wrappedError := elcontracts.CreateForNestedError("GetQuorumCount", err)
+			return nil, wrappedError
 		}
 		for i := uint8(0); i < numQuorums; i++ {
 			quorums = append(quorums, false)
@@ -419,8 +426,9 @@ func (r *ChainReader) QueryExistingRegisteredOperatorPubKeys(
 	blockRange *big.Int,
 ) ([]types.OperatorAddr, []types.OperatorPubkeys, error) {
 	blsApkRegistryAbi, err := apkreg.ContractBLSApkRegistryMetaData.GetAbi()
-	if err != nil { // other error ?
-		return nil, nil, utils.WrapError("Cannot get Abi", err)
+	if err != nil {
+		wrappedError := elcontracts.CreateForOtherError("Failed to get bls apk registry ABI", err)
+		return nil, nil, wrappedError
 	}
 
 	if startBlock == nil {
@@ -481,8 +489,9 @@ func (r *ChainReader) QueryExistingRegisteredOperatorPubKeys(
 			operatorAddresses = append(operatorAddresses, operatorAddr)
 
 			event, err := blsApkRegistryAbi.Unpack("NewPubkeyRegistration", vLog.Data)
-			if err != nil { // other error
-				return nil, nil, utils.WrapError("Cannot unpack event data", err)
+			if err != nil {
+				wrappedError := elcontracts.CreateForOtherError("Failed to unpack event data", err)
+				return nil, nil, wrappedError
 			}
 
 			G1Pubkey := event[0].(struct {
