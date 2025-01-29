@@ -78,6 +78,18 @@ type aggregatedOperators struct {
 	signersOperatorIdsSet map[types.OperatorId]bool
 }
 
+// TaskSignature contains the data required to process and verify a new signature for a task response.
+type TaskSignature struct {
+	// unique identifier of the task associated with this signature
+	TaskIndex types.TaskIndex
+	// response data that has been signed
+	TaskResponse types.TaskResponse
+	// BLS cryptographic signature for the task response
+	BlsSignature *bls.Signature
+	// id of the operator who signed the task response
+	OperatorId types.OperatorId
+}
+
 // BlsAggregationService is the interface provided to avs aggregator code for doing bls aggregation
 // Currently its only implementation is the BlsAggregatorService, so see the comment there for more details
 type BlsAggregationService interface {
@@ -126,7 +138,7 @@ type BlsAggregationService interface {
 	// BlsAggregationService does not verify semantic integrity of the taskResponses)
 	ProcessNewSignature(
 		ctx context.Context,
-		metadata SignatureMetadata,
+		task TaskSignature,
 	) error
 
 	// GetResponseChannel returns the single channel that meant to be used as the response channel
@@ -276,22 +288,15 @@ func (a *BlsAggregatorService) InitializeNewTaskWithWindow(
 	return nil
 }
 
-type SignatureMetadata struct {
-	TaskIndex    types.TaskIndex
-	TaskResponse types.TaskResponse
-	BlsSignature *bls.Signature
-	OperatorId   types.OperatorId
-}
-
 func (a *BlsAggregatorService) ProcessNewSignature(
 	ctx context.Context,
-	metadata SignatureMetadata,
+	task TaskSignature,
 ) error {
 	a.taskChansMutex.Lock()
-	taskC, taskInitialized := a.signedTaskRespsCs[metadata.TaskIndex]
+	taskC, taskInitialized := a.signedTaskRespsCs[task.TaskIndex]
 	a.taskChansMutex.Unlock()
 	if !taskInitialized {
-		return TaskNotFoundErrorFn(metadata.TaskIndex)
+		return TaskNotFoundErrorFn(task.TaskIndex)
 	}
 
 	signatureVerificationErrorC := make(chan error)
@@ -302,9 +307,9 @@ func (a *BlsAggregatorService) ProcessNewSignature(
 	// we need to send this as part of select because if the goroutine is processing another SignedTaskResponseDigest
 	// and cannot receive this one, we want the context to be able to cancel the request
 	case taskC <- types.SignedTaskResponseDigest{
-		TaskResponse:                metadata.TaskResponse,
-		BlsSignature:                metadata.BlsSignature,
-		OperatorId:                  metadata.OperatorId,
+		TaskResponse:                task.TaskResponse,
+		BlsSignature:                task.BlsSignature,
+		OperatorId:                  task.OperatorId,
 		SignatureVerificationErrorC: signatureVerificationErrorC,
 	}:
 		// note that we need to wait synchronously here for this response because we want to

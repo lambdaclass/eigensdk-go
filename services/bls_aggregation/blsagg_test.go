@@ -91,7 +91,7 @@ func TestBlsAgg(t *testing.T) {
 		require.Nil(t, err)
 		err = blsAggServ.ProcessNewSignature(
 			context.Background(),
-			SignatureMetadata{
+			TaskSignature{
 				TaskIndex:    taskIndex,
 				TaskResponse: taskResponse,
 				BlsSignature: blsSig,
@@ -160,7 +160,7 @@ func TestBlsAgg(t *testing.T) {
 		blsSigOp1 := testOperator1.BlsKeypair.SignMessage(taskResponseDigest)
 		err = blsAggServ.ProcessNewSignature(
 			context.Background(),
-			SignatureMetadata{
+			TaskSignature{
 				TaskIndex:    taskIndex,
 				TaskResponse: taskResponse,
 				BlsSignature: blsSigOp1,
@@ -171,7 +171,7 @@ func TestBlsAgg(t *testing.T) {
 		blsSigOp2 := testOperator2.BlsKeypair.SignMessage(taskResponseDigest)
 		err = blsAggServ.ProcessNewSignature(
 			context.Background(),
-			SignatureMetadata{
+			TaskSignature{
 				TaskIndex:    taskIndex,
 				TaskResponse: taskResponse,
 				BlsSignature: blsSigOp2,
@@ -182,7 +182,7 @@ func TestBlsAgg(t *testing.T) {
 		blsSigOp3 := testOperator3.BlsKeypair.SignMessage(taskResponseDigest)
 		err = blsAggServ.ProcessNewSignature(
 			context.Background(),
-			SignatureMetadata{
+			TaskSignature{
 				TaskIndex:    taskIndex,
 				TaskResponse: taskResponse,
 				BlsSignature: blsSigOp3,
@@ -252,7 +252,7 @@ func TestBlsAgg(t *testing.T) {
 		blsSigOp1 := testOperator1.BlsKeypair.SignMessage(taskResponseDigest)
 		err = blsAggServ.ProcessNewSignature(
 			context.Background(),
-			SignatureMetadata{
+			TaskSignature{
 				TaskIndex:    taskIndex,
 				TaskResponse: taskResponse,
 				BlsSignature: blsSigOp1,
@@ -263,7 +263,7 @@ func TestBlsAgg(t *testing.T) {
 		blsSigOp2 := testOperator2.BlsKeypair.SignMessage(taskResponseDigest)
 		err = blsAggServ.ProcessNewSignature(
 			context.Background(),
-			SignatureMetadata{
+			TaskSignature{
 				TaskIndex:    taskIndex,
 				TaskResponse: taskResponse,
 				BlsSignature: blsSigOp2,
@@ -347,7 +347,7 @@ func TestBlsAgg(t *testing.T) {
 		blsSigTask1Op1 := testOperator1.BlsKeypair.SignMessage(task1ResponseDigest)
 		err = blsAggServ.ProcessNewSignature(
 			context.Background(),
-			SignatureMetadata{
+			TaskSignature{
 				TaskIndex:    task1Index,
 				TaskResponse: task1Response,
 				BlsSignature: blsSigTask1Op1,
@@ -358,7 +358,7 @@ func TestBlsAgg(t *testing.T) {
 		blsSigTask2Op1 := testOperator1.BlsKeypair.SignMessage(task2ResponseDigest)
 		err = blsAggServ.ProcessNewSignature(
 			context.Background(),
-			SignatureMetadata{
+			TaskSignature{
 				TaskIndex:    task2Index,
 				TaskResponse: task2Response,
 				BlsSignature: blsSigTask2Op1,
@@ -369,7 +369,7 @@ func TestBlsAgg(t *testing.T) {
 		blsSigTask1Op2 := testOperator2.BlsKeypair.SignMessage(task1ResponseDigest)
 		err = blsAggServ.ProcessNewSignature(
 			context.Background(),
-			SignatureMetadata{
+			TaskSignature{
 				TaskIndex:    task1Index,
 				TaskResponse: task1Response,
 				BlsSignature: blsSigTask1Op2,
@@ -380,7 +380,7 @@ func TestBlsAgg(t *testing.T) {
 		blsSigTask2Op2 := testOperator2.BlsKeypair.SignMessage(task2ResponseDigest)
 		err = blsAggServ.ProcessNewSignature(
 			context.Background(),
-			SignatureMetadata{
+			TaskSignature{
 				TaskIndex:    task2Index,
 				TaskResponse: task2Response,
 				BlsSignature: blsSigTask2Op2,
@@ -484,7 +484,7 @@ func TestBlsAgg(t *testing.T) {
 		blsSigOp1 := testOperator1.BlsKeypair.SignMessage(taskResponseDigest)
 		err = blsAggServ.ProcessNewSignature(
 			context.Background(),
-			SignatureMetadata{
+			TaskSignature{
 				TaskIndex:    taskIndex,
 				TaskResponse: taskResponse,
 				BlsSignature: blsSigOp1,
@@ -497,7 +497,7 @@ func TestBlsAgg(t *testing.T) {
 		blsSigOp1Dup := testOperator1.BlsKeypair.SignMessage(taskResponseDigest)
 		err = blsAggServ.ProcessNewSignature(
 			context.Background(),
-			SignatureMetadata{
+			TaskSignature{
 				TaskIndex:    taskIndex,
 				TaskResponse: taskResponse,
 				BlsSignature: blsSigOp1Dup,
@@ -516,7 +516,7 @@ func TestBlsAgg(t *testing.T) {
 		blsSigOp2 := testOperator2.BlsKeypair.SignMessage(taskResponseDigest)
 		err = blsAggServ.ProcessNewSignature(
 			context.Background(),
-			SignatureMetadata{
+			TaskSignature{
 				TaskIndex:    taskIndex,
 				TaskResponse: taskResponse,
 				BlsSignature: blsSigOp2,
@@ -613,7 +613,7 @@ func TestBlsAgg(t *testing.T) {
 		require.Nil(t, err)
 		err = blsAggServ.ProcessNewSignature(
 			context.Background(),
-			SignatureMetadata{
+			TaskSignature{
 				TaskIndex:    taskIndex,
 				TaskResponse: taskResponse,
 				BlsSignature: blsSig,
@@ -676,7 +676,7 @@ func TestBlsAgg(t *testing.T) {
 		require.Nil(t, err)
 		err = blsAggServ.ProcessNewSignature(
 			context.Background(),
-			SignatureMetadata{
+			TaskSignature{
 				TaskIndex:    taskIndex,
 				TaskResponse: taskResponse,
 				BlsSignature: blsSig,
@@ -732,7 +732,7 @@ func TestBlsAgg(t *testing.T) {
 		blsSigOp1 := testOperator1.BlsKeypair.SignMessage(taskResponseDigest)
 		err = blsAggServ.ProcessNewSignature(
 			context.Background(),
-			SignatureMetadata{
+			TaskSignature{
 				TaskIndex:    taskIndex,
 				TaskResponse: taskResponse,
 				BlsSignature: blsSigOp1,
@@ -743,7 +743,7 @@ func TestBlsAgg(t *testing.T) {
 		blsSigOp2 := testOperator2.BlsKeypair.SignMessage(taskResponseDigest)
 		err = blsAggServ.ProcessNewSignature(
 			context.Background(),
-			SignatureMetadata{
+			TaskSignature{
 				TaskIndex:    taskIndex,
 				TaskResponse: taskResponse,
 				BlsSignature: blsSigOp2,
@@ -819,7 +819,7 @@ func TestBlsAgg(t *testing.T) {
 			blsSigOp1 := testOperator1.BlsKeypair.SignMessage(taskResponseDigest)
 			err = blsAggServ.ProcessNewSignature(
 				context.Background(),
-				SignatureMetadata{
+				TaskSignature{
 					TaskIndex:    taskIndex,
 					TaskResponse: taskResponse,
 					BlsSignature: blsSigOp1,
@@ -830,7 +830,7 @@ func TestBlsAgg(t *testing.T) {
 			blsSigOp2 := testOperator2.BlsKeypair.SignMessage(taskResponseDigest)
 			err = blsAggServ.ProcessNewSignature(
 				context.Background(),
-				SignatureMetadata{
+				TaskSignature{
 					TaskIndex:    taskIndex,
 					TaskResponse: taskResponse,
 					BlsSignature: blsSigOp2,
@@ -913,7 +913,7 @@ func TestBlsAgg(t *testing.T) {
 			blsSigOp1 := testOperator1.BlsKeypair.SignMessage(taskResponseDigest)
 			err = blsAggServ.ProcessNewSignature(
 				context.Background(),
-				SignatureMetadata{
+				TaskSignature{
 					TaskIndex:    taskIndex,
 					TaskResponse: taskResponse,
 					BlsSignature: blsSigOp1,
@@ -924,7 +924,7 @@ func TestBlsAgg(t *testing.T) {
 			blsSigOp2 := testOperator2.BlsKeypair.SignMessage(taskResponseDigest)
 			err = blsAggServ.ProcessNewSignature(
 				context.Background(),
-				SignatureMetadata{
+				TaskSignature{
 					TaskIndex:    taskIndex,
 					TaskResponse: taskResponse,
 					BlsSignature: blsSigOp2,
@@ -972,7 +972,7 @@ func TestBlsAgg(t *testing.T) {
 		blsSigOp1 := testOperator1.BlsKeypair.SignMessage(taskResponseDigest)
 		err = blsAggServ.ProcessNewSignature(
 			context.Background(),
-			SignatureMetadata{
+			TaskSignature{
 				TaskIndex:    taskIndex,
 				TaskResponse: taskResponse,
 				BlsSignature: blsSigOp1,
@@ -1031,7 +1031,7 @@ func TestBlsAgg(t *testing.T) {
 			blsSigOp1 := testOperator1.BlsKeypair.SignMessage(taskResponseDigest)
 			err = blsAggServ.ProcessNewSignature(
 				context.Background(),
-				SignatureMetadata{
+				TaskSignature{
 					TaskIndex:    taskIndex,
 					TaskResponse: taskResponse,
 					BlsSignature: blsSigOp1,
@@ -1068,7 +1068,7 @@ func TestBlsAgg(t *testing.T) {
 
 		err = blsAggServ.ProcessNewSignature(
 			context.Background(),
-			SignatureMetadata{
+			TaskSignature{
 				TaskIndex:    taskIndex,
 				TaskResponse: taskResponse,
 				BlsSignature: blsSig,
@@ -1121,7 +1121,7 @@ func TestBlsAgg(t *testing.T) {
 			blsSigOp1 := testOperator1.BlsKeypair.SignMessage(taskResponseDigest1)
 			err = blsAggServ.ProcessNewSignature(
 				context.Background(),
-				SignatureMetadata{
+				TaskSignature{
 					TaskIndex:    taskIndex,
 					TaskResponse: taskResponse1,
 					BlsSignature: blsSigOp1,
@@ -1138,7 +1138,7 @@ func TestBlsAgg(t *testing.T) {
 			defer cancel()
 			err = blsAggServ.ProcessNewSignature(
 				ctx,
-				SignatureMetadata{
+				TaskSignature{
 					TaskIndex:    taskIndex,
 					TaskResponse: taskResponse2,
 					BlsSignature: blsSigOp2,
@@ -1204,7 +1204,7 @@ func TestBlsAgg(t *testing.T) {
 		blsSigOp1 := testOperator1.BlsKeypair.SignMessage(taskResponseDigest1)
 		err = blsAggServ.ProcessNewSignature(
 			context.Background(),
-			SignatureMetadata{
+			TaskSignature{
 				TaskIndex:    taskIndex,
 				TaskResponse: taskResponse1,
 				BlsSignature: blsSigOp1,
@@ -1218,7 +1218,7 @@ func TestBlsAgg(t *testing.T) {
 		blsSigOp2 := testOperator2.BlsKeypair.SignMessage(taskResponseDigest2)
 		err = blsAggServ.ProcessNewSignature(
 			context.Background(),
-			SignatureMetadata{
+			TaskSignature{
 				TaskIndex:    taskIndex,
 				TaskResponse: taskResponse2,
 				BlsSignature: blsSigOp2,
@@ -1270,7 +1270,7 @@ func TestBlsAgg(t *testing.T) {
 			require.Nil(t, err)
 			err = blsAggServ.ProcessNewSignature(
 				context.Background(),
-				SignatureMetadata{
+				TaskSignature{
 					TaskIndex:    taskIndex,
 					TaskResponse: taskResponse,
 					BlsSignature: blsSig,
@@ -1333,7 +1333,7 @@ func TestBlsAgg(t *testing.T) {
 		blsSigOp1 := testOperator1.BlsKeypair.SignMessage(taskResponseDigest)
 		err = blsAggServ.ProcessNewSignature(
 			context.Background(),
-			SignatureMetadata{
+			TaskSignature{
 				TaskIndex:    taskIndex,
 				TaskResponse: taskResponse,
 				BlsSignature: blsSigOp1,
@@ -1344,7 +1344,7 @@ func TestBlsAgg(t *testing.T) {
 		blsSigOp2 := testOperator2.BlsKeypair.SignMessage(taskResponseDigest)
 		err = blsAggServ.ProcessNewSignature(
 			context.Background(),
-			SignatureMetadata{
+			TaskSignature{
 				TaskIndex:    taskIndex,
 				TaskResponse: taskResponse,
 				BlsSignature: blsSigOp2,
@@ -1356,7 +1356,7 @@ func TestBlsAgg(t *testing.T) {
 		blsSigOp3 := testOperator3.BlsKeypair.SignMessage(taskResponseDigest)
 		err = blsAggServ.ProcessNewSignature(
 			context.Background(),
-			SignatureMetadata{
+			TaskSignature{
 				TaskIndex:    taskIndex,
 				TaskResponse: taskResponse,
 				BlsSignature: blsSigOp3,
@@ -1447,7 +1447,7 @@ func TestBlsAgg(t *testing.T) {
 		blsSigOp1 := testOperator1.BlsKeypair.SignMessage(taskResponseDigest)
 		err = blsAggServ.ProcessNewSignature(
 			context.Background(),
-			SignatureMetadata{
+			TaskSignature{
 				TaskIndex:    taskIndex,
 				TaskResponse: taskResponse,
 				BlsSignature: blsSigOp1,
@@ -1458,7 +1458,7 @@ func TestBlsAgg(t *testing.T) {
 		blsSigOp2 := testOperator2.BlsKeypair.SignMessage(taskResponseDigest)
 		err = blsAggServ.ProcessNewSignature(
 			context.Background(),
-			SignatureMetadata{
+			TaskSignature{
 				TaskIndex:    taskIndex,
 				TaskResponse: taskResponse,
 				BlsSignature: blsSigOp2,
@@ -1472,7 +1472,7 @@ func TestBlsAgg(t *testing.T) {
 		blsSigOp3 := testOperator3.BlsKeypair.SignMessage(taskResponseDigest)
 		err = blsAggServ.ProcessNewSignature(
 			context.Background(),
-			SignatureMetadata{
+			TaskSignature{
 				TaskIndex:    taskIndex,
 				TaskResponse: taskResponse,
 				BlsSignature: blsSigOp3,
@@ -1557,7 +1557,7 @@ func TestBlsAgg(t *testing.T) {
 		blsSigOp1 := testOperator1.BlsKeypair.SignMessage(taskResponseDigest)
 		err = blsAggServ.ProcessNewSignature(
 			context.Background(),
-			SignatureMetadata{
+			TaskSignature{
 				TaskIndex:    taskIndex,
 				TaskResponse: taskResponse,
 				BlsSignature: blsSigOp1,
@@ -1568,7 +1568,7 @@ func TestBlsAgg(t *testing.T) {
 		blsSigOp2 := testOperator2.BlsKeypair.SignMessage(taskResponseDigest)
 		err = blsAggServ.ProcessNewSignature(
 			context.Background(),
-			SignatureMetadata{
+			TaskSignature{
 				TaskIndex:    taskIndex,
 				TaskResponse: taskResponse,
 				BlsSignature: blsSigOp2,
@@ -1585,7 +1585,7 @@ func TestBlsAgg(t *testing.T) {
 		blsSigOp3 := testOperator3.BlsKeypair.SignMessage(taskResponseDigest)
 		err = blsAggServ.ProcessNewSignature(
 			ctx,
-			SignatureMetadata{
+			TaskSignature{
 				TaskIndex:    taskIndex,
 				TaskResponse: taskResponse,
 				BlsSignature: blsSigOp3,
@@ -1670,7 +1670,7 @@ func TestBlsAgg(t *testing.T) {
 		blsSigOp1 := testOperator1.BlsKeypair.SignMessage(taskResponseDigest)
 		err = blsAggServ.ProcessNewSignature(
 			context.Background(),
-			SignatureMetadata{
+			TaskSignature{
 				TaskIndex:    taskIndex,
 				TaskResponse: taskResponse,
 				BlsSignature: blsSigOp1,
@@ -1681,7 +1681,7 @@ func TestBlsAgg(t *testing.T) {
 		blsSigOp2 := testOperator2.BlsKeypair.SignMessage(taskResponseDigest)
 		err = blsAggServ.ProcessNewSignature(
 			context.Background(),
-			SignatureMetadata{
+			TaskSignature{
 				TaskIndex:    taskIndex,
 				TaskResponse: taskResponse,
 				BlsSignature: blsSigOp2,
@@ -1699,7 +1699,7 @@ func TestBlsAgg(t *testing.T) {
 		blsSigOp3 := testOperator3.BlsKeypair.SignMessage(taskResponseDigest)
 		err = blsAggServ.ProcessNewSignature(
 			ctx,
-			SignatureMetadata{
+			TaskSignature{
 				TaskIndex:    taskIndex,
 				TaskResponse: taskResponse,
 				BlsSignature: blsSigOp3,
@@ -1847,7 +1847,7 @@ func TestIntegrationBlsAgg(t *testing.T) {
 		blsSig := blsKeyPair.SignMessage(taskResponseDigest)
 		err = blsAggServ.ProcessNewSignature(
 			context.Background(),
-			SignatureMetadata{
+			TaskSignature{
 				TaskIndex:    taskIndex,
 				TaskResponse: taskResponse,
 				BlsSignature: blsSig,
