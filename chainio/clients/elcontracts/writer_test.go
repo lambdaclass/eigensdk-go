@@ -273,7 +273,11 @@ func TestChainWriter(t *testing.T) {
 			true,
 		)
 		assert.Error(t, err, "cannot update operator details for an address that is not an operator")
-		assert.Equal(t, err.Error(), "Tx Generation(4) - Error generating tx for delegationManager.ModifyOperatorDetails: execution reverted: custom error 0x932d94f7")
+		assert.Equal(
+			t,
+			err.Error(),
+			"Tx Generation(4) - Error generating tx for delegationManager.ModifyOperatorDetails: execution reverted: custom error 0x932d94f7",
+		)
 	})
 
 	t.Run("update metadata URI", func(t *testing.T) {
@@ -298,7 +302,11 @@ func TestChainWriter(t *testing.T) {
 			true,
 		)
 		assert.Error(t, err, "cannot update metadata URI for an address that is not an operator")
-		assert.Equal(t, err.Error(), "Tx Generation(4) - Error generating tx for delegationManager.UpdateOperatorMetadataURI: execution reverted: custom error 0x932d94f7")
+		assert.Equal(
+			t,
+			err.Error(),
+			"Tx Generation(4) - Error generating tx for delegationManager.UpdateOperatorMetadataURI: execution reverted: custom error 0x932d94f7",
+		)
 	})
 
 	t.Run("deposit ERC20 into strategy", func(t *testing.T) {
