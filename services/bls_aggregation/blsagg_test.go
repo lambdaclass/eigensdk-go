@@ -1294,7 +1294,7 @@ func TestBlsAgg(t *testing.T) {
 				QuorumNumbers:              quorumNumbers,
 				QuorumThresholdPercentages: quorumThresholdPercentages,
 				TimeToExpiry:               timeToExpiry,
-				WindowDuration:             windowDuration,
+				WindowDuration:             &windowDuration,
 			})
 		require.Nil(t, err)
 
@@ -1403,7 +1403,7 @@ func TestBlsAgg(t *testing.T) {
 				QuorumNumbers:              quorumNumbers,
 				QuorumThresholdPercentages: quorumThresholdPercentages,
 				TimeToExpiry:               timeToExpiry,
-				WindowDuration:             windowDuration,
+				WindowDuration:             &windowDuration,
 			})
 		require.Nil(t, err)
 
@@ -1506,7 +1506,7 @@ func TestBlsAgg(t *testing.T) {
 				QuorumNumbers:              quorumNumbers,
 				QuorumThresholdPercentages: quorumThresholdPercentages,
 				TimeToExpiry:               timeToExpiry,
-				WindowDuration:             windowDuration,
+				WindowDuration:             &windowDuration,
 			})
 		require.Nil(t, err)
 
@@ -1614,7 +1614,7 @@ func TestBlsAgg(t *testing.T) {
 				QuorumNumbers:              quorumNumbers,
 				QuorumThresholdPercentages: quorumThresholdPercentages,
 				TimeToExpiry:               timeToExpiry,
-				WindowDuration:             windowDuration,
+				WindowDuration:             &windowDuration,
 			})
 		require.Nil(t, err)
 
