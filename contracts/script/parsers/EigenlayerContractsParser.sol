@@ -13,9 +13,10 @@ import {IAllocationManager} from "eigenlayer-contracts/src/contracts/interfaces/
 
 import {ConfigsReadWriter} from "./ConfigsReadWriter.sol";
 import "forge-std/StdJson.sol";
-import {IAllocationManager} from "../../lib/eigenlayer-middleware/lib/eigenlayer-contracts/src/contracts/interfaces/IAllocationManager.sol";
+import {IAllocationManager} from
+    "../../lib/eigenlayer-middleware/lib/eigenlayer-contracts/src/contracts/interfaces/IAllocationManager.sol";
 
-    struct EigenlayerContracts {
+struct EigenlayerContracts {
     ProxyAdmin eigenlayerProxyAdmin;
     PauserRegistry eigenlayerPauserReg;
     IStrategyManager strategyManager;
@@ -27,75 +28,37 @@ import {IAllocationManager} from "../../lib/eigenlayer-middleware/lib/eigenlayer
 }
 
 contract EigenlayerContractsParser is ConfigsReadWriter {
-    function _loadEigenlayerDeployedContracts()
-        internal
-        view
-        returns (EigenlayerContracts memory)
-    {
+    function _loadEigenlayerDeployedContracts() internal view returns (EigenlayerContracts memory) {
         // Eigenlayer contracts
-        string memory eigenlayerDeployedContracts = readOutput(
-            "eigenlayer_deployment_output"
-        );
-        ProxyAdmin eigenlayerProxyAdmin = ProxyAdmin(
-            stdJson.readAddress(
-                eigenlayerDeployedContracts,
-                ".addresses.eigenLayerProxyAdmin"
-            )
-        );
-        PauserRegistry eigenlayerPauserReg = PauserRegistry(
-            stdJson.readAddress(
-                eigenlayerDeployedContracts,
-                ".addresses.eigenLayerPauserReg"
-            )
-        );
-        IStrategyManager strategyManager = IStrategyManager(
-            stdJson.readAddress(
-                eigenlayerDeployedContracts,
-                ".addresses.strategyManager"
-            )
-        );
-        IDelegationManager delegationManager = IDelegationManager(
-            stdJson.readAddress(
-                eigenlayerDeployedContracts,
-                ".addresses.delegationManager"
-            )
-        );
-        IAVSDirectory avsDirectory = IAVSDirectory(
-            stdJson.readAddress(
-                eigenlayerDeployedContracts,
-                ".addresses.avsDirectory"
-            )
-        );
+        string memory eigenlayerDeployedContracts = readOutput("eigenlayer_deployment_output");
+        ProxyAdmin eigenlayerProxyAdmin =
+            ProxyAdmin(stdJson.readAddress(eigenlayerDeployedContracts, ".addresses.eigenLayerProxyAdmin"));
+        PauserRegistry eigenlayerPauserReg =
+            PauserRegistry(stdJson.readAddress(eigenlayerDeployedContracts, ".addresses.eigenLayerPauserReg"));
+        IStrategyManager strategyManager =
+            IStrategyManager(stdJson.readAddress(eigenlayerDeployedContracts, ".addresses.strategyManager"));
+        IDelegationManager delegationManager =
+            IDelegationManager(stdJson.readAddress(eigenlayerDeployedContracts, ".addresses.delegationManager"));
+        IAVSDirectory avsDirectory =
+            IAVSDirectory(stdJson.readAddress(eigenlayerDeployedContracts, ".addresses.avsDirectory"));
         StrategyBaseTVLLimits baseStrategyImplementation = StrategyBaseTVLLimits(
-                stdJson.readAddress(
-                    eigenlayerDeployedContracts,
-                    ".addresses.baseStrategyImplementation"
-                )
-            );
-
-        IRewardsCoordinator rewardsCoordinator = IRewardsCoordinator(
-             stdJson.readAddress(
-                 eigenlayerDeployedContracts,
-                 ".addresses.rewardsCoordinator"
-             )
+            stdJson.readAddress(eigenlayerDeployedContracts, ".addresses.baseStrategyImplementation")
         );
 
-        IAllocationManager allocationManager = IAllocationManager(
-            stdJson.readAddress(
-                eigenlayerDeployedContracts,
-                ".addresses.allocationManager"
-            )
+        IRewardsCoordinator rewardsCoordinator =
+            IRewardsCoordinator(stdJson.readAddress(eigenlayerDeployedContracts, ".addresses.rewardsCoordinator"));
+
+        IAllocationManager allocationManager =
+            IAllocationManager(stdJson.readAddress(eigenlayerDeployedContracts, ".addresses.allocationManager"));
+        return EigenlayerContracts(
+            eigenlayerProxyAdmin,
+            eigenlayerPauserReg,
+            strategyManager,
+            delegationManager,
+            avsDirectory,
+            rewardsCoordinator,
+            baseStrategyImplementation,
+            allocationManager
         );
-        return
-            EigenlayerContracts(
-                eigenlayerProxyAdmin,
-                eigenlayerPauserReg,
-                strategyManager,
-                delegationManager,
-                avsDirectory,
-                rewardsCoordinator,
-                baseStrategyImplementation,
-                allocationManager
-            );
     }
 }

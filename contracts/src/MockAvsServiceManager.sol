@@ -9,7 +9,8 @@ import {IRegistryCoordinator} from "eigenlayer-middleware/src/interfaces/IRegist
 import {IBLSSignatureChecker} from "eigenlayer-middleware/src/interfaces/IBLSSignatureChecker.sol";
 import {ServiceManagerBase} from "eigenlayer-middleware/src/ServiceManagerBase.sol";
 import {BLSSignatureChecker} from "eigenlayer-middleware/src/BLSSignatureChecker.sol";
-import {IAllocationManager} from "../lib/eigenlayer-middleware/lib/eigenlayer-contracts/src/contracts/interfaces/IAllocationManager.sol";
+import {IAllocationManager} from
+    "../lib/eigenlayer-middleware/lib/eigenlayer-contracts/src/contracts/interfaces/IAllocationManager.sol";
 
 contract MockAvsServiceManager is ServiceManagerBase, BLSSignatureChecker {
     constructor(
