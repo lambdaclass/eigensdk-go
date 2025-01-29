@@ -7,7 +7,6 @@ type Error struct {
 	message     string
 	description string
 	cause       error
-	// metadata    map[string]interface{}
 }
 
 func (e Error) Error() string {
