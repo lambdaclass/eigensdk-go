@@ -108,6 +108,9 @@ func (r *ChainReader) GetStakerShares(
 	ctx context.Context,
 	stakerAddress gethcommon.Address,
 ) ([]gethcommon.Address, []*big.Int, error) {
+	if r.delegationManager == nil {
+		return nil, nil, errors.New("DelegationManager contract not provided")
+	}
 	return r.delegationManager.GetDepositedShares(&bind.CallOpts{Context: ctx}, stakerAddress)
 }
 
@@ -117,6 +120,9 @@ func (r *ChainReader) GetDelegatedOperator(
 	stakerAddress gethcommon.Address,
 	blockNumber *big.Int,
 ) (gethcommon.Address, error) {
+	if r.delegationManager == nil {
+		return gethcommon.Address{}, errors.New("DelegationManager contract not provided")
+	}
 	return r.delegationManager.DelegatedTo(&bind.CallOpts{Context: ctx}, stakerAddress)
 }
 
@@ -433,6 +439,9 @@ func (r *ChainReader) GetNumOperatorSetsForOperator(
 	ctx context.Context,
 	operatorAddress gethcommon.Address,
 ) (*big.Int, error) {
+	if r.allocationManager == nil {
+		return nil, errors.New("AllocationManager contract not provided")
+	}
 	opSets, err := r.allocationManager.GetAllocatedSets(&bind.CallOpts{Context: ctx}, operatorAddress)
 	if err != nil {
 		return nil, err
@@ -446,6 +455,9 @@ func (r *ChainReader) GetOperatorSetsForOperator(
 	ctx context.Context,
 	operatorAddress gethcommon.Address,
 ) ([]allocationmanager.OperatorSet, error) {
+	if r.allocationManager == nil {
+		return nil, errors.New("AllocationManager contract not provided")
+	}
 	// TODO: we're fetching max int64 operatorSets here. What's the practical limit for timeout by RPC? do we need to
 	// paginate?
 	return r.allocationManager.GetAllocatedSets(&bind.CallOpts{Context: ctx}, operatorAddress)
@@ -459,6 +471,10 @@ func (r *ChainReader) IsOperatorRegisteredWithOperatorSet(
 ) (bool, error) {
 	if operatorSet.Id == 0 {
 		// this is an M2 AVS
+		if r.avsDirectory == nil {
+			return false, errors.New("AVSDirectory contract not provided")
+		}
+
 		status, err := r.avsDirectory.AvsOperatorStatus(&bind.CallOpts{Context: ctx}, operatorSet.Avs, operatorAddress)
 		// This call should not fail since it's a getter
 		if err != nil {
@@ -467,6 +483,9 @@ func (r *ChainReader) IsOperatorRegisteredWithOperatorSet(
 
 		return status == 1, nil
 	} else {
+		if r.allocationManager == nil {
+			return false, errors.New("AllocationManager contract not provided")
+		}
 		registeredOperatorSets, err := r.allocationManager.GetRegisteredSets(&bind.CallOpts{Context: ctx}, operatorAddress)
 		// This call should not fail since it's a getter
 		if err != nil {
@@ -491,6 +510,10 @@ func (r *ChainReader) GetOperatorsForOperatorSet(
 	if operatorSet.Id == 0 {
 		return nil, errLegacyAVSsNotSupported
 	} else {
+		if r.allocationManager == nil {
+			return nil, errors.New("AllocationManager contract not provided")
+		}
+
 		return r.allocationManager.GetMembers(&bind.CallOpts{Context: ctx}, operatorSet)
 	}
 }
@@ -503,6 +526,10 @@ func (r *ChainReader) GetNumOperatorsForOperatorSet(
 	if operatorSet.Id == 0 {
 		return nil, errLegacyAVSsNotSupported
 	} else {
+		if r.allocationManager == nil {
+			return nil, errors.New("AllocationManager contract not provided")
+		}
+
 		return r.allocationManager.GetMemberCount(&bind.CallOpts{Context: ctx}, operatorSet)
 	}
 }
@@ -516,6 +543,10 @@ func (r *ChainReader) GetStrategiesForOperatorSet(
 	if operatorSet.Id == 0 {
 		return nil, errLegacyAVSsNotSupported
 	} else {
+		if r.allocationManager == nil {
+			return nil, errors.New("AllocationManager contract not provided")
+		}
+
 		return r.allocationManager.GetStrategiesInOperatorSet(&bind.CallOpts{Context: ctx}, operatorSet)
 	}
 }

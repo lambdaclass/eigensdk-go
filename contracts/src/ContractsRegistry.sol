@@ -9,8 +9,8 @@ pragma solidity ^0.8.12;
 // forge create src/ContractsRegistry.sol:ContractsRegistry --rpc-url $RPC_URL  --private-key $PRIVATE_KEY
 contract ContractsRegistry {
     mapping(string => address) public contracts;
-    mapping(uint => string) public contractNames;
-    uint public contractCount;
+    mapping(uint256 => string) public contractNames;
+    uint256 public contractCount;
 
     function registerContract(string memory name, address _contract) public {
         // we treat redeploys as a bug since this is only meant to be used for testing.
