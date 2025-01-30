@@ -11,7 +11,6 @@ import (
 	"github.com/Layr-Labs/eigensdk-go/crypto/bls"
 
 	"github.com/Layr-Labs/eigensdk-go/crypto/ecdsa"
-	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/google/uuid"
 	"github.com/urfave/cli/v2"
 )
@@ -198,8 +197,12 @@ func generateBlsKeys(numKeys int, path string, passwordFile, privateKeyFile *os.
 
 func generateECDSAKeys(numKeys int, path string, passwordFile, privateKeyFile *os.File) error {
 	for i := 0; i < numKeys; i++ {
-		key, err := crypto.GenerateKey()
-		privateKeyHex := hex.EncodeToString(key.D.Bytes())
+		key, err := ecdsa.CreateNewEcdsaKey()
+		if err != nil {
+			return err
+		}
+
+		privateKeyHex := hex.EncodeToString(key.GetPrivateKey().D.Bytes())
 
 		// Check if the length of privateKeyHex is 32 bytes (64 characters)
 		lenPrivateKey := len(privateKeyHex)
@@ -210,17 +213,14 @@ func generateECDSAKeys(numKeys int, path string, passwordFile, privateKeyFile *o
 			continue
 		}
 
-		if err != nil {
-			return err
-		}
-
 		password, err := generateRandomPassword()
 		if err != nil {
 			return err
 		}
 
 		fileName := fmt.Sprintf("%d.ecdsa.key.json", i+1)
-		err = ecdsa.WriteKey(filepath.Clean(path+"/"+DefaultKeyFolder+"/"+fileName), key, password)
+
+		err = key.Save(filepath.Clean(path+"/"+DefaultKeyFolder+"/"+fileName), password)
 		if err != nil {
 			return err
 		}

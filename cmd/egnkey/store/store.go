@@ -43,7 +43,13 @@ func store(c *cli.Context) error {
 		outputFile = defaultFile
 	}
 	password := c.String(Password.Name)
-	err := ecdsa.WriteKeyFromHex(outputFile, c.String(PrivateKey.Name), password)
+
+	privateKey, err := ecdsa.CreateNewEcdsaKeyFromHex(c.String(PrivateKey.Name))
+	if err != nil {
+		return err
+	}
+
+	err = privateKey.Save(outputFile, password)
 	if err != nil {
 		return err
 	}

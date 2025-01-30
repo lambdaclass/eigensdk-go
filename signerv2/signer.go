@@ -32,11 +32,17 @@ func PrivateKeySignerFn(privateKey *ecdsa.PrivateKey, chainID *big.Int) (bind.Si
 }
 
 func KeyStoreSignerFn(path string, password string, chainID *big.Int) (bind.SignerFn, error) {
-	privateKey, err := sdkEcdsa.ReadKey(path, password)
+	key, err := sdkEcdsa.CreateNewEcdsaKey()
 	if err != nil {
 		return nil, err
 	}
-	return PrivateKeySignerFn(privateKey, chainID)
+
+	privateKey, err := key.Read(path, password)
+	if err != nil {
+		return nil, err
+	}
+
+	return PrivateKeySignerFn(privateKey.GetPrivateKey(), chainID)
 }
 
 // Web3SignerFn creates a signer function that uses a remote signer
