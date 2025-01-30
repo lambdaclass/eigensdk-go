@@ -4,11 +4,11 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/event"
 
+	"github.com/Layr-Labs/eigensdk-go/chainio/clients/elcontracts"
 	"github.com/Layr-Labs/eigensdk-go/chainio/clients/eth"
 	blsapkreg "github.com/Layr-Labs/eigensdk-go/contracts/bindings/BLSApkRegistry"
 	regcoord "github.com/Layr-Labs/eigensdk-go/contracts/bindings/RegistryCoordinator"
 	"github.com/Layr-Labs/eigensdk-go/logging"
-	"github.com/Layr-Labs/eigensdk-go/utils"
 )
 
 type ChainSubscriber struct {
@@ -42,7 +42,8 @@ func NewSubscriberFromConfig(
 ) (*ChainSubscriber, error) {
 	bindings, err := NewBindingsFromConfig(cfg, wsClient, logger)
 	if err != nil {
-		return nil, err
+		wrappedError := elcontracts.CreateForNestedError("NewBindingsFromConfig", err)
+		return nil, wrappedError
 	}
 
 	return NewChainSubscriber(bindings.RegistryCoordinator, bindings.BlsApkRegistry, logger), nil
@@ -54,7 +55,8 @@ func (s *ChainSubscriber) SubscribeToNewPubkeyRegistrations() (chan *blsapkreg.C
 		&bind.WatchOpts{}, newPubkeyRegistrationChan, nil,
 	)
 	if err != nil {
-		return nil, nil, utils.WrapError("Failed to subscribe to NewPubkeyRegistration events", err)
+		wrappedError := elcontracts.CreateForOtherError("Failed to subscribe to NewPubkeyRegistration events", err)
+		return nil, nil, wrappedError
 	}
 	return newPubkeyRegistrationChan, sub, nil
 }
@@ -65,7 +67,8 @@ func (s *ChainSubscriber) SubscribeToOperatorSocketUpdates() (chan *regcoord.Con
 		&bind.WatchOpts{}, operatorSocketUpdateChan, nil,
 	)
 	if err != nil {
-		return nil, nil, utils.WrapError("Failed to subscribe to OperatorSocketUpdate events", err)
+		wrappedError := elcontracts.CreateForOtherError("Failed to subscribe to OperatorSocketUpdate events", err)
+		return nil, nil, wrappedError
 	}
 	return operatorSocketUpdateChan, sub, nil
 }
