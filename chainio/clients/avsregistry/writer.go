@@ -187,7 +187,8 @@ func (w *ChainWriter) RegisterOperatorInQuorumWithAVSRegistryCoordinator(
 
 	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
 	if err != nil {
-		return nil, err
+		wrappedError := elcontracts.CreateNoSendTxOptsFailedError(err)
+		return nil, wrappedError
 	}
 	// TODO: this call will fail if max number of operators are already registered
 	// in that case, need to call churner to kick out another operator. See eigenDA's node/operator.go implementation
@@ -309,7 +310,8 @@ func (w *ChainWriter) RegisterOperator(
 
 	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
 	if err != nil {
-		return nil, err
+		wrappedError := elcontracts.CreateNoSendTxOptsFailedError(err)
+		return nil, wrappedError
 	}
 	// TODO: this call will fail if max number of operators are already registered
 	// in that case, need to call churner to kick out another operator. See eigenDA's node/operator.go implementation
@@ -355,7 +357,8 @@ func (w *ChainWriter) UpdateStakesOfEntireOperatorSetForQuorums(
 	w.logger.Info("updating stakes for entire operator set", "quorumNumbers", quorumNumbers)
 	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
 	if err != nil {
-		return nil, err
+		wrappedError := elcontracts.CreateNoSendTxOptsFailedError(err)
+		return nil, wrappedError
 	}
 	tx, err := w.registryCoordinator.UpdateOperatorsForQuorum(
 		noSendTxOpts,
@@ -388,7 +391,8 @@ func (w *ChainWriter) UpdateStakesOfOperatorSubsetForAllQuorums(
 	w.logger.Info("updating stakes of operator subset for all quorums", "operators", operators)
 	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
 	if err != nil {
-		return nil, err
+		wrappedError := elcontracts.CreateNoSendTxOptsFailedError(err)
+		return nil, wrappedError
 	}
 	tx, err := w.registryCoordinator.UpdateOperators(noSendTxOpts, operators)
 	if err != nil {
@@ -417,7 +421,8 @@ func (w *ChainWriter) DeregisterOperator(
 	w.logger.Info("deregistering operator with the AVS's registry coordinator")
 	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
 	if err != nil {
-		return nil, err
+		wrappedError := elcontracts.CreateNoSendTxOptsFailedError(err)
+		return nil, wrappedError
 	}
 	tx, err := w.registryCoordinator.DeregisterOperator0(noSendTxOpts, quorumNumbers.UnderlyingType())
 	if err != nil {
@@ -447,7 +452,8 @@ func (w *ChainWriter) DeregisterOperatorOperatorSets(
 	operatorAddress := gethcommon.HexToAddress(operator.Address)
 	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
 	if err != nil {
-		return nil, err
+		wrappedError := elcontracts.CreateNoSendTxOptsFailedError(err)
+		return nil, wrappedError
 	}
 	tx, err := w.registryCoordinator.DeregisterOperator(noSendTxOpts, operatorAddress, operatorSetIds.UnderlyingType())
 	if err != nil {
@@ -472,7 +478,8 @@ func (w *ChainWriter) UpdateSocket(
 ) (*gethtypes.Receipt, error) {
 	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
 	if err != nil {
-		return nil, err
+		wrappedError := elcontracts.CreateNoSendTxOptsFailedError(err)
+		return nil, wrappedError
 	}
 	tx, err := w.registryCoordinator.UpdateSocket(noSendTxOpts, socket.String())
 	if err != nil {
