@@ -238,3 +238,26 @@ func NewTestAvsRegistryWriterFromConfig(
 	}
 	return testWriter, nil
 }
+
+// Creates a testing AVSRegistrer ChainReader from an httpEndpoint, private key and config.
+func NewTestAvsRegistryReaderFromConfig(
+	httpEndpoint string,
+	config avsregistry.Config,
+) (*avsregistry.ChainReader, error) {
+	testConfig := testutils.GetDefaultTestConfig()
+	logger := logging.NewTextSLogger(os.Stdout, &logging.SLoggerOptions{Level: testConfig.LogLevel})
+	ethHttpClient, err := ethclient.Dial(httpEndpoint)
+	if err != nil {
+		return nil, utils.WrapError("Failed to create eth client", err)
+	}
+
+	testReader, err := avsregistry.NewReaderFromConfig(
+		config,
+		ethHttpClient,
+		logger,
+	)
+	if err != nil {
+		return nil, utils.WrapError("Failed to create chain reader from config", err)
+	}
+	return testReader, nil
+}
