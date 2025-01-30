@@ -5,7 +5,6 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -28,22 +27,22 @@ func TestECDSAPrivateKey(t *testing.T) {
 				dir := filepath.Dir(tt.keyPath)
 				_ = os.RemoveAll(dir)
 			})
-			randomKey, err := crypto.GenerateKey()
+			key, err := CreateNewEcdsaKey()
 			assert.NoError(t, err)
 
-			err = WriteKey(tt.keyPath, randomKey, tt.password)
+			err = key.Save(tt.keyPath, tt.password)
 			if tt.wantErr {
 				assert.Error(t, err)
 			} else {
 				assert.NoError(t, err)
 			}
 
-			readKeyPair, err := ReadKey(tt.keyPath, tt.password)
+			readKeyPair, err := key.Read(tt.keyPath, tt.password)
 			if tt.wantErr {
 				assert.Error(t, err)
 			} else {
 				assert.NoError(t, err)
-				assert.Equal(t, randomKey, readKeyPair)
+				assert.Equal(t, key, readKeyPair)
 			}
 		})
 	}

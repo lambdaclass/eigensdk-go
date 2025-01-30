@@ -10,6 +10,7 @@ import (
 	"github.com/Layr-Labs/eigensdk-go/crypto/bls"
 	sdkEcdsa "github.com/Layr-Labs/eigensdk-go/crypto/ecdsa"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestGenerateBlsKeys(t *testing.T) {
@@ -70,12 +71,15 @@ func TestGenerateEcdsaKeys(t *testing.T) {
 
 	ecdsaKeyPath := filepath.Join(outputDir, "keys", "1.ecdsa.key.json")
 
-	decryptedKey, err := sdkEcdsa.ReadKey(ecdsaKeyPath, password)
+	key, err := sdkEcdsa.CreateNewEcdsaKey()
+	require.NoError(t, err, "error generating new ecdsa key")
+
+	decryptedKey, err := key.Read(ecdsaKeyPath, password)
 	assert.NoError(t, err, "error decrypting ecdsa key")
 
 	privateKeyDecoded, err := hex.DecodeString(privateKeyHex)
 	assert.NoError(t, err)
-	assert.Equal(t, privateKeyDecoded, decryptedKey.D.Bytes())
+	assert.Equal(t, privateKeyDecoded, decryptedKey.GetPrivateKey().D.Bytes())
 }
 
 func TestDeriveOperatorId(t *testing.T) {
@@ -102,10 +106,13 @@ func TestStore(t *testing.T) {
 	err := run(args)
 	assert.NoError(t, err)
 
+	key, err := sdkEcdsa.CreateNewEcdsaKey()
+	require.NoError(t, err, "error generating new ecdsa key")
+
 	// Verify the content of tempFile
-	key, err := sdkEcdsa.ReadKey(tempFile, password)
+	key, err = key.Read(tempFile, password)
 	assert.NoError(t, err)
 
-	hexString := hex.EncodeToString(key.D.Bytes())
+	hexString := hex.EncodeToString(key.GetPrivateKey().D.Bytes())
 	assert.Equal(t, privateKeyHex, hexString)
 }

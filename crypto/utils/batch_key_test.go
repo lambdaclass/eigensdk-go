@@ -8,6 +8,7 @@ import (
 	"github.com/Layr-Labs/eigensdk-go/crypto/bls"
 	"github.com/Layr-Labs/eigensdk-go/crypto/ecdsa"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestReadBatchKeys(t *testing.T) {
@@ -35,12 +36,15 @@ func TestReadBatchKeys(t *testing.T) {
 		if test.isEcdsa {
 			for _, key := range readKeys {
 				fmt.Printf("Valdiate ecdsa key: %s with password %s\n", key.FilePath, key.Password)
-				pk, err := ecdsa.ReadKey(key.FilePath, key.Password)
+
+				ecdsaKey, err := ecdsa.CreateNewEcdsaKey()
+				require.NoError(t, err)
+				pk, err := ecdsaKey.Read(key.FilePath, key.Password)
 				if err != nil {
 					assert.Fail(t, "Error reading ecdsa key")
 					break
 				}
-				assert.Equal(t, key.PrivateKey, "0x"+hex.EncodeToString(pk.D.Bytes()))
+				assert.Equal(t, key.PrivateKey, "0x"+hex.EncodeToString(pk.GetPrivateKey().D.Bytes()))
 			}
 		} else {
 			for _, key := range readKeys {
