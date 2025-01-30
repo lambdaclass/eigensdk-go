@@ -6,6 +6,8 @@
 # of the EigenPods client, we need to generate the bindings for the contracts in the feat/partial-withdrawal-batching branch.
 # Once eigenlayer-contracts repo is stable and features are on single branch, we can move the bindings back to normal process
 
+set -e
+
 TMP_DIR=$(mktemp -d)
 BINDINGS_DIR=bindings
 
@@ -16,7 +18,7 @@ cleanup_bindings_dir() {
 
 clone() {
   echo "Cloning the EigenLayer contracts repository"
-  git clone -b slashing-magnitudes --depth=1 git@github.com:Layr-Labs/eigenlayer-contracts.git "${TMP_DIR}"
+  git clone -b slashing-magnitudes --depth=1 https://github.com/Layr-Labs/eigenlayer-contracts.git "${TMP_DIR}"
 }
 
 generate_bindings() {
