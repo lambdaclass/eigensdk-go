@@ -200,7 +200,8 @@ func (w *ChainWriter) RegisterOperatorInQuorumWithAVSRegistryCoordinator(
 		operatorSignatureWithSaltAndExpiry,
 	)
 	if err != nil {
-		return nil, err
+		wrappedError := elcontracts.CreateForTxGenerationError("registryCoordinator.RegisterOperator", err)
+		return nil, wrappedError
 	}
 	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
 	if err != nil {
@@ -323,7 +324,8 @@ func (w *ChainWriter) RegisterOperator(
 		operatorSignatureWithSaltAndExpiry,
 	)
 	if err != nil {
-		return nil, err
+		wrappedError := elcontracts.CreateForTxGenerationError("registryCoordinator.RegisterOperator", err)
+		return nil, wrappedError
 	}
 	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
 	if err != nil {
@@ -366,7 +368,8 @@ func (w *ChainWriter) UpdateStakesOfEntireOperatorSetForQuorums(
 		quorumNumbers.UnderlyingType(),
 	)
 	if err != nil {
-		return nil, err
+		wrappedError := elcontracts.CreateForTxGenerationError("registryCoordinator.UpdateOperatorsForQuorum", err)
+		return nil, wrappedError
 	}
 	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
 	if err != nil {
@@ -396,7 +399,8 @@ func (w *ChainWriter) UpdateStakesOfOperatorSubsetForAllQuorums(
 	}
 	tx, err := w.registryCoordinator.UpdateOperators(noSendTxOpts, operators)
 	if err != nil {
-		return nil, err
+		wrappedError := elcontracts.CreateForTxGenerationError("registryCoordinator.UpdateOperators", err)
+		return nil, wrappedError
 	}
 	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
 	if err != nil {
@@ -426,7 +430,8 @@ func (w *ChainWriter) DeregisterOperator(
 	}
 	tx, err := w.registryCoordinator.DeregisterOperator0(noSendTxOpts, quorumNumbers.UnderlyingType())
 	if err != nil {
-		return nil, err
+		wrappedError := elcontracts.CreateForTxGenerationError("registryCoordinator.DeregisterOperator0", err)
+		return nil, wrappedError
 	}
 	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
 	if err != nil {
@@ -457,7 +462,8 @@ func (w *ChainWriter) DeregisterOperatorOperatorSets(
 	}
 	tx, err := w.registryCoordinator.DeregisterOperator(noSendTxOpts, operatorAddress, operatorSetIds.UnderlyingType())
 	if err != nil {
-		return nil, err
+		wrappedError := elcontracts.CreateForTxGenerationError("registryCoordinator.DeregisterOperator", err)
+		return nil, wrappedError
 	}
 	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
 	if err != nil {
@@ -483,7 +489,8 @@ func (w *ChainWriter) UpdateSocket(
 	}
 	tx, err := w.registryCoordinator.UpdateSocket(noSendTxOpts, socket.String())
 	if err != nil {
-		return nil, err
+		wrappedError := elcontracts.CreateForTxGenerationError("registryCoordinator.UpdateSocket", err)
+		return nil, wrappedError
 	}
 	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
 	if err != nil {
