@@ -1134,8 +1134,7 @@ func setTestRewardsCoordinatorActivationDelay(
 	return receipt, err
 }
 
-// TestInvalidConfig tests the behavior of the chainWriter when the config is invalid (e.g. missing addresses, wrong
-// addresses)
+// TestInvalidConfig tests the behavior of the chainWriter when the config is invalid (e.g. missing addresses)
 func TestInvalidConfigChainWriter(t *testing.T) {
 	testConfig := testutils.GetDefaultTestConfig()
 	anvilC, err := testutils.StartAnvilContainer(testConfig.AnvilStateFileName)
