@@ -81,13 +81,28 @@ type aggregatedOperators struct {
 // TaskSignature contains the data required to process and verify a new signature for a task response.
 type TaskSignature struct {
 	// unique identifier of the task associated with this signature
-	TaskIndex types.TaskIndex
+	taskIndex types.TaskIndex
 	// response data that has been signed
-	TaskResponse types.TaskResponse
+	taskResponse types.TaskResponse
 	// BLS cryptographic signature for the task response
-	BlsSignature *bls.Signature
+	blsSignature *bls.Signature
 	// id of the operator who signed the task response
-	OperatorId types.OperatorId
+	operatorId types.OperatorId
+}
+
+// NewTaskSiganture creates a new instance of TaskSignature
+func NewTaskSiganture(
+	taskIndex types.TaskIndex,
+	taskResponse types.TaskResponse,
+	blsSignature *bls.Signature,
+	operatorId types.OperatorId,
+) TaskSignature {
+	return TaskSignature{
+		taskIndex:    taskIndex,
+		taskResponse: taskResponse,
+		blsSignature: blsSignature,
+		operatorId:   operatorId,
+	}
 }
 
 // BlsAggregationService is the interface provided to avs aggregator code for doing bls aggregation
@@ -293,10 +308,10 @@ func (a *BlsAggregatorService) ProcessNewSignature(
 	task TaskSignature,
 ) error {
 	a.taskChansMutex.Lock()
-	taskC, taskInitialized := a.signedTaskRespsCs[task.TaskIndex]
+	taskC, taskInitialized := a.signedTaskRespsCs[task.taskIndex]
 	a.taskChansMutex.Unlock()
 	if !taskInitialized {
-		return TaskNotFoundErrorFn(task.TaskIndex)
+		return TaskNotFoundErrorFn(task.taskIndex)
 	}
 
 	signatureVerificationErrorC := make(chan error)
@@ -307,9 +322,9 @@ func (a *BlsAggregatorService) ProcessNewSignature(
 	// we need to send this as part of select because if the goroutine is processing another SignedTaskResponseDigest
 	// and cannot receive this one, we want the context to be able to cancel the request
 	case taskC <- types.SignedTaskResponseDigest{
-		TaskResponse:                task.TaskResponse,
-		BlsSignature:                task.BlsSignature,
-		OperatorId:                  task.OperatorId,
+		TaskResponse:                task.taskResponse,
+		BlsSignature:                task.blsSignature,
+		OperatorId:                  task.operatorId,
 		SignatureVerificationErrorC: signatureVerificationErrorC,
 	}:
 		// note that we need to wait synchronously here for this response because we want to
