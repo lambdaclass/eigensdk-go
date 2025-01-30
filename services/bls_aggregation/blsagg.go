@@ -80,15 +80,15 @@ type aggregatedOperators struct {
 
 // TaskMetadata encapsulates the necessary parameters to initialize a task
 type TaskMetadata struct {
-	// unique identifier for the task
+	// index of the task
 	TaskIndex types.TaskIndex
-	// block number at which the task was created
+	// block the task was created
 	TaskCreatedBlock uint32
-	// list of quorum numbers involved in the task
+	// quorum numbers which should respond to the task
 	QuorumNumbers types.QuorumNums
-	// threshold percentages required for each quorum to consider the task complete
+	// threshold percentages required for each quorum
 	QuorumThresholdPercentages types.QuorumThresholdPercentages
-	// duration before the task expires if not completed
+	// time before expiry of the task response aggregation
 	TimeToExpiry time.Duration
 	// time window to collect signatures after reaching quorum, defaults to 0 if not specified
 	WindowDuration time.Duration
