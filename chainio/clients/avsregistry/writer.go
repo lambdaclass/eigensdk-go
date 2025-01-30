@@ -176,7 +176,8 @@ func (w *ChainWriter) RegisterOperatorInQuorumWithAVSRegistryCoordinator(
 	}
 	operatorSignature, err := crypto.Sign(msgToSign[:], operatorEcdsaPrivateKey)
 	if err != nil {
-		return nil, err
+		wrappedError := elcontracts.CreateForOtherError("Failed to sign msg with private key", err)
+		return nil, wrappedError
 	}
 	// the crypto library is low level and deals with 0/1 v values, whereas ethereum expects 27/28, so we add 27
 	// see https://github.com/ethereum/go-ethereum/issues/28757#issuecomment-1874525854
@@ -208,6 +209,7 @@ func (w *ChainWriter) RegisterOperatorInQuorumWithAVSRegistryCoordinator(
 	}
 	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
 	if err != nil {
+		wrappedError := elcontracts.CreateForSendError(err)
 		return nil, wrappedError
 	}
 	w.logger.Info(
@@ -272,7 +274,8 @@ func (w *ChainWriter) RegisterOperator(
 	var operatorToAvsRegistrationSigSalt [32]byte
 	_, err = rand.Read(operatorToAvsRegistrationSigSalt[:])
 	if err != nil {
-		return nil, err
+		wrappedError := elcontracts.CreateForOtherError("Failed to generate a random salt for signature", err)
+		return nil, wrappedError
 	}
 
 	curBlockNum, err := w.ethClient.BlockNumber(context.Background())
@@ -304,7 +307,8 @@ func (w *ChainWriter) RegisterOperator(
 	}
 	operatorSignature, err := crypto.Sign(msgToSign[:], operatorEcdsaPrivateKey)
 	if err != nil {
-		return nil, err
+		wrappedError := elcontracts.CreateForOtherError("Failed to sign msg with private key", err)
+		return nil, wrappedError
 	}
 	// the crypto library is low level and deals with 0/1 v values, whereas ethereum expects 27/28, so we add 27
 	// see https://github.com/ethereum/go-ethereum/issues/28757#issuecomment-1874525854

@@ -49,6 +49,15 @@ func CreateNoSendTxOptsFailedError(errorCause error) Error {
 	return Error{3, "Other errors", "Failed to get no send tx opts", errorCause}
 }
 
+func CreateForOtherError(errDescription string, errorCause error) Error {
+	return Error{
+		3,
+		"Other error",
+		errDescription,
+		errorCause,
+	}
+}
+
 func CreateForTxGenerationError(bindingName string, errorCause error) Error {
 	errDescription := fmt.Sprintf("Error generating tx for %s", bindingName)
 	return Error{
