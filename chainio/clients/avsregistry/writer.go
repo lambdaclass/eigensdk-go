@@ -81,14 +81,16 @@ func NewWriterFromConfig(
 ) (*ChainWriter, error) {
 	bindings, err := NewBindingsFromConfig(cfg, client, logger)
 	if err != nil {
-		return nil, err
+		wrappedError := elcontracts.CreateForNestedError("NewBindingsFromConfig", err)
+		return nil, wrappedError
 	}
 	elReader, err := elcontracts.NewReaderFromConfig(elcontracts.Config{
 		DelegationManagerAddress: bindings.DelegationManagerAddr,
 		AvsDirectoryAddress:      bindings.AvsDirectoryAddr,
 	}, client, logger)
 	if err != nil {
-		return nil, err
+		wrappedError := elcontracts.CreateForNestedError("elcontracts.NewReaderFromConfig", err)
+		return nil, wrappedError
 	}
 
 	return NewChainWriter(
