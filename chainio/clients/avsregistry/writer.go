@@ -147,7 +147,8 @@ func (w *ChainWriter) RegisterOperatorInQuorumWithAVSRegistryCoordinator(
 	// params to register bls pubkey with bls apk registry
 	g1HashedMsgToSign, err := w.registryCoordinator.PubkeyRegistrationMessageHash(&bind.CallOpts{}, operatorAddr)
 	if err != nil {
-		return nil, err
+		wrappedError := elcontracts.CreateForBindingError("registryCoordinator.PubkeyRegistrationMessageHash", err)
+		return nil, wrappedError
 	}
 	signedMsg := chainioutils.ConvertToBN254G1Point(
 		blsKeyPair.SignHashedToCurveMessage(chainioutils.ConvertBn254GethToGnark(g1HashedMsgToSign)).G1Point,
@@ -169,7 +170,8 @@ func (w *ChainWriter) RegisterOperatorInQuorumWithAVSRegistryCoordinator(
 		operatorToAvsRegistrationSigExpiry,
 	)
 	if err != nil {
-		return nil, err
+		wrappedError := elcontracts.CreateForBindingError("elReader.CalculateOperatorAVSRegistrationDigestHash", err)
+		return nil, wrappedError
 	}
 	operatorSignature, err := crypto.Sign(msgToSign[:], operatorEcdsaPrivateKey)
 	if err != nil {
@@ -251,7 +253,8 @@ func (w *ChainWriter) RegisterOperator(
 	// params to register bls pubkey with bls apk registry
 	g1HashedMsgToSign, err := w.registryCoordinator.PubkeyRegistrationMessageHash(&bind.CallOpts{}, operatorAddr)
 	if err != nil {
-		return nil, err
+		wrappedError := elcontracts.CreateForBindingError("registryCoordinator.PubkeyRegistrationMessageHash", err)
+		return nil, wrappedError
 	}
 	signedMsg := chainioutils.ConvertToBN254G1Point(
 		blsKeyPair.SignHashedToCurveMessage(chainioutils.ConvertBn254GethToGnark(g1HashedMsgToSign)).G1Point,
@@ -273,11 +276,13 @@ func (w *ChainWriter) RegisterOperator(
 
 	curBlockNum, err := w.ethClient.BlockNumber(context.Background())
 	if err != nil {
-		return nil, err
+		wrappedError := elcontracts.CreateForBindingError("ethClient.BlockNumber", err)
+		return nil, wrappedError
 	}
 	curBlock, err := w.ethClient.BlockByNumber(context.Background(), new(big.Int).SetUint64(curBlockNum))
 	if err != nil {
-		return nil, err
+		wrappedError := elcontracts.CreateForBindingError("ethClient.BlockByNumber", err)
+		return nil, wrappedError
 	}
 	sigValidForSeconds := int64(60 * 60) // 1 hour
 	operatorToAvsRegistrationSigExpiry := new(
@@ -293,7 +298,8 @@ func (w *ChainWriter) RegisterOperator(
 		operatorToAvsRegistrationSigExpiry,
 	)
 	if err != nil {
-		return nil, err
+		wrappedError := elcontracts.CreateForBindingError("elReader.CalculateOperatorAVSRegistrationDigestHash", err)
+		return nil, wrappedError
 	}
 	operatorSignature, err := crypto.Sign(msgToSign[:], operatorEcdsaPrivateKey)
 	if err != nil {
