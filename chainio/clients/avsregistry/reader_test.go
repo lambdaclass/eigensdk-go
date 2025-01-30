@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/Layr-Labs/eigensdk-go/chainio/clients/avsregistry"
+	"github.com/Layr-Labs/eigensdk-go/chainio/clients/elcontracts"
 	"github.com/Layr-Labs/eigensdk-go/crypto/bls"
 	"github.com/Layr-Labs/eigensdk-go/testutils"
 	"github.com/Layr-Labs/eigensdk-go/testutils/testclients"
@@ -236,9 +237,10 @@ func TestReaderWithInvalidConfiguration(t *testing.T) {
 	randomOperatorId := types.OperatorId{99}
 
 	tests := []struct {
-		name        string
-		runFunc     func() error
-		expectError bool
+		name                string
+		runFunc             func() error
+		expectError         bool
+		expectedErrorString string
 	}{
 		{
 			name: "get operator id",
@@ -246,7 +248,8 @@ func TestReaderWithInvalidConfiguration(t *testing.T) {
 				_, err := chainReader.GetOperatorId(&bind.CallOpts{}, common.Address{})
 				return err
 			},
-			expectError: true,
+			expectError:         true,
+			expectedErrorString: elcontracts.CommonErrorMissingContract("RegistryCoordinator"),
 		},
 		{
 			name: "get operator from id",
@@ -254,7 +257,8 @@ func TestReaderWithInvalidConfiguration(t *testing.T) {
 				_, err := chainReader.GetOperatorFromId(&bind.CallOpts{}, randomOperatorId)
 				return err
 			},
-			expectError: true,
+			expectError:         true,
+			expectedErrorString: elcontracts.CommonErrorMissingContract("RegistryCoordinator"),
 		},
 		{
 			name: "check if operator is registered",
@@ -262,7 +266,8 @@ func TestReaderWithInvalidConfiguration(t *testing.T) {
 				_, err := chainReader.IsOperatorRegistered(&bind.CallOpts{}, common.Address{})
 				return err
 			},
-			expectError: true,
+			expectError:         true,
+			expectedErrorString: elcontracts.CommonErrorMissingContract("RegistryCoordinator"),
 		},
 		{
 			name: "get quorum state",
@@ -270,7 +275,8 @@ func TestReaderWithInvalidConfiguration(t *testing.T) {
 				_, err := chainReader.GetQuorumCount(&bind.CallOpts{})
 				return err
 			},
-			expectError: true,
+			expectError:         true,
+			expectedErrorString: elcontracts.CommonErrorMissingContract("RegistryCoordinator"),
 		},
 		{
 			name: "get operator stake in quorums at current block",
@@ -278,7 +284,8 @@ func TestReaderWithInvalidConfiguration(t *testing.T) {
 				_, err := chainReader.GetOperatorsStakeInQuorumsAtBlock(&bind.CallOpts{}, quorumNumbers, 100)
 				return err
 			},
-			expectError: true,
+			expectError:         true,
+			expectedErrorString: elcontracts.CommonErrorMissingContract("OperatorStateRetriever"),
 		},
 		{
 			name: "get operator address in quorums at current block",
@@ -286,7 +293,8 @@ func TestReaderWithInvalidConfiguration(t *testing.T) {
 				_, err := chainReader.GetOperatorAddrsInQuorumsAtCurrentBlock(&bind.CallOpts{}, quorumNumbers)
 				return err
 			},
-			expectError: true,
+			expectError:         true,
+			expectedErrorString: elcontracts.CommonErrorMissingContract("OperatorStateRetriever"),
 		},
 		{
 			name: "get operators stake in quorums of operator at block",
@@ -298,7 +306,8 @@ func TestReaderWithInvalidConfiguration(t *testing.T) {
 				)
 				return err
 			},
-			expectError: true,
+			expectError:         true,
+			expectedErrorString: elcontracts.CommonErrorMissingContract("OperatorStateRetriever"),
 		},
 		{
 			name: "get single operator stake in quorums of operator at current block",
@@ -309,7 +318,8 @@ func TestReaderWithInvalidConfiguration(t *testing.T) {
 				)
 				return err
 			},
-			expectError: true,
+			expectError:         true,
+			expectedErrorString: elcontracts.CommonErrorMissingContract("RegistryCoordinator"),
 		}, {
 			name: "check signatures indices",
 			runFunc: func() error {
@@ -321,7 +331,8 @@ func TestReaderWithInvalidConfiguration(t *testing.T) {
 				)
 				return err
 			},
-			expectError: true,
+			expectError:         true,
+			expectedErrorString: elcontracts.CommonErrorMissingContract("OperatorStateRetriever"),
 		},
 		{
 			name: "query registered operator sockets",
@@ -334,7 +345,8 @@ func TestReaderWithInvalidConfiguration(t *testing.T) {
 				)
 				return err
 			},
-			expectError: true,
+			expectError:         true,
+			expectedErrorString: elcontracts.CommonErrorMissingContract("RegistryCoordinator"),
 		},
 	}
 
@@ -343,6 +355,7 @@ func TestReaderWithInvalidConfiguration(t *testing.T) {
 			err := tc.runFunc()
 			if tc.expectError {
 				require.Error(t, err, "Expected error for %s", tc.name)
+				require.Equal(t, err.Error(), tc.expectedErrorString)
 			}
 		})
 	}
