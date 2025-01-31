@@ -88,6 +88,7 @@ type RemovePendingAdminRequest struct {
 // READER TYPES
 
 // OperatorRequest represents a request that requires an operator's address
+// If `BlockNumber` is nil, the latest block will be used
 type OperatorRequest struct {
 	BlockNumber     *big.Int
 	OperatorAddress common.Address
@@ -99,6 +100,7 @@ type OperatorResponse struct {
 }
 
 // StrategyRequest represents a request that requires a strategy's address
+// If `BlockNumber` is nil, the latest block will be used
 type StrategyRequest struct {
 	BlockNumber     *big.Int
 	StrategyAddress common.Address
@@ -124,6 +126,7 @@ type OperatorRegisterResponse struct {
 }
 
 // StakerRequest represents a request that requires a staker's address
+// If `BlockNumber` is nil, the latest block will be used
 type StakerRequest struct {
 	BlockNumber   *big.Int
 	StakerAddress common.Address
@@ -140,14 +143,15 @@ type DelegateOperatorResponse struct {
 	OperatorAddress common.Address
 }
 
-// SharesInStrategyRequest represents a request that requires a strategy's address and an operator's address
+// SharesInStrategyRequest represents a request that requires both strategy's address and operator's address
+// If `BlockNumber` is nil, the latest block will be used
 type SharesInStrategyRequest struct {
 	BlockNumber     *big.Int
 	OperatorAddress common.Address
 	StrategyAddress common.Address
 }
 
-// ShareResponse contains the shares
+// ShareResponse contains the numbers of shares
 type SharesResponse struct {
 	Shares *big.Int
 }
