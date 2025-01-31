@@ -5,6 +5,7 @@ import (
 
 	allocationmanager "github.com/Layr-Labs/eigensdk-go/contracts/bindings/AllocationManager"
 	"github.com/Layr-Labs/eigensdk-go/crypto/bls"
+	"github.com/Layr-Labs/eigensdk-go/types"
 
 	"github.com/ethereum/go-ethereum/common"
 )
@@ -80,4 +81,15 @@ type RemovePendingAdminRequest struct {
 	AccountAddress common.Address
 	AdminAddress   common.Address
 	WaitForReceipt bool
+}
+
+// READER TYPES
+
+type OperatorRequest struct {
+	BlockNumber *big.Int
+	Operator    types.Operator
+}
+
+type OperatorRegisterResponse struct {
+	IsRegistered bool
 }
