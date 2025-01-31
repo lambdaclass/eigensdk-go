@@ -236,9 +236,9 @@ func (r *ChainReader) GetStrategyAndUnderlyingERC20Token(
 	}
 
 	return StrategyERC20TokenResponse{
-		StrategyContract: *contractStrategy,
-		ERC20Bindings:    contractUnderlyingToken,
-		TokenAddress:     underlyingTokenAddr,
+		StrategyContract:        *contractStrategy,
+		UnderlyingERC20Contract: contractUnderlyingToken,
+		UnderlyingTokenAddress:  underlyingTokenAddr,
 	}, nil
 }
 

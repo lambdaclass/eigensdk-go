@@ -107,9 +107,9 @@ type StrategyTokenResponse struct {
 }
 
 type StrategyERC20TokenResponse struct {
-	StrategyContract strategy.ContractIStrategy
-	ERC20Bindings    erc20.ContractIERC20Methods
-	TokenAddress     common.Address
+	StrategyContract        strategy.ContractIStrategy
+	UnderlyingERC20Contract erc20.ContractIERC20Methods
+	UnderlyingTokenAddress  common.Address
 }
 
 type OperatorRegisterResponse struct {
