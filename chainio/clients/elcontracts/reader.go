@@ -226,106 +226,161 @@ func (r *ChainReader) GetOperatorSharesInStrategy(
 
 func (r *ChainReader) CalculateDelegationApprovalDigestHash(
 	ctx context.Context,
-	staker gethcommon.Address,
-	operator gethcommon.Address,
-	delegationApprover gethcommon.Address,
-	approverSalt [32]byte,
-	expiry *big.Int,
-) ([32]byte, error) {
+	request ApprovalDigestHashRequest,
+) (DigestHashResponse, error) {
 	if r.delegationManager == nil {
-		return [32]byte{}, errors.New("DelegationManager contract not provided")
+		return DigestHashResponse{}, errors.New("DelegationManager contract not provided")
 	}
 
-	return r.delegationManager.CalculateDelegationApprovalDigestHash(
-		&bind.CallOpts{Context: ctx},
-		staker,
-		operator,
-		delegationApprover,
-		approverSalt,
-		expiry,
+	hash, err := r.delegationManager.CalculateDelegationApprovalDigestHash(
+		&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumber},
+		request.StakerAddress,
+		request.OperatorAddress,
+		request.DelegationAddress,
+		request.ApproverSalt,
+		request.Expiry,
 	)
+	if err != nil {
+		return DigestHashResponse{}, utils.WrapError("failed to calculate delegation approval digest hash", err)
+	}
+
+	return DigestHashResponse{DigestHash: hash}, nil
 }
 
 func (r *ChainReader) CalculateOperatorAVSRegistrationDigestHash(
 	ctx context.Context,
-	operator gethcommon.Address,
-	avs gethcommon.Address,
-	salt [32]byte,
-	expiry *big.Int,
-) ([32]byte, error) {
+	request AVSRegistrationDigestHashRequest,
+) (DigestHashResponse, error) {
 	if r.avsDirectory == nil {
-		return [32]byte{}, errors.New("AVSDirectory contract not provided")
+		return DigestHashResponse{}, errors.New("AVSDirectory contract not provided")
 	}
 
-	return r.avsDirectory.CalculateOperatorAVSRegistrationDigestHash(
-		&bind.CallOpts{Context: ctx},
-		operator,
-		avs,
-		salt,
-		expiry,
+	hash, err := r.avsDirectory.CalculateOperatorAVSRegistrationDigestHash(
+		&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumber},
+		request.OperatorAddress,
+		request.AVSAddress,
+		request.Salt,
+		request.Expiry,
 	)
-}
-
-func (r *ChainReader) GetDistributionRootsLength(ctx context.Context) (*big.Int, error) {
-	if r.rewardsCoordinator == nil {
-		return nil, errors.New("RewardsCoordinator contract not provided")
+	if err != nil {
+		return DigestHashResponse{}, utils.WrapError("failed to calculate operator AVS registration digest hash", err)
 	}
 
-	return r.rewardsCoordinator.GetDistributionRootsLength(&bind.CallOpts{Context: ctx})
+	return DigestHashResponse{DigestHash: hash}, nil
 }
 
-func (r *ChainReader) CurrRewardsCalculationEndTimestamp(ctx context.Context) (uint32, error) {
+func (r *ChainReader) GetDistributionRootsLength(ctx context.Context, request RootRequest) (RootLengthResponse, error) {
 	if r.rewardsCoordinator == nil {
-		return 0, errors.New("RewardsCoordinator contract not provided")
+		return RootLengthResponse{}, errors.New("RewardsCoordinator contract not provided")
 	}
 
-	return r.rewardsCoordinator.CurrRewardsCalculationEndTimestamp(&bind.CallOpts{Context: ctx})
+	lengt, err := r.rewardsCoordinator.GetDistributionRootsLength(
+		&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumer},
+	)
+	if err != nil {
+		return RootLengthResponse{}, utils.WrapError("failed to get distribution roots length", err)
+	}
+
+	return RootLengthResponse{Length: lengt}, nil
+}
+
+func (r *ChainReader) CurrRewardsCalculationEndTimestamp(
+	ctx context.Context,
+	request RewardsEndTimestampRequest,
+) (EndTimestampResponse, error) {
+	if r.rewardsCoordinator == nil {
+		return EndTimestampResponse{}, errors.New("RewardsCoordinator contract not provided")
+	}
+
+	endTimestamp, err := r.rewardsCoordinator.CurrRewardsCalculationEndTimestamp(
+		&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumber},
+	)
+	if err != nil {
+		return EndTimestampResponse{}, utils.WrapError("failed to get rewards calculation end timestamp", err)
+	}
+
+	return EndTimestampResponse{EndTimestamp: endTimestamp}, nil
 }
 
 func (r *ChainReader) GetCurrentClaimableDistributionRoot(
 	ctx context.Context,
-) (rewardscoordinator.IRewardsCoordinatorTypesDistributionRoot, error) {
+	request RootRequest,
+) (ClaimableDistributionRootResponse, error) {
 	if r.rewardsCoordinator == nil {
-		return rewardscoordinator.IRewardsCoordinatorTypesDistributionRoot{}, errors.New(
+		return ClaimableDistributionRootResponse{}, errors.New(
 			"RewardsCoordinator contract not provided",
 		)
 	}
 
-	return r.rewardsCoordinator.GetCurrentClaimableDistributionRoot(&bind.CallOpts{Context: ctx})
+	root, err := r.rewardsCoordinator.GetCurrentClaimableDistributionRoot(
+		&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumer},
+	)
+	if err != nil {
+		return ClaimableDistributionRootResponse{}, utils.WrapError(
+			"failed to get current claimable distribution root",
+			err,
+		)
+	}
+
+	return ClaimableDistributionRootResponse{Root: root}, nil
 }
 
 func (r *ChainReader) GetRootIndexFromHash(
 	ctx context.Context,
-	rootHash [32]byte,
-) (uint32, error) {
+	request RootHashRequest,
+) (RootIndexResponse, error) {
 	if r.rewardsCoordinator == nil {
-		return 0, errors.New("RewardsCoordinator contract not provided")
+		return RootIndexResponse{}, errors.New("RewardsCoordinator contract not provided")
 	}
 
-	return r.rewardsCoordinator.GetRootIndexFromHash(&bind.CallOpts{Context: ctx}, rootHash)
+	index, err := r.rewardsCoordinator.GetRootIndexFromHash(
+		&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumber},
+		request.RootHash,
+	)
+	if err != nil {
+		return RootIndexResponse{}, utils.WrapError("failed to get root index from hash", err)
+	}
+
+	return RootIndexResponse{Index: index}, nil
 }
 
 func (r *ChainReader) GetCumulativeClaimed(
 	ctx context.Context,
-	earner gethcommon.Address,
-	token gethcommon.Address,
-) (*big.Int, error) {
+	request CumulativeClaimedRequest,
+) (CumulativeClaimedResponse, error) {
 	if r.rewardsCoordinator == nil {
-		return nil, errors.New("RewardsCoordinator contract not provided")
+		return CumulativeClaimedResponse{}, errors.New("RewardsCoordinator contract not provided")
 	}
 
-	return r.rewardsCoordinator.CumulativeClaimed(&bind.CallOpts{Context: ctx}, earner, token)
+	claimed, err := r.rewardsCoordinator.CumulativeClaimed(
+		&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumber},
+		request.EarnerAddress,
+		request.TokenAddress,
+	)
+	if err != nil {
+		return CumulativeClaimedResponse{}, utils.WrapError("failed to get cumulative claimed", err)
+	}
+
+	return CumulativeClaimedResponse{CumulativeClaimed: claimed}, nil
 }
 
 func (r *ChainReader) CheckClaim(
 	ctx context.Context,
-	claim rewardscoordinator.IRewardsCoordinatorTypesRewardsMerkleClaim,
-) (bool, error) {
+	request ClaimRequest,
+) (ClaimResponse, error) {
 	if r.rewardsCoordinator == nil {
-		return false, errors.New("RewardsCoordinator contract not provided")
+		return ClaimResponse{}, errors.New("RewardsCoordinator contract not provided")
 	}
 
-	return r.rewardsCoordinator.CheckClaim(&bind.CallOpts{Context: ctx}, claim)
+	claim, err := r.rewardsCoordinator.CheckClaim(
+		&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumber},
+		request.Claim,
+	)
+	if err != nil {
+		return ClaimResponse{}, utils.WrapError("failed to check claim", err)
+	}
+
+	return ClaimResponse{ValidClaim: claim}, nil
 }
 
 func (r *ChainReader) GetOperatorAVSSplit(
