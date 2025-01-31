@@ -83,8 +83,8 @@ type RemovePendingAdminRequest struct {
 	WaitForReceipt bool
 }
 
-// ApprovalDigestHashRequest represents the request parameters required
-// to calculate the delegation approval digest hash.
+// ApprovalDigestHashRequest represents the request parameters required to calculate the delegation approval digest
+// hash. If `BlockNumber` is nil, the latest block will be used.
 type ApprovalDigestHashRequest struct {
 	BlockNumber       *big.Int
 	StakerAddress     common.Address
@@ -95,7 +95,7 @@ type ApprovalDigestHashRequest struct {
 }
 
 // AVSRegistrationDigestHashRequest represents the request required to calculate the operator AVS registration digest
-// hash
+// hash. If `BlockNumber` is nil, the latest block will be used
 type AVSRegistrationDigestHashRequest struct {
 	BlockNumber     *big.Int
 	OperatorAddress common.Address
@@ -110,6 +110,7 @@ type DigestHashResponse struct {
 }
 
 // This should be an specific struct like BlockNumberRequest?
+// If `BlockNumber` is nil, the latest block will be used
 type RootRequest struct {
 	BlockNumer *big.Int
 }
@@ -120,6 +121,7 @@ type RootLengthResponse struct {
 }
 
 // This should be an specific struct like BlockNumberRequest?
+// If `BlockNumber` is nil, the latest block will be used
 type RewardsEndTimestampRequest struct {
 	BlockNumber *big.Int
 }
@@ -134,7 +136,8 @@ type ClaimableDistributionRootResponse struct {
 	DistributionRoot rewardscoordinator.IRewardsCoordinatorTypesDistributionRoot
 }
 
-// RootHashRequest represents a request to retrieve the index of a root hash
+// RootHashRequest represents a request to retrieve the index of a root hash. If `BlockNumber` is nil, the latest block
+// will be used
 type RootHashRequest struct {
 	BlockNumber *big.Int
 	RootHash    [32]byte
@@ -146,7 +149,7 @@ type RootIndexResponse struct {
 }
 
 // CumulativeClaimedRequest represents a request to fetch the cumulative claimed rewards
-// for a specific earner address and token address
+// for a specific earner address and token address. If `BlockNumber` is nil, the latest block will be used
 type CumulativeClaimedRequest struct {
 	BlockNumber   *big.Int
 	EarnerAddress common.Address
@@ -158,7 +161,8 @@ type CumulativeClaimedResponse struct {
 	CumulativeClaimed *big.Int
 }
 
-// ClaimRequest represents a request to verify a claim.
+// ClaimRequest represents a request to verify a claim
+// If `BlockNumber` is nil, the latest block will be used
 type ClaimRequest struct {
 	BlockNumber *big.Int
 	Claim       rewardscoordinator.IRewardsCoordinatorTypesRewardsMerkleClaim
