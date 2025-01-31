@@ -4,6 +4,8 @@ import (
 	"math/big"
 
 	allocationmanager "github.com/Layr-Labs/eigensdk-go/contracts/bindings/AllocationManager"
+	erc20 "github.com/Layr-Labs/eigensdk-go/contracts/bindings/IERC20"
+	strategy "github.com/Layr-Labs/eigensdk-go/contracts/bindings/IStrategy"
 	"github.com/Layr-Labs/eigensdk-go/crypto/bls"
 	"github.com/Layr-Labs/eigensdk-go/types"
 
@@ -94,6 +96,22 @@ type OperatorResponse struct {
 	Operator types.Operator
 }
 
+type StrategyRequest struct {
+	BlockNumber     *big.Int
+	StrategyAddress common.Address
+}
+
+type StrategyTokenResponse struct {
+	StrategyContract strategy.ContractIStrategy
+	TokenAddress     common.Address
+}
+
+type StrategyERC20TokenResponse struct {
+	StrategyContract strategy.ContractIStrategy
+	ERC20Bindings    erc20.ContractIERC20Methods
+	TokenAddress     common.Address
+}
+
 type OperatorRegisterResponse struct {
 	IsRegistered bool
 }
@@ -110,4 +128,14 @@ type StakerSharesResponse struct {
 
 type DelegateOperatorResponse struct {
 	OperatorAddress common.Address
+}
+
+type SharesInStrategyRequest struct {
+	BlockNumber     *big.Int
+	OperatorAddress common.Address
+	StrategyAddress common.Address
+}
+
+type SharesResponse struct {
+	Shares *big.Int
 }

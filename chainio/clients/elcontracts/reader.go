@@ -198,57 +198,68 @@ func (r *ChainReader) GetOperatorDetails(
 // GetStrategyAndUnderlyingToken returns the strategy contract and the underlying token address
 func (r *ChainReader) GetStrategyAndUnderlyingToken(
 	ctx context.Context,
-	strategyAddr gethcommon.Address,
-) (*strategy.ContractIStrategy, gethcommon.Address, error) {
-	contractStrategy, err := strategy.NewContractIStrategy(strategyAddr, r.ethClient)
+	request StrategyRequest,
+) (StrategyTokenResponse, error) {
+	contractStrategy, err := strategy.NewContractIStrategy(request.StrategyAddress, r.ethClient)
 	// This call should not fail since it's an init
 	if err != nil {
-		return nil, gethcommon.Address{}, utils.WrapError("Failed to fetch strategy contract", err)
+		return StrategyTokenResponse{}, utils.WrapError("Failed to fetch strategy contract", err)
 	}
-	underlyingTokenAddr, err := contractStrategy.UnderlyingToken(&bind.CallOpts{Context: ctx})
+	underlyingTokenAddr, err := contractStrategy.UnderlyingToken(
+		&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumber},
+	)
 	if err != nil {
-		return nil, gethcommon.Address{}, utils.WrapError("Failed to fetch token contract", err)
+		return StrategyTokenResponse{}, utils.WrapError("Failed to fetch token contract", err)
 	}
-	return contractStrategy, underlyingTokenAddr, nil
+	return StrategyTokenResponse{StrategyContract: *contractStrategy, TokenAddress: underlyingTokenAddr}, nil
 }
 
 // GetStrategyAndUnderlyingERC20Token returns the strategy contract, the erc20 bindings for the underlying token
 // and the underlying token address
 func (r *ChainReader) GetStrategyAndUnderlyingERC20Token(
 	ctx context.Context,
-	strategyAddr gethcommon.Address,
-) (*strategy.ContractIStrategy, erc20.ContractIERC20Methods, gethcommon.Address, error) {
-	contractStrategy, err := strategy.NewContractIStrategy(strategyAddr, r.ethClient)
+	request StrategyRequest,
+) (StrategyERC20TokenResponse, error) {
+	contractStrategy, err := strategy.NewContractIStrategy(request.StrategyAddress, r.ethClient)
 	// This call should not fail since it's an init
 	if err != nil {
-		return nil, nil, gethcommon.Address{}, utils.WrapError("Failed to fetch strategy contract", err)
+		return StrategyERC20TokenResponse{}, utils.WrapError("Failed to fetch strategy contract", err)
 	}
 	underlyingTokenAddr, err := contractStrategy.UnderlyingToken(&bind.CallOpts{Context: ctx})
 	if err != nil {
-		return nil, nil, gethcommon.Address{}, utils.WrapError("Failed to fetch token contract", err)
+		return StrategyERC20TokenResponse{}, utils.WrapError("Failed to fetch token contract", err)
 	}
 	contractUnderlyingToken, err := erc20.NewContractIERC20(underlyingTokenAddr, r.ethClient)
 	// This call should not fail, if the strategy does not have an underlying token then it would enter the if above
 	if err != nil {
-		return nil, nil, gethcommon.Address{}, utils.WrapError("Failed to fetch token contract", err)
+		return StrategyERC20TokenResponse{}, utils.WrapError("Failed to fetch token contract", err)
 	}
-	return contractStrategy, contractUnderlyingToken, underlyingTokenAddr, nil
+
+	return StrategyERC20TokenResponse{
+		StrategyContract: *contractStrategy,
+		ERC20Bindings:    contractUnderlyingToken,
+		TokenAddress:     underlyingTokenAddr,
+	}, nil
 }
 
 func (r *ChainReader) GetOperatorSharesInStrategy(
 	ctx context.Context,
-	operatorAddr gethcommon.Address,
-	strategyAddr gethcommon.Address,
-) (*big.Int, error) {
+	request SharesInStrategyRequest,
+) (SharesResponse, error) {
 	if r.delegationManager == nil {
-		return &big.Int{}, errors.New("DelegationManager contract not provided")
+		return SharesResponse{}, errors.New("DelegationManager contract not provided")
 	}
 
-	return r.delegationManager.OperatorShares(
-		&bind.CallOpts{Context: ctx},
-		operatorAddr,
-		strategyAddr,
+	shares, err := r.delegationManager.OperatorShares(
+		&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumber},
+		request.OperatorAddress,
+		request.StrategyAddress,
 	)
+	if err != nil {
+		return SharesResponse{}, utils.WrapError("failed to get operator shares", err)
+	}
+
+	return SharesResponse{Shares: shares}, nil
 }
 
 func (r *ChainReader) CalculateDelegationApprovalDigestHash(
