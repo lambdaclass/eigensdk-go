@@ -28,34 +28,49 @@ func TestChainReader(t *testing.T) {
 	ctx := context.Background()
 
 	contractAddrs := testutils.GetContractAddressesFromContractRegistry(anvilHttpEndpoint)
+	operatorAddress := testutils.ANVIL_FIRST_ADDRESS
+
+	// REMOVE THIS WHEN FINISH WITH THE NEW INTERFACE
 	operator := types.Operator{
-		Address: testutils.ANVIL_FIRST_ADDRESS,
+		Address: operatorAddress,
+	}
+
+	operatorRequest := elcontracts.OperatorRequest{
+		OperatorAddress: common.HexToAddress(operatorAddress),
+	}
+
+	strategyAddr := contractAddrs.Erc20MockStrategy
+	strategyRequest := elcontracts.StrategyRequest{
+		StrategyAddress: strategyAddr,
+	}
+
+	stakerRequest := elcontracts.StakerRequest{
+		StakerAddress: common.HexToAddress(operatorAddress),
 	}
 
 	t.Run("is operator registered", func(t *testing.T) {
-		isOperator, err := read_clients.ElChainReader.IsOperatorRegistered(ctx, operator)
+		response, err := read_clients.ElChainReader.IsOperatorRegistered(ctx, operatorRequest)
 		assert.NoError(t, err)
-		assert.Equal(t, isOperator, true)
+		assert.Equal(t, response.IsRegistered, true)
 	})
 
 	t.Run("get operator details", func(t *testing.T) {
-		operatorDetails, err := read_clients.ElChainReader.GetOperatorDetails(ctx, operator)
+		response, err := read_clients.ElChainReader.GetOperatorDetails(ctx, operatorRequest)
 		assert.NoError(t, err)
-		assert.NotNil(t, operatorDetails)
-		assert.Equal(t, operator.Address, operatorDetails.Address)
+		assert.NotNil(t, response)
+		assert.Equal(t, operatorRequest.OperatorAddress.Hex(), response.Operator.Address)
 	})
 
 	t.Run("get strategy and underlying token", func(t *testing.T) {
-		strategyAddr := contractAddrs.Erc20MockStrategy
-		strategy, underlyingTokenAddr, err := read_clients.ElChainReader.GetStrategyAndUnderlyingToken(
+		response, err := read_clients.ElChainReader.GetStrategyAndUnderlyingToken(
 			ctx,
-			strategyAddr,
+			strategyRequest,
 		)
 		assert.NoError(t, err)
-		assert.NotNil(t, strategy)
-		assert.NotEqual(t, common.Address{}, underlyingTokenAddr)
+		assert.NotNil(t, response)
+		assert.NotEqual(t, common.Address{}, response.UnderlyingTokenAddress)
 
-		erc20Token, err := erc20.NewContractIERC20(underlyingTokenAddr, read_clients.EthHttpClient)
+		erc20Token, err := erc20.NewContractIERC20(response.UnderlyingTokenAddress, read_clients.EthHttpClient)
 		assert.NoError(t, err)
 
 		tokenName, err := erc20Token.Name(&bind.CallOpts{})
@@ -64,29 +79,31 @@ func TestChainReader(t *testing.T) {
 	})
 
 	t.Run("get strategy and underlying ERC20 token", func(t *testing.T) {
-		strategyAddr := contractAddrs.Erc20MockStrategy
-		strategy, contractUnderlyingToken, underlyingTokenAddr, err := read_clients.ElChainReader.GetStrategyAndUnderlyingERC20Token(
+		erc20Response, err := read_clients.ElChainReader.GetStrategyAndUnderlyingERC20Token(
 			ctx,
-			strategyAddr,
+			strategyRequest,
 		)
 		assert.NoError(t, err)
-		assert.NotNil(t, strategy)
-		assert.NotEqual(t, common.Address{}, underlyingTokenAddr)
-		assert.NotNil(t, contractUnderlyingToken)
+		assert.NotNil(t, erc20Response)
+		assert.NotEqual(t, common.Address{}, erc20Response.UnderlyingTokenAddress)
+		assert.NotNil(t, erc20Response.UnderlyingERC20Contract)
 
-		tokenName, err := contractUnderlyingToken.Name(&bind.CallOpts{})
+		tokenName, err := erc20Response.UnderlyingERC20Contract.Name(&bind.CallOpts{})
 		assert.NoError(t, err)
 		assert.NotEmpty(t, tokenName)
 	})
 
 	t.Run("get operator shares in strategy", func(t *testing.T) {
-		shares, err := read_clients.ElChainReader.GetOperatorSharesInStrategy(
+		shareRequest := elcontracts.SharesInStrategyRequest{
+			OperatorAddress: common.HexToAddress(operatorAddress),
+			StrategyAddress: strategyAddr,
+		}
+		sharesResponse, err := read_clients.ElChainReader.GetOperatorSharesInStrategy(
 			ctx,
-			common.HexToAddress(operator.Address),
-			contractAddrs.Erc20MockStrategy,
+			shareRequest,
 		)
 		assert.NoError(t, err)
-		assert.NotZero(t, shares)
+		assert.NotZero(t, sharesResponse.Shares)
 	})
 
 	t.Run("calculate delegation approval digest hash", func(t *testing.T) {
@@ -122,27 +139,33 @@ func TestChainReader(t *testing.T) {
 	})
 
 	t.Run("get staker shares", func(t *testing.T) {
-		strategies, shares, err := read_clients.ElChainReader.GetStakerShares(
+		stakerSharesRequest := elcontracts.StakerRequest{
+			StakerAddress: common.HexToAddress(operatorAddress),
+		}
+		sharesResponse, err := read_clients.ElChainReader.GetStakerShares(
 			ctx,
-			common.HexToAddress(operator.Address),
+			stakerSharesRequest,
 		)
-		assert.NotZero(t, len(strategies), "Strategies has at least one element")
-		assert.NotZero(t, len(shares), "Shares has at least one element")
-		assert.Equal(t, len(strategies), len(shares), "Strategies has the same ammount of elements as shares")
+		assert.NotZero(t, len(sharesResponse.StrategiesAddresses), "Strategies has at least one element")
+		assert.NotZero(t, len(sharesResponse.Shares), "Shares has at least one element")
+		assert.Equal(
+			t,
+			len(sharesResponse.StrategiesAddresses),
+			len(sharesResponse.Shares),
+			"Strategies has the same ammount of elements as shares",
+		)
 		assert.NoError(t, err)
 	})
 
 	t.Run("get delegated operator", func(t *testing.T) {
-		blockNumber := big.NewInt(0)
-		address, err := read_clients.ElChainReader.GetDelegatedOperator(
+		operatorResponse, err := read_clients.ElChainReader.GetDelegatedOperator(
 			ctx,
-			common.HexToAddress(operator.Address),
-			blockNumber,
+			stakerRequest,
 		)
 
 		assert.NoError(t, err)
 		// The delegated operator of an operator is the operator itself
-		assert.Equal(t, address.String(), operator.Address)
+		assert.Equal(t, operatorResponse.OperatorAddress.String(), operator.Address)
 	})
 
 	t.Run("GetOperatorShares", func(t *testing.T) {
@@ -408,6 +431,10 @@ func TestGetCumulativeClaimedRewards(t *testing.T) {
 	}
 	privateKeyHex := testutils.ANVIL_FIRST_PRIVATE_KEY
 
+	strategyRequest := elcontracts.StrategyRequest{
+		StrategyAddress: contractAddrs.Erc20MockStrategy,
+	}
+
 	// Create ChainWriter
 	chainWriter, err := testclients.NewTestChainWriterFromConfig(anvilHttpEndpoint, privateKeyHex, config)
 	require.NoError(t, err)
@@ -421,20 +448,19 @@ func TestGetCumulativeClaimedRewards(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, receipt.Status == gethtypes.ReceiptStatusSuccessful)
 
-	strategyAddr := contractAddrs.Erc20MockStrategy
-	strategy, contractUnderlyingToken, underlyingTokenAddr, err := clients.ElChainReader.GetStrategyAndUnderlyingERC20Token(
+	response, err := clients.ElChainReader.GetStrategyAndUnderlyingERC20Token(
 		ctx,
-		strategyAddr,
+		strategyRequest,
 	)
 	assert.NoError(t, err)
-	assert.NotNil(t, strategy)
-	assert.NotEqual(t, common.Address{}, underlyingTokenAddr)
-	assert.NotNil(t, contractUnderlyingToken)
+	assert.NotNil(t, response.StrategyContract)
+	assert.NotEqual(t, common.Address{}, response.UnderlyingTokenAddress)
+	assert.NotNil(t, response.UnderlyingERC20Contract)
 
 	anvil_address := common.HexToAddress(testutils.ANVIL_FIRST_ADDRESS)
 
 	// This tests that without claims result is zero
-	claimed, err := chainReader.GetCumulativeClaimed(ctx, anvil_address, underlyingTokenAddr)
+	claimed, err := chainReader.GetCumulativeClaimed(ctx, anvil_address, response.UnderlyingTokenAddress)
 	assert.Zero(t, claimed.Cmp(big.NewInt(0)))
 	assert.NoError(t, err)
 
@@ -447,7 +473,7 @@ func TestGetCumulativeClaimedRewards(t *testing.T) {
 	require.True(t, receipt.Status == gethtypes.ReceiptStatusSuccessful)
 
 	// This tests that with a claim result is cumulativeEarnings
-	claimed, err = chainReader.GetCumulativeClaimed(ctx, anvil_address, underlyingTokenAddr)
+	claimed, err = chainReader.GetCumulativeClaimed(ctx, anvil_address, response.UnderlyingTokenAddress)
 	assert.Equal(t, claimed, big.NewInt(cumulativeEarnings))
 	assert.NoError(t, err)
 }
@@ -464,6 +490,10 @@ func TestCheckClaim(t *testing.T) {
 		RewardsCoordinatorAddress: rewardsCoordinatorAddr,
 	}
 	privateKeyHex := testutils.ANVIL_FIRST_PRIVATE_KEY
+
+	strategyRequest := elcontracts.StrategyRequest{
+		StrategyAddress: contractAddrs.Erc20MockStrategy,
+	}
 
 	// Create ChainWriter and chain reader
 	chainWriter, err := testclients.NewTestChainWriterFromConfig(anvilHttpEndpoint, privateKeyHex, config)
@@ -486,15 +516,14 @@ func TestCheckClaim(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, receipt.Status == gethtypes.ReceiptStatusSuccessful)
 
-	strategyAddr := contractAddrs.Erc20MockStrategy
-	strategy, contractUnderlyingToken, underlyingTokenAddr, err := clients.ElChainReader.GetStrategyAndUnderlyingERC20Token(
+	response, err := clients.ElChainReader.GetStrategyAndUnderlyingERC20Token(
 		ctx,
-		strategyAddr,
+		strategyRequest,
 	)
 	assert.NoError(t, err)
-	assert.NotNil(t, strategy)
-	assert.NotEqual(t, common.Address{}, underlyingTokenAddr)
-	assert.NotNil(t, contractUnderlyingToken)
+	assert.NotNil(t, response.StrategyContract)
+	assert.NotEqual(t, common.Address{}, response.UnderlyingTokenAddress)
+	assert.NotNil(t, response.UnderlyingERC20Contract)
 
 	checked, err := chainReader.CheckClaim(ctx, *claim)
 	require.NoError(t, err)
@@ -582,15 +611,15 @@ func TestGetAllocatableMagnitudeAndGetMaxMagnitudes(t *testing.T) {
 	assert.Equal(t, maxMagnitudes[0], allocable+allocatable_reduction)
 
 	// Check that the new allocationDelay is equal to delay
-	op := types.Operator{
-		Address: operatorAddr.String(),
+	operatorRequest := elcontracts.OperatorRequest{
+		OperatorAddress: operatorAddr,
 	}
 
-	operatorDetails, err := chainReader.GetOperatorDetails(ctx, op)
+	response, err := chainReader.GetOperatorDetails(ctx, operatorRequest)
 	assert.NoError(t, err)
-	assert.NotNil(t, operatorDetails)
-	assert.Equal(t, op.Address, operatorDetails.Address)
-	assert.Equal(t, delay, operatorDetails.AllocationDelay)
+	assert.NotNil(t, response.Operator)
+	assert.Equal(t, operatorRequest.OperatorAddress.Hex(), response.Operator.Address)
+	assert.Equal(t, delay, response.Operator.AllocationDelay)
 }
 
 func TestAdminFunctions(t *testing.T) {
@@ -767,15 +796,16 @@ func TestContractErrorCases(t *testing.T) {
 
 	// This address does not belong to a Token contract
 	strategyAddr := common.HexToAddress("34634374736473673643")
+	strategyRequest := elcontracts.StrategyRequest{StrategyAddress: strategyAddr}
 
 	t.Run("GetStrategyAndUnderlyingToken", func(t *testing.T) {
-		_, _, err := chainReader.GetStrategyAndUnderlyingToken(ctx, strategyAddr)
+		_, err := chainReader.GetStrategyAndUnderlyingToken(ctx, strategyRequest)
 		assert.Error(t, err)
 		assert.Equal(t, err.Error(), "Failed to fetch token contract: no contract code at given address")
 	})
 
 	t.Run("GetStrategyAndUnderlyingERC20Token", func(t *testing.T) {
-		_, _, _, err := chainReader.GetStrategyAndUnderlyingERC20Token(ctx, strategyAddr)
+		_, err := chainReader.GetStrategyAndUnderlyingERC20Token(ctx, strategyRequest)
 		assert.Error(t, err)
 		assert.Equal(t, err.Error(), "Failed to fetch token contract: no contract code at given address")
 	})
@@ -795,6 +825,7 @@ func TestInvalidConfig(t *testing.T) {
 	operator := types.Operator{
 		Address: operatorAddr,
 	}
+	operatorRequest := elcontracts.OperatorRequest{OperatorAddress: common.HexToAddress(operatorAddr)}
 
 	config := elcontracts.Config{}
 	chainReader, err := testclients.NewTestChainReaderFromConfig(anvilHttpEndpoint, config)
@@ -802,13 +833,13 @@ func TestInvalidConfig(t *testing.T) {
 
 	t.Run("try to check if operator is registered with invalid config", func(t *testing.T) {
 		// IsOperatorRegistered needs a correct DelegationManagerAddress
-		_, err := chainReader.IsOperatorRegistered(context.Background(), operator)
+		_, err := chainReader.IsOperatorRegistered(context.Background(), operatorRequest)
 		require.Error(t, err)
 	})
 
 	t.Run("get operator details with invalid config", func(t *testing.T) {
 		// GetOperatorDetails needs a correct DelegationManagerAddress
-		_, err := chainReader.GetOperatorDetails(context.Background(), operator)
+		_, err := chainReader.GetOperatorDetails(context.Background(), operatorRequest)
 		require.Error(t, err)
 	})
 
@@ -827,17 +858,23 @@ func TestInvalidConfig(t *testing.T) {
 	t.Run("try to get strategy and underlying token with wrong strategy address", func(t *testing.T) {
 		// Invalid strategy address
 		strategyAddr := common.HexToAddress(testutils.ANVIL_FIRST_ADDRESS)
+		strategyRequest := elcontracts.StrategyRequest{StrategyAddress: strategyAddr}
+
 		operatorAddr := common.HexToAddress(testutils.ANVIL_SECOND_ADDRESS)
+		sharesStrategyRequest := elcontracts.SharesInStrategyRequest{
+			OperatorAddress: operatorAddr,
+			StrategyAddress: strategyAddr,
+		}
 
 		// GetOperatorSharesInStrategy needs a correct DelegationManagerAddress
-		_, err := chainReader.GetOperatorSharesInStrategy(context.Background(), operatorAddr, strategyAddr)
+		_, err := chainReader.GetOperatorSharesInStrategy(context.Background(), sharesStrategyRequest)
 		require.Error(t, err)
 
 		// GetStrategyAndUnderlyingToken needs a correct StrategyAddress
-		_, _, err = chainReader.GetStrategyAndUnderlyingToken(context.Background(), strategyAddr)
+		_, err = chainReader.GetStrategyAndUnderlyingToken(context.Background(), strategyRequest)
 		require.Error(t, err)
 
-		_, _, _, err = chainReader.GetStrategyAndUnderlyingERC20Token(context.Background(), strategyAddr)
+		_, err = chainReader.GetStrategyAndUnderlyingERC20Token(context.Background(), strategyRequest)
 		require.Error(t, err)
 	})
 
@@ -925,16 +962,21 @@ func TestInvalidConfig(t *testing.T) {
 
 	t.Run("try to get a staker shares with invalid config", func(t *testing.T) {
 		// GetStakerShares needs a correct DelegationManagerAddress
-		_, _, err := chainReader.GetStakerShares(context.Background(), common.HexToAddress(operator.Address))
+		stakerRequest := elcontracts.StakerRequest{
+			StakerAddress: common.HexToAddress(testutils.ANVIL_FIRST_ADDRESS),
+		}
+		_, err := chainReader.GetStakerShares(context.Background(), stakerRequest)
 		require.Error(t, err)
 	})
 
 	t.Run("try to get the delegated operator shares with invalid config", func(t *testing.T) {
 		// GetDelegatedOperator needs a correct DelegationManagerAddress
+		stakerRequest := elcontracts.StakerRequest{
+			StakerAddress: common.HexToAddress(testutils.ANVIL_FIRST_ADDRESS),
+		}
 		_, err := chainReader.GetDelegatedOperator(
 			context.Background(),
-			common.HexToAddress(operator.Address),
-			big.NewInt(0),
+			stakerRequest,
 		)
 		require.Error(t, err)
 	})

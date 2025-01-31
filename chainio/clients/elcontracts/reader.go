@@ -211,7 +211,7 @@ func (r *ChainReader) GetStrategyAndUnderlyingToken(
 	if err != nil {
 		return StrategyTokenResponse{}, utils.WrapError("Failed to fetch token contract", err)
 	}
-	return StrategyTokenResponse{StrategyContract: *contractStrategy, TokenAddress: underlyingTokenAddr}, nil
+	return StrategyTokenResponse{StrategyContract: *contractStrategy, UnderlyingTokenAddress: underlyingTokenAddr}, nil
 }
 
 // GetStrategyAndUnderlyingERC20Token returns the strategy contract, the erc20 bindings for the underlying token
@@ -225,7 +225,9 @@ func (r *ChainReader) GetStrategyAndUnderlyingERC20Token(
 	if err != nil {
 		return StrategyERC20TokenResponse{}, utils.WrapError("Failed to fetch strategy contract", err)
 	}
-	underlyingTokenAddr, err := contractStrategy.UnderlyingToken(&bind.CallOpts{Context: ctx})
+	underlyingTokenAddr, err := contractStrategy.UnderlyingToken(
+		&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumber},
+	)
 	if err != nil {
 		return StrategyERC20TokenResponse{}, utils.WrapError("Failed to fetch token contract", err)
 	}

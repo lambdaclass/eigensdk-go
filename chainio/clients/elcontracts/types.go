@@ -102,8 +102,8 @@ type StrategyRequest struct {
 }
 
 type StrategyTokenResponse struct {
-	StrategyContract strategy.ContractIStrategy
-	TokenAddress     common.Address
+	StrategyContract       strategy.ContractIStrategy
+	UnderlyingTokenAddress common.Address
 }
 
 type StrategyERC20TokenResponse struct {
