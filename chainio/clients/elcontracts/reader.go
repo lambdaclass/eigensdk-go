@@ -101,8 +101,7 @@ func (r *ChainReader) IsOperatorRegistered(
 
 	isRegistered, err := r.delegationManager.IsOperator(
 		&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumber},
-		gethcommon.HexToAddress(request.Operator.Address),
-	)
+		request.OperatorAddress)
 	if err != nil {
 		return OperatorRegisterResponse{}, utils.WrapError("failed to check if operator is registered", err)
 	}
@@ -114,52 +113,70 @@ func (r *ChainReader) IsOperatorRegistered(
 // shares
 func (r *ChainReader) GetStakerShares(
 	ctx context.Context,
-	stakerAddress gethcommon.Address,
-) ([]gethcommon.Address, []*big.Int, error) {
+	request StakerRequest,
+) (StakerSharesResponse, error) {
 	if r.delegationManager == nil {
-		return nil, nil, errors.New("DelegationManager contract not provided")
+		return StakerSharesResponse{}, errors.New("DelegationManager contract not provided")
 	}
-	return r.delegationManager.GetDepositedShares(&bind.CallOpts{Context: ctx}, stakerAddress)
+
+	strategies, shares, err := r.delegationManager.GetDepositedShares(
+		&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumber},
+		request.StakerAddress,
+	)
+	if err != nil {
+		return StakerSharesResponse{}, utils.WrapError("failed to get staker shares", err)
+	}
+
+	return StakerSharesResponse{StrategiesAddresses: strategies, Shares: shares}, nil
 }
 
 // GetDelegatedOperator returns the operator that a staker has delegated to
 func (r *ChainReader) GetDelegatedOperator(
 	ctx context.Context,
-	stakerAddress gethcommon.Address,
-	blockNumber *big.Int,
-) (gethcommon.Address, error) {
+	request StakerRequest,
+) (DelegateOperatorResponse, error) {
 	if r.delegationManager == nil {
-		return gethcommon.Address{}, errors.New("DelegationManager contract not provided")
+		return DelegateOperatorResponse{}, errors.New("DelegationManager contract not provided")
 	}
-	return r.delegationManager.DelegatedTo(&bind.CallOpts{Context: ctx}, stakerAddress)
+
+	operatorAddress, err := r.delegationManager.DelegatedTo(
+		&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumber},
+		request.StakerAddress,
+	)
+	if err != nil {
+		return DelegateOperatorResponse{}, utils.WrapError("failed to get delegated operator", err)
+	}
+
+	return DelegateOperatorResponse{OperatorAddress: operatorAddress}, nil
 }
 
 func (r *ChainReader) GetOperatorDetails(
 	ctx context.Context,
-	operator types.Operator,
-) (types.Operator, error) {
+	request OperatorRequest,
+) (OperatorResponse, error) {
 	if r.delegationManager == nil {
-		return types.Operator{}, errors.New("DelegationManager contract not provided")
+		return OperatorResponse{}, errors.New("DelegationManager contract not provided")
 	}
 
 	delegationManagerAddress, err := r.delegationManager.DelegationApprover(
 		&bind.CallOpts{Context: ctx},
-		gethcommon.HexToAddress(operator.Address),
+		request.OperatorAddress,
 	)
 	// This call should not fail since it's a getter
 	if err != nil {
-		return types.Operator{}, err
+		return OperatorResponse{}, err
 	}
 
 	isSet, delay, err := r.allocationManager.GetAllocationDelay(
 		&bind.CallOpts{
-			Context: ctx,
+			Context:     ctx,
+			BlockNumber: request.BlockNumber,
 		},
-		gethcommon.HexToAddress(operator.Address),
+		request.OperatorAddress,
 	)
 	// This call should not fail
 	if err != nil {
-		return types.Operator{}, err
+		return OperatorResponse{}, err
 	}
 
 	var allocationDelay uint32
@@ -169,11 +186,13 @@ func (r *ChainReader) GetOperatorDetails(
 		allocationDelay = 0
 	}
 
-	return types.Operator{
-		Address:                   operator.Address,
+	operatorDetails := types.Operator{
+		Address:                   request.OperatorAddress.Hex(),
 		DelegationApproverAddress: delegationManagerAddress.Hex(),
 		AllocationDelay:           allocationDelay,
-	}, nil
+	}
+
+	return OperatorResponse{Operator: operatorDetails}, nil
 }
 
 // GetStrategyAndUnderlyingToken returns the strategy contract and the underlying token address

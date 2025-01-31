@@ -86,10 +86,28 @@ type RemovePendingAdminRequest struct {
 // READER TYPES
 
 type OperatorRequest struct {
-	BlockNumber *big.Int
-	Operator    types.Operator
+	BlockNumber     *big.Int
+	OperatorAddress common.Address
+}
+
+type OperatorResponse struct {
+	Operator types.Operator
 }
 
 type OperatorRegisterResponse struct {
 	IsRegistered bool
+}
+
+type StakerRequest struct {
+	BlockNumber   *big.Int
+	StakerAddress common.Address
+}
+
+type StakerSharesResponse struct {
+	StrategiesAddresses []common.Address
+	Shares              []*big.Int
+}
+
+type DelegateOperatorResponse struct {
+	OperatorAddress common.Address
 }
