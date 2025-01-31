@@ -148,23 +148,21 @@ func TestChainReader(t *testing.T) {
 	t.Run("GetOperatorShares", func(t *testing.T) {
 		strategyAddr := contractAddrs.Erc20MockStrategy
 		strategies := []common.Address{strategyAddr}
-		shares, err := read_clients.ElChainReader.GetOperatorShares(
-			ctx,
-			common.HexToAddress(operator.Address),
-			strategies,
-		)
+		request := elcontracts.OperatorStrategiesRequest{
+			OperatorAddress:   common.HexToAddress(operator.Address),
+			StrategyAddresses: strategies,
+		}
+
+		response, err := read_clients.ElChainReader.GetOperatorShares(ctx, request)
 		assert.NoError(t, err)
-		assert.Len(t, shares, 1)
+		assert.Len(t, response.Shares, 1)
 
 		// with n strategies, response's list length is n
 		strategies = []common.Address{strategyAddr, strategyAddr, strategyAddr}
-		shares, err = read_clients.ElChainReader.GetOperatorShares(
-			ctx,
-			common.HexToAddress(operator.Address),
-			strategies,
-		)
+		request.StrategyAddresses = strategies
+		response, err = read_clients.ElChainReader.GetOperatorShares(ctx, request)
 		assert.NoError(t, err)
-		assert.Len(t, shares, 3)
+		assert.Len(t, response.Shares, 3)
 
 		// We could test modify the shares and verify the diff is the expected
 	})
@@ -174,45 +172,37 @@ func TestChainReader(t *testing.T) {
 		operators := []common.Address{operatorAddr}
 		strategyAddr := contractAddrs.Erc20MockStrategy
 		strategies := []common.Address{strategyAddr}
-		shares, err := read_clients.ElChainReader.GetOperatorsShares(
-			ctx,
-			operators,
-			strategies,
-		)
+		request := elcontracts.OperatorsStrategiesRequest{
+			OperatorAddresses: operators,
+			StrategyAddresses: strategies,
+		}
+		response, err := read_clients.ElChainReader.GetOperatorsShares(ctx, request)
 		assert.NoError(t, err)
-		assert.Len(t, shares, 1)
+		assert.Len(t, response.Shares, 1)
 
 		// with n strategies, response's list length is [1][n]
 		mult_strategies := []common.Address{strategyAddr, strategyAddr, strategyAddr}
-		shares, err = read_clients.ElChainReader.GetOperatorsShares(
-			ctx,
-			operators,
-			mult_strategies,
-		)
+		request.StrategyAddresses = mult_strategies
+		response, err = read_clients.ElChainReader.GetOperatorsShares(ctx, request)
 		assert.NoError(t, err)
-		assert.Len(t, shares, 1)
-		assert.Len(t, shares[0], 3)
+		assert.Len(t, response.Shares, 1)
+		assert.Len(t, response.Shares[0], 3)
 
 		// with n strategies, response's list length is [n][1]
 		mult_operators := []common.Address{operatorAddr, operatorAddr, operatorAddr}
-		shares, err = read_clients.ElChainReader.GetOperatorsShares(
-			ctx,
-			mult_operators,
-			strategies,
-		)
+		request.OperatorAddresses = mult_operators
+		request.StrategyAddresses = strategies
+		response, err = read_clients.ElChainReader.GetOperatorsShares(ctx, request)
 		assert.NoError(t, err)
-		assert.Len(t, shares, 3)
-		assert.Len(t, shares[0], 1)
+		assert.Len(t, response.Shares, 3)
+		assert.Len(t, response.Shares[0], 1)
 
 		// with n strategies and n operators, response's list length is [n][n]
-		shares, err = read_clients.ElChainReader.GetOperatorsShares(
-			ctx,
-			mult_operators,
-			mult_strategies,
-		)
+		request.StrategyAddresses = mult_strategies
+		response, err = read_clients.ElChainReader.GetOperatorsShares(ctx, request)
 		assert.NoError(t, err)
-		assert.Len(t, shares, 3)
-		assert.Len(t, shares[2], 3)
+		assert.Len(t, response.Shares, 3)
+		assert.Len(t, response.Shares[2], 3)
 	})
 }
 
@@ -528,14 +518,21 @@ func TestGetAllocatableMagnitudeAndGetMaxMagnitudes(t *testing.T) {
 	operatorSetId := uint32(1)
 
 	strategies := []common.Address{strategyAddr}
-	maxMagnitudes, err := chainReader.GetMaxMagnitudes(ctx, testAddr, strategies)
+	magnitureResponse, err := chainReader.GetMaxMagnitudes(
+		ctx,
+		elcontracts.OperatorStrategiesRequest{OperatorAddress: testAddr, StrategyAddresses: strategies},
+	)
 	assert.NoError(t, err)
 
 	// Assert that at the beginning, Allocatable Magnitude is Max allocatable magnitude
-	allocable, err := chainReader.GetAllocatableMagnitude(ctx, testAddr, strategyAddr)
+	requestOpsStrategies := elcontracts.OperatorStrategyRequest{
+		OperatorAddress: testAddr,
+		StrategyAddress: strategyAddr,
+	}
+	allocatableResponse, err := chainReader.GetAllocatableMagnitude(ctx, requestOpsStrategies)
 	assert.NoError(t, err)
 
-	assert.Equal(t, maxMagnitudes[0], allocable)
+	assert.Equal(t, magnitureResponse.MaxMagnitudes[0], allocatableResponse.Allocatable)
 
 	// Reduce allocatable magnitude for testAddr
 	privateKeyHex := testutils.ANVIL_FIRST_PRIVATE_KEY
@@ -577,9 +574,9 @@ func TestGetAllocatableMagnitudeAndGetMaxMagnitudes(t *testing.T) {
 	require.Equal(t, gethtypes.ReceiptStatusSuccessful, receipt.Status)
 
 	// Assert that after stake reduction, Allocatable Magnitude + reduction ammount equals Max allocatable magnitude
-	allocable, err = chainReader.GetAllocatableMagnitude(ctx, testAddr, strategyAddr)
+	allocatableResponse, err = chainReader.GetAllocatableMagnitude(ctx, requestOpsStrategies)
 	assert.NoError(t, err)
-	assert.Equal(t, maxMagnitudes[0], allocable+allocatable_reduction)
+	assert.Equal(t, magnitureResponse.MaxMagnitudes[0], allocatableResponse.Allocatable+allocatable_reduction)
 
 	// Check that the new allocationDelay is equal to delay
 	op := types.Operator{
@@ -815,12 +812,11 @@ func TestInvalidConfig(t *testing.T) {
 	t.Run("get operator avs", func(t *testing.T) {
 		_, err = chainReader.GetOperatorAVSSplit(
 			context.Background(),
-			common.HexToAddress(operatorAddr),
-			common.MaxAddress,
+			elcontracts.OperatorAVSSplitRequest{},
 		)
 		require.Error(t, err)
 
-		_, err = chainReader.GetOperatorPISplit(context.Background(), common.HexToAddress(operatorAddr))
+		_, err = chainReader.GetOperatorPISplit(context.Background(), elcontracts.OperatorRequest{})
 		require.Error(t, err)
 	})
 
@@ -880,9 +876,6 @@ func TestInvalidConfig(t *testing.T) {
 	})
 
 	t.Run("get magnitudes, rewards and claims with invalid config", func(t *testing.T) {
-		contractAddrs := testutils.GetContractAddressesFromContractRegistry(anvilHttpEndpoint)
-		strategyAddr := contractAddrs.Erc20MockStrategy
-
 		_, err = chainReader.GetCurrentClaimableDistributionRoot(context.Background())
 		require.Error(t, err)
 
@@ -893,21 +886,16 @@ func TestInvalidConfig(t *testing.T) {
 		)
 		require.Error(t, err)
 
-		_, err = chainReader.GetMaxMagnitudes(
-			context.Background(),
-			common.HexToAddress(operatorAddr),
-			[]common.Address{strategyAddr},
-		)
+		_, err = chainReader.GetMaxMagnitudes(context.Background(), elcontracts.OperatorStrategiesRequest{})
 		require.Error(t, err)
 
 		_, err = chainReader.GetAllocatableMagnitude(
 			context.Background(),
-			common.HexToAddress(operatorAddr),
-			strategyAddr,
+			elcontracts.OperatorStrategyRequest{},
 		)
 		require.Error(t, err)
 
-		_, err = chainReader.GetAllocationInfo(context.Background(), common.HexToAddress(operatorAddr), strategyAddr)
+		_, err = chainReader.GetAllocationInfo(context.Background(), elcontracts.OperatorStrategyRequest{})
 		require.Error(t, err)
 
 		_, err = chainReader.GetAllocationDelay(context.Background(), common.HexToAddress(operatorAddr))
