@@ -328,70 +328,104 @@ func (r *ChainReader) CheckClaim(
 	return r.rewardsCoordinator.CheckClaim(&bind.CallOpts{Context: ctx}, claim)
 }
 
+// GetOperatorAVSSplit returns the split for a specific operator for a specific avs
 func (r *ChainReader) GetOperatorAVSSplit(
 	ctx context.Context,
-	operator gethcommon.Address,
-	avs gethcommon.Address,
-) (uint16, error) {
+	request OperatorAVSSplitRequest,
+) (SplitResponse, error) {
 	if r.rewardsCoordinator == nil {
-		return 0, errors.New("RewardsCoordinator contract not provided")
+		return SplitResponse{}, errors.New("RewardsCoordinator contract not provided")
 	}
 
-	return r.rewardsCoordinator.GetOperatorAVSSplit(&bind.CallOpts{Context: ctx}, operator, avs)
+	split, err := r.rewardsCoordinator.GetOperatorAVSSplit(
+		&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumber},
+		request.OperatorAddress,
+		request.AVSAddress,
+	)
+	if err != nil {
+		return SplitResponse{}, utils.WrapError("failed to get operator AVS split", err)
+	}
+
+	return SplitResponse{Split: split}, nil
 }
 
+// GetOperatorPISplit returns the split for a specific operator
 func (r *ChainReader) GetOperatorPISplit(
 	ctx context.Context,
-	operator gethcommon.Address,
-) (uint16, error) {
+	request OperatorRequest,
+) (SplitResponse, error) {
 	if r.rewardsCoordinator == nil {
-		return 0, errors.New("RewardsCoordinator contract not provided")
+		return SplitResponse{}, errors.New("RewardsCoordinator contract not provided")
 	}
 
-	return r.rewardsCoordinator.GetOperatorPISplit(&bind.CallOpts{Context: ctx}, operator)
+	split, err := r.rewardsCoordinator.GetOperatorPISplit(
+		&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumber},
+		request.OperatorAddress,
+	)
+	if err != nil {
+		return SplitResponse{}, utils.WrapError("failed to get operator PI split", err)
+	}
+
+	return SplitResponse{Split: split}, nil
 }
 
+// GetAllocatableMagnitude returns the amount of magnitude that an operator can allocate to a strategy
 func (r *ChainReader) GetAllocatableMagnitude(
 	ctx context.Context,
-	operatorAddress gethcommon.Address,
-	strategyAddress gethcommon.Address,
-) (uint64, error) {
+	request OperatorStrategyRequest,
+) (AllocatableResponse, error) {
 	if r.allocationManager == nil {
-		return 0, errors.New("AllocationManager contract not provided")
+		return AllocatableResponse{}, errors.New("AllocationManager contract not provided")
 	}
 
-	return r.allocationManager.GetAllocatableMagnitude(&bind.CallOpts{Context: ctx}, operatorAddress, strategyAddress)
+	allocatable, err := r.allocationManager.GetAllocatableMagnitude(
+		&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumber},
+		request.OperatorAddress,
+		request.StrategyAddress,
+	)
+	if err != nil {
+		return AllocatableResponse{}, utils.WrapError("failed to get allocatable magnitude", err)
+	}
+
+	return AllocatableResponse{Allocatable: allocatable}, nil
 }
 
 func (r *ChainReader) GetMaxMagnitudes(
 	ctx context.Context,
-	operatorAddress gethcommon.Address,
-	strategyAddresses []gethcommon.Address,
-) ([]uint64, error) {
+	request OperatorStrategiesRequest,
+) (MaxMagnitudesResponse, error) {
 	if r.allocationManager == nil {
-		return []uint64{}, errors.New("AllocationManager contract not provided")
+		return MaxMagnitudesResponse{}, errors.New("AllocationManager contract not provided")
 	}
 
-	return r.allocationManager.GetMaxMagnitudes0(&bind.CallOpts{Context: ctx}, operatorAddress, strategyAddresses)
+	maxMagnitudes, err := r.allocationManager.GetMaxMagnitudes0(
+		&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumber},
+		request.OperatorAddress,
+		request.StrategyAddresses,
+	)
+	if err != nil {
+		return MaxMagnitudesResponse{}, utils.WrapError("failed to get max magnitudes", err)
+	}
+
+	return MaxMagnitudesResponse{MaxMagnitudes: maxMagnitudes}, nil
 }
 
 func (r *ChainReader) GetAllocationInfo(
 	ctx context.Context,
-	operatorAddress gethcommon.Address,
-	strategyAddress gethcommon.Address,
-) ([]AllocationInfo, error) {
+	request OperatorStrategyRequest,
+) (AllocationResponse, error) {
 	if r.allocationManager == nil {
-		return nil, errors.New("AllocationManager contract not provided")
+		return AllocationResponse{}, errors.New("AllocationManager contract not provided")
 	}
 
 	opSets, allocationInfo, err := r.allocationManager.GetStrategyAllocations(
-		&bind.CallOpts{Context: ctx},
-		operatorAddress,
-		strategyAddress,
+		&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumber},
+		request.OperatorAddress,
+		request.StrategyAddress,
 	)
 	// This call should not fail since it's a getter
 	if err != nil {
-		return nil, err
+		return AllocationResponse{}, err
 	}
 
 	allocationsInfo := make([]AllocationInfo, len(opSets))
@@ -405,32 +439,45 @@ func (r *ChainReader) GetAllocationInfo(
 		}
 	}
 
-	return allocationsInfo, nil
+	return AllocationResponse{AllocationInfo: allocationsInfo}, nil
 }
 
 func (r *ChainReader) GetOperatorShares(
 	ctx context.Context,
-	operatorAddress gethcommon.Address,
-	strategyAddresses []gethcommon.Address,
-) ([]*big.Int, error) {
+	request OperatorStrategiesRequest,
+) (OperatorSharesResponse, error) {
 	if r.delegationManager == nil {
-		return nil, errors.New("DelegationManager contract not provided")
+		return OperatorSharesResponse{}, errors.New("DelegationManager contract not provided")
 	}
 
-	return r.delegationManager.GetOperatorShares(&bind.CallOpts{
-		Context: ctx,
-	}, operatorAddress, strategyAddresses)
+	shares, err := r.delegationManager.GetOperatorShares(&bind.CallOpts{
+		Context: ctx, BlockNumber: request.BlockNumber,
+	}, request.OperatorAddress, request.StrategyAddresses)
+	if err != nil {
+		return OperatorSharesResponse{}, utils.WrapError("failed to get operator shares", err)
+	}
+
+	return OperatorSharesResponse{Shares: shares}, nil
 }
 
 func (r *ChainReader) GetOperatorsShares(
 	ctx context.Context,
-	operatorAddresses []gethcommon.Address,
-	strategyAddresses []gethcommon.Address,
-) ([][]*big.Int, error) {
+	request OperatorsStrategiesRequest,
+) (OperatorsSharesResponse, error) {
 	if r.delegationManager == nil {
-		return nil, errors.New("DelegationManager contract not provided")
+		return OperatorsSharesResponse{}, errors.New("DelegationManager contract not provided")
 	}
-	return r.delegationManager.GetOperatorsShares(&bind.CallOpts{Context: ctx}, operatorAddresses, strategyAddresses)
+
+	shares, err := r.delegationManager.GetOperatorsShares(
+		&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumber},
+		request.OperatorAddresses,
+		request.StrategyAddresses,
+	)
+	if err != nil {
+		return OperatorsSharesResponse{}, utils.WrapError("failed to get operators shares", err)
+	}
+
+	return OperatorsSharesResponse{Shares: shares}, nil
 }
 
 // GetNumOperatorSetsForOperator returns the number of operator sets that an operator is part of

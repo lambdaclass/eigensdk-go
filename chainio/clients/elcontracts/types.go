@@ -81,3 +81,56 @@ type RemovePendingAdminRequest struct {
 	AdminAddress   common.Address
 	WaitForReceipt bool
 }
+
+type OperatorAVSSplitRequest struct {
+	BlockNumber     *big.Int
+	OperatorAddress common.Address
+	AVSAddress      common.Address
+}
+
+type SplitResponse struct {
+	Split uint16
+}
+
+type OperatorRequest struct {
+	BlockNumber     *big.Int
+	OperatorAddress common.Address
+}
+
+type OperatorStrategyRequest struct {
+	BlockNumber     *big.Int
+	OperatorAddress common.Address
+	StrategyAddress common.Address
+}
+
+type AllocatableResponse struct {
+	Allocatable uint64
+}
+
+type OperatorStrategiesRequest struct {
+	BlockNumber       *big.Int
+	OperatorAddress   common.Address
+	StrategyAddresses []common.Address
+}
+
+type MaxMagnitudesResponse struct {
+	MaxMagnitudes []uint64
+}
+
+type AllocationResponse struct {
+	AllocationInfo []AllocationInfo
+}
+
+type OperatorSharesResponse struct {
+	Shares []*big.Int
+}
+
+type OperatorsStrategiesRequest struct {
+	BlockNumber       *big.Int
+	OperatorAddresses []common.Address
+	StrategyAddresses []common.Address
+}
+
+type OperatorsSharesResponse struct {
+	Shares [][]*big.Int
+}
