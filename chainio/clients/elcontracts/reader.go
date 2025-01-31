@@ -91,6 +91,7 @@ func NewReaderFromConfig(
 	), nil
 }
 
+// IsOperatorRegistered returns if an operator is registered
 func (r *ChainReader) IsOperatorRegistered(
 	ctx context.Context,
 	request OperatorRequest,
@@ -150,6 +151,7 @@ func (r *ChainReader) GetDelegatedOperator(
 	return DelegateOperatorResponse{OperatorAddress: operatorAddress}, nil
 }
 
+// GetOperatorDetails returns the operator's details
 func (r *ChainReader) GetOperatorDetails(
 	ctx context.Context,
 	request OperatorRequest,
