@@ -104,6 +104,7 @@ type DigestHashResponse struct {
 	DigestHash [32]byte
 }
 
+// This should be an specific struct like BlockNumberRequest?
 type RootRequest struct {
 	BlockNumer *big.Int
 }
@@ -112,6 +113,7 @@ type RootLengthResponse struct {
 	Length *big.Int
 }
 
+// This should be an specific struct like BlockNumberRequest?
 type RewardsEndTimestampRequest struct {
 	BlockNumber *big.Int
 }

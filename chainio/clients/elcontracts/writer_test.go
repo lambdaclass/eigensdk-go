@@ -1549,7 +1549,7 @@ func newTestClaim(
 	earnerTreeRoot := crypto.Keccak256(encodedEarnerLeaf)
 
 	// Fetch the next root index from contract
-	nextRootIndex, err := chainReader.GetDistributionRootsLength(context.Background())
+	rootResponse, err := chainReader.GetDistributionRootsLength(context.Background(), elcontracts.RootRequest{})
 	if err != nil {
 		return nil, utils.WrapError("Failed to call GetDistributionRootsLength", err)
 	}
@@ -1557,7 +1557,7 @@ func newTestClaim(
 	tokenLeaves := []rewardscoordinator.IRewardsCoordinatorTypesTokenTreeMerkleLeaf{tokenLeaf}
 	// Construct the claim
 	claim := rewardscoordinator.IRewardsCoordinatorTypesRewardsMerkleClaim{
-		RootIndex:   uint32(nextRootIndex.Uint64()),
+		RootIndex:   uint32(rootResponse.Length.Uint64()),
 		EarnerIndex: 0,
 		// Empty proof because leaf == root
 		EarnerTreeProof: []byte{},
@@ -1570,7 +1570,10 @@ func newTestClaim(
 
 	root := [32]byte(earnerTreeRoot)
 	// Fetch the current timestamp to increase it
-	currRewardsCalculationEndTimestamp, err := chainReader.CurrRewardsCalculationEndTimestamp(context.Background())
+	responseTimestamp, err := chainReader.CurrRewardsCalculationEndTimestamp(
+		context.Background(),
+		elcontracts.RewardsEndTimestampRequest{},
+	)
 	if err != nil {
 		return nil, utils.WrapError("Failed to call CurrRewardsCalculationEndTimestamp", err)
 	}
@@ -1593,7 +1596,7 @@ func newTestClaim(
 		return nil, utils.WrapError("Failed to setRewardsUpdate", err)
 	}
 
-	tx, err = rewardsCoordinator.SubmitRoot(noSendTxOpts, root, currRewardsCalculationEndTimestamp+1)
+	tx, err = rewardsCoordinator.SubmitRoot(noSendTxOpts, root, responseTimestamp.EndTimestamp+1)
 	if err != nil {
 		return nil, utils.WrapError("Failed to create SubmitRoot tx", err)
 	}
