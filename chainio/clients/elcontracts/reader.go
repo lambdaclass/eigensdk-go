@@ -224,6 +224,8 @@ func (r *ChainReader) GetOperatorSharesInStrategy(
 	)
 }
 
+// CalculateDelegationApprovalDigestHash calculates the digest hash that must be signed by the operator’s delegation
+// approver.
 func (r *ChainReader) CalculateDelegationApprovalDigestHash(
 	ctx context.Context,
 	request ApprovalDigestHashRequest,
@@ -247,6 +249,8 @@ func (r *ChainReader) CalculateDelegationApprovalDigestHash(
 	return DigestHashResponse{DigestHash: hash}, nil
 }
 
+// CalculateOperatorAVSRegistrationDigestHash calculates the digest hash to be signed by an operator to register with an
+// AVS
 func (r *ChainReader) CalculateOperatorAVSRegistrationDigestHash(
 	ctx context.Context,
 	request AVSRegistrationDigestHashRequest,
@@ -269,6 +273,7 @@ func (r *ChainReader) CalculateOperatorAVSRegistrationDigestHash(
 	return DigestHashResponse{DigestHash: hash}, nil
 }
 
+// GetOperatorAVSRegistrationStatus returns the length of distribution roots posted
 func (r *ChainReader) GetDistributionRootsLength(ctx context.Context, request RootRequest) (RootLengthResponse, error) {
 	if r.rewardsCoordinator == nil {
 		return RootLengthResponse{}, errors.New("RewardsCoordinator contract not provided")
@@ -284,6 +289,7 @@ func (r *ChainReader) GetDistributionRootsLength(ctx context.Context, request Ro
 	return RootLengthResponse{Length: lengt}, nil
 }
 
+// CurrRewardsCalculationEndTimestamp fetches the end timestamp until which RewardsSubmissions have been calculated
 func (r *ChainReader) CurrRewardsCalculationEndTimestamp(
 	ctx context.Context,
 	request RewardsEndTimestampRequest,
@@ -302,6 +308,7 @@ func (r *ChainReader) CurrRewardsCalculationEndTimestamp(
 	return EndTimestampResponse{EndTimestamp: endTimestamp}, nil
 }
 
+// GetCurrentClaimableDistributionRoot returns the latest claimable root that is not disabled and activated
 func (r *ChainReader) GetCurrentClaimableDistributionRoot(
 	ctx context.Context,
 	request RootRequest,
@@ -325,6 +332,7 @@ func (r *ChainReader) GetCurrentClaimableDistributionRoot(
 	return ClaimableDistributionRootResponse{DistributionRoot: root}, nil
 }
 
+// GetRootIndexFromHash returns the index of a root hash
 func (r *ChainReader) GetRootIndexFromHash(
 	ctx context.Context,
 	request RootHashRequest,
@@ -344,6 +352,7 @@ func (r *ChainReader) GetRootIndexFromHash(
 	return RootIndexResponse{Index: index}, nil
 }
 
+// GetCumulativeClaimed fetches the total amount claimed by an earner for a specific token.
 func (r *ChainReader) GetCumulativeClaimed(
 	ctx context.Context,
 	request CumulativeClaimedRequest,
@@ -364,6 +373,7 @@ func (r *ChainReader) GetCumulativeClaimed(
 	return CumulativeClaimedResponse{CumulativeClaimed: claimed}, nil
 }
 
+// CheckClaim checks if the claim would currently pass the check in processClaim
 func (r *ChainReader) CheckClaim(
 	ctx context.Context,
 	request ClaimRequest,
