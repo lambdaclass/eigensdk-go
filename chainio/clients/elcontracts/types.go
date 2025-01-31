@@ -87,55 +87,67 @@ type RemovePendingAdminRequest struct {
 
 // READER TYPES
 
+// OperatorRequest represents a request that requires an operator's address
 type OperatorRequest struct {
 	BlockNumber     *big.Int
 	OperatorAddress common.Address
 }
 
+// OperatorResponse represents the operator information
 type OperatorResponse struct {
 	Operator types.Operator
 }
 
+// StrategyRequest represents a request that requires a strategy's address
 type StrategyRequest struct {
 	BlockNumber     *big.Int
 	StrategyAddress common.Address
 }
 
+// StrategyTokenResponse contains the strategy contract and the underlying token address
 type StrategyTokenResponse struct {
 	StrategyContract       strategy.ContractIStrategy
 	UnderlyingTokenAddress common.Address
 }
 
+// StrategyERC20TokenResponse contains the strategy contract, the underlying token address and the underlying ERC20
+// contract
 type StrategyERC20TokenResponse struct {
 	StrategyContract        strategy.ContractIStrategy
 	UnderlyingERC20Contract erc20.ContractIERC20Methods
 	UnderlyingTokenAddress  common.Address
 }
 
+// OperatorRegisterResponse indicates if the operator is registered or not
 type OperatorRegisterResponse struct {
 	IsRegistered bool
 }
 
+// StakerRequest represents a request that requires a staker's address
 type StakerRequest struct {
 	BlockNumber   *big.Int
 	StakerAddress common.Address
 }
 
+// StakerSharesResponse contains the staker's shares
 type StakerSharesResponse struct {
 	StrategiesAddresses []common.Address
 	Shares              []*big.Int
 }
 
+// DelegateOperatorResponse represents the operator's delegate address
 type DelegateOperatorResponse struct {
 	OperatorAddress common.Address
 }
 
+// SharesInStrategyRequest represents a request that requires a strategy's address and an operator's address
 type SharesInStrategyRequest struct {
 	BlockNumber     *big.Int
 	OperatorAddress common.Address
 	StrategyAddress common.Address
 }
 
+// ShareResponse contains the shares
 type SharesResponse struct {
 	Shares *big.Int
 }
