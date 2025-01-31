@@ -372,21 +372,23 @@ func TestSetOperatorPISplit(t *testing.T) {
 	chainReader, err := testclients.NewTestChainReaderFromConfig(anvilHttpEndpoint, config)
 	require.NoError(t, err)
 
-	expectedInitialSplit := uint16(1000)
-	initialSplit, err := chainReader.GetOperatorPISplit(context.Background(), operatorAddr)
-	require.NoError(t, err)
-	require.Equal(t, expectedInitialSplit, initialSplit)
+	opRequest := elcontracts.OperatorRequest{OperatorAddress: operatorAddr}
 
-	newSplit := initialSplit + 1
+	expectedInitialSplit := uint16(1000)
+	splitResponse, err := chainReader.GetOperatorPISplit(context.Background(), opRequest)
+	require.NoError(t, err)
+	require.Equal(t, expectedInitialSplit, splitResponse.Split)
+
+	newSplit := splitResponse.Split + 1
 	// Set a new operator PI split
 	receipt, err = chainWriter.SetOperatorPISplit(context.Background(), operatorAddr, newSplit, waitForReceipt)
 	require.NoError(t, err)
 	require.Equal(t, gethtypes.ReceiptStatusSuccessful, receipt.Status)
 
 	// Retrieve the operator PI split to check it has been set
-	updatedSplit, err := chainReader.GetOperatorPISplit(context.Background(), operatorAddr)
+	updateSplitResponse, err := chainReader.GetOperatorPISplit(context.Background(), opRequest)
 	require.NoError(t, err)
-	require.Equal(t, newSplit, updatedSplit)
+	require.Equal(t, newSplit, updateSplitResponse.Split)
 
 	// Set a invalid operator PI split
 	invalidSplit := uint16(10001)
@@ -428,12 +430,17 @@ func TestSetOperatorAVSSplit(t *testing.T) {
 	chainReader, err := testclients.NewTestChainReaderFromConfig(anvilHttpEndpoint, config)
 	require.NoError(t, err)
 
-	expectedInitialSplit := uint16(1000)
-	initialSplit, err := chainReader.GetOperatorAVSSplit(context.Background(), operatorAddr, avsAddr)
-	require.NoError(t, err)
-	require.Equal(t, expectedInitialSplit, initialSplit)
+	opAVSSplit := elcontracts.OperatorAVSSplitRequest{
+		OperatorAddress: operatorAddr,
+		AVSAddress:      avsAddr,
+	}
 
-	newSplit := initialSplit + 1
+	expectedInitialSplit := uint16(1000)
+	responseSplit, err := chainReader.GetOperatorAVSSplit(context.Background(), opAVSSplit)
+	require.NoError(t, err)
+	require.Equal(t, expectedInitialSplit, responseSplit.Split)
+
+	newSplit := responseSplit.Split + 1
 	// Set a new operator AVS split
 	receipt, err = chainWriter.SetOperatorAVSSplit(
 		context.Background(),
@@ -446,9 +453,9 @@ func TestSetOperatorAVSSplit(t *testing.T) {
 	require.Equal(t, gethtypes.ReceiptStatusSuccessful, receipt.Status)
 
 	// Retrieve the operator AVS split to check it has been set
-	updatedSplit, err := chainReader.GetOperatorAVSSplit(context.Background(), operatorAddr, avsAddr)
+	updatedSplitResponse, err := chainReader.GetOperatorAVSSplit(context.Background(), opAVSSplit)
 	require.NoError(t, err)
-	require.Equal(t, newSplit, updatedSplit)
+	require.Equal(t, newSplit, updatedSplitResponse.Split)
 
 	// Set a invalid operator AVS split
 	invalidSplit := uint16(10001)
@@ -644,11 +651,12 @@ func TestModifyAllocations(t *testing.T) {
 	require.Equal(t, gethtypes.ReceiptStatusSuccessful, receipt.Status)
 
 	// Check that the new allocation is pending and the current magnitude is zero
-	allocationInfo, err := chainReader.GetAllocationInfo(context.Background(), operatorAddr, strategyAddr)
+	request := elcontracts.OperatorStrategyRequest{OperatorAddress: operatorAddr, StrategyAddress: strategyAddr}
+	response, err := chainReader.GetAllocationInfo(context.Background(), request)
 	require.NoError(t, err)
-	pendingDiff := allocationInfo[0].PendingDiff
+	pendingDiff := response.AllocationInfo[0].PendingDiff
 	require.Equal(t, big.NewInt(int64(newAllocation)), pendingDiff)
-	require.Equal(t, allocationInfo[0].CurrentMagnitude, big.NewInt(0))
+	require.Equal(t, response.AllocationInfo[0].CurrentMagnitude, big.NewInt(0))
 
 	// Retrieve the allocation delay and advance the chain
 	allocationDelay, err := chainReader.GetAllocationDelay(context.Background(), operatorAddr)
@@ -656,10 +664,10 @@ func TestModifyAllocations(t *testing.T) {
 	testutils.AdvanceChainByNBlocksExecInContainer(context.Background(), int(allocationDelay), anvilC)
 
 	// Check the new allocation has been updated after the delay
-	allocationInfo, err = chainReader.GetAllocationInfo(context.Background(), operatorAddr, strategyAddr)
+	response, err = chainReader.GetAllocationInfo(context.Background(), request)
 	require.NoError(t, err)
 
-	currentMagnitude := allocationInfo[0].CurrentMagnitude
+	currentMagnitude := response.AllocationInfo[0].CurrentMagnitude
 	require.Equal(t, big.NewInt(int64(newAllocation)), currentMagnitude)
 }
 
