@@ -322,7 +322,7 @@ func (r *ChainReader) GetCurrentClaimableDistributionRoot(
 		)
 	}
 
-	return ClaimableDistributionRootResponse{Root: root}, nil
+	return ClaimableDistributionRootResponse{DistributionRoot: root}, nil
 }
 
 func (r *ChainReader) GetRootIndexFromHash(
@@ -380,7 +380,7 @@ func (r *ChainReader) CheckClaim(
 		return ClaimResponse{}, utils.WrapError("failed to check claim", err)
 	}
 
-	return ClaimResponse{ValidClaim: claim}, nil
+	return ClaimResponse{CheckClaim: claim}, nil
 }
 
 func (r *ChainReader) GetOperatorAVSSplit(

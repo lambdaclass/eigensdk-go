@@ -94,31 +94,35 @@ func TestChainReader(t *testing.T) {
 		delegationApprover := common.Address{0x0}
 		approverSalt := [32]byte{}
 		expiry := big.NewInt(0)
-		digest, err := read_clients.ElChainReader.CalculateDelegationApprovalDigestHash(
+		digestResponse, err := read_clients.ElChainReader.CalculateDelegationApprovalDigestHash(
 			ctx,
-			staker,
-			common.HexToAddress(operator.Address),
-			delegationApprover,
-			approverSalt,
-			expiry,
+			elcontracts.ApprovalDigestHashRequest{
+				StakerAddress:     staker,
+				OperatorAddress:   common.HexToAddress(operator.Address),
+				DelegationAddress: delegationApprover,
+				ApproverSalt:      approverSalt,
+				Expiry:            expiry,
+			},
 		)
 		assert.NoError(t, err)
-		assert.NotEmpty(t, digest)
+		assert.NotEmpty(t, digestResponse)
 	})
 
 	t.Run("calculate operator AVS registration digest hash", func(t *testing.T) {
 		avs := common.Address{0x0}
 		salt := [32]byte{}
 		expiry := big.NewInt(0)
-		digest, err := read_clients.ElChainReader.CalculateOperatorAVSRegistrationDigestHash(
+		digestResponse, err := read_clients.ElChainReader.CalculateOperatorAVSRegistrationDigestHash(
 			ctx,
-			common.HexToAddress(operator.Address),
-			avs,
-			salt,
-			expiry,
+			elcontracts.AVSRegistrationDigestHashRequest{
+				OperatorAddress: common.HexToAddress(operator.Address),
+				AVSAddress:      avs,
+				Salt:            salt,
+				Expiry:          expiry,
+			},
 		)
 		assert.NoError(t, err)
-		assert.NotEmpty(t, digest)
+		assert.NotEmpty(t, digestResponse)
 	})
 
 	t.Run("get staker shares", func(t *testing.T) {
@@ -269,27 +273,32 @@ func TestGetCurrentClaimableDistributionRoot(t *testing.T) {
 	require.NoError(t, err)
 
 	// Check that if there is no root submitted the result is zero
-	distr_root, err := chainReader.GetCurrentClaimableDistributionRoot(
+	responseRoot, err := chainReader.GetCurrentClaimableDistributionRoot(
 		ctx,
+		elcontracts.RootRequest{},
 	)
 	assert.NoError(t, err)
-	assert.Zero(t, distr_root.Root)
+	assert.Zero(t, responseRoot.DistributionRoot.Root)
 
-	currRewardsCalculationEndTimestamp, err := chainReader.CurrRewardsCalculationEndTimestamp(context.Background())
+	timestampResponse, err := chainReader.CurrRewardsCalculationEndTimestamp(
+		context.Background(),
+		elcontracts.RewardsEndTimestampRequest{},
+	)
 	require.NoError(t, err)
 
-	tx, err = rewardsCoordinator.SubmitRoot(noSendTxOpts, root, currRewardsCalculationEndTimestamp+1)
+	tx, err = rewardsCoordinator.SubmitRoot(noSendTxOpts, root, timestampResponse.EndTimestamp+1)
 	require.NoError(t, err)
 
 	_, err = txManager.Send(context.Background(), tx, waitForReceipt)
 	require.NoError(t, err)
 
 	// Check that if there is a root submitted the result is that root
-	distr_root, err = chainReader.GetCurrentClaimableDistributionRoot(
+	responseRoot, err = chainReader.GetCurrentClaimableDistributionRoot(
 		ctx,
+		elcontracts.RootRequest{},
 	)
 	assert.NoError(t, err)
-	assert.Equal(t, distr_root.Root, root)
+	assert.Equal(t, responseRoot.DistributionRoot.Root, root)
 }
 
 func TestGetRootIndexFromRootHash(t *testing.T) {
@@ -343,20 +352,23 @@ func TestGetRootIndexFromRootHash(t *testing.T) {
 	}
 
 	// Check that if there is no root submitted the result is an InvalidRoot error
-	root_index, err := chainReader.GetRootIndexFromHash(
+	indexResponse, err := chainReader.GetRootIndexFromHash(
 		ctx,
-		root,
+		elcontracts.RootHashRequest{RootHash: root},
 	)
 	assert.Error(t, err)
-	assert.Equal(t, err.Error(), "execution reverted: custom error 0x504570e3",
+	assert.Equal(t, err.Error(), "failed to get root index from hash: execution reverted: custom error 0x504570e3",
 		"GetRootIndexFromHash should return an InvalidRoot() error",
 	)
-	assert.Zero(t, root_index)
+	assert.Zero(t, indexResponse)
 
-	currRewardsCalculationEndTimestamp, err := chainReader.CurrRewardsCalculationEndTimestamp(context.Background())
+	timestampResponse, err := chainReader.CurrRewardsCalculationEndTimestamp(
+		context.Background(),
+		elcontracts.RewardsEndTimestampRequest{},
+	)
 	require.NoError(t, err)
 
-	tx, err = rewardsCoordinator.SubmitRoot(noSendTxOpts, root, currRewardsCalculationEndTimestamp+1)
+	tx, err = rewardsCoordinator.SubmitRoot(noSendTxOpts, root, timestampResponse.EndTimestamp+1)
 	require.NoError(t, err)
 
 	_, err = txManager.Send(context.Background(), tx, waitForReceipt)
@@ -369,30 +381,33 @@ func TestGetRootIndexFromRootHash(t *testing.T) {
 		0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
 	}
 
-	currRewardsCalculationEndTimestamp2, err := chainReader.CurrRewardsCalculationEndTimestamp(context.Background())
+	timestampResponse2, err := chainReader.CurrRewardsCalculationEndTimestamp(
+		context.Background(),
+		elcontracts.RewardsEndTimestampRequest{},
+	)
 	require.NoError(t, err)
 
-	tx, err = rewardsCoordinator.SubmitRoot(noSendTxOpts, root2, currRewardsCalculationEndTimestamp2+1)
+	tx, err = rewardsCoordinator.SubmitRoot(noSendTxOpts, root2, timestampResponse2.EndTimestamp+1)
 	require.NoError(t, err)
 
 	_, err = txManager.Send(context.Background(), tx, waitForReceipt)
 	require.NoError(t, err)
 
 	// Check that the first root inserted is the first indexed (zero)
-	root_index, err = chainReader.GetRootIndexFromHash(
+	indexResponse, err = chainReader.GetRootIndexFromHash(
 		ctx,
-		root,
+		elcontracts.RootHashRequest{RootHash: root},
 	)
 	assert.NoError(t, err)
-	assert.Equal(t, root_index, uint32(0))
+	assert.Equal(t, indexResponse.Index, uint32(0))
 
 	// Check that the second root inserted is the second indexed (zero)
-	root_index, err = chainReader.GetRootIndexFromHash(
+	indexResponse, err = chainReader.GetRootIndexFromHash(
 		ctx,
-		root2,
+		elcontracts.RootHashRequest{RootHash: root2},
 	)
 	assert.NoError(t, err)
-	assert.Equal(t, root_index, uint32(1))
+	assert.Equal(t, indexResponse.Index, uint32(1))
 }
 
 func TestGetCumulativeClaimedRewards(t *testing.T) {
@@ -434,8 +449,11 @@ func TestGetCumulativeClaimedRewards(t *testing.T) {
 	anvil_address := common.HexToAddress(testutils.ANVIL_FIRST_ADDRESS)
 
 	// This tests that without claims result is zero
-	claimed, err := chainReader.GetCumulativeClaimed(ctx, anvil_address, underlyingTokenAddr)
-	assert.Zero(t, claimed.Cmp(big.NewInt(0)))
+	claimedResponse, err := chainReader.GetCumulativeClaimed(
+		ctx,
+		elcontracts.CumulativeClaimedRequest{EarnerAddress: anvil_address, TokenAddress: underlyingTokenAddr},
+	)
+	assert.Zero(t, claimedResponse.CumulativeClaimed.Cmp(big.NewInt(0)))
 	assert.NoError(t, err)
 
 	cumulativeEarnings := int64(45)
@@ -447,8 +465,11 @@ func TestGetCumulativeClaimedRewards(t *testing.T) {
 	require.True(t, receipt.Status == gethtypes.ReceiptStatusSuccessful)
 
 	// This tests that with a claim result is cumulativeEarnings
-	claimed, err = chainReader.GetCumulativeClaimed(ctx, anvil_address, underlyingTokenAddr)
-	assert.Equal(t, claimed, big.NewInt(cumulativeEarnings))
+	claimedResponse, err = chainReader.GetCumulativeClaimed(
+		ctx,
+		elcontracts.CumulativeClaimedRequest{EarnerAddress: anvil_address, TokenAddress: underlyingTokenAddr},
+	)
+	assert.Equal(t, claimedResponse.CumulativeClaimed, big.NewInt(cumulativeEarnings))
 	assert.NoError(t, err)
 }
 
@@ -496,9 +517,9 @@ func TestCheckClaim(t *testing.T) {
 	assert.NotEqual(t, common.Address{}, underlyingTokenAddr)
 	assert.NotNil(t, contractUnderlyingToken)
 
-	checked, err := chainReader.CheckClaim(ctx, *claim)
+	responseClaim, err := chainReader.CheckClaim(ctx, elcontracts.ClaimRequest{Claim: *claim})
 	require.NoError(t, err)
-	assert.True(t, checked)
+	assert.True(t, responseClaim.CheckClaim)
 }
 
 func TestGetAllocatableMagnitudeAndGetMaxMagnitudes(t *testing.T) {
@@ -850,32 +871,38 @@ func TestInvalidConfig(t *testing.T) {
 		// CalculateDelegationApprovalDigestHash needs a correct DelegationManagerAddress
 		_, err := chainReader.CalculateDelegationApprovalDigestHash(
 			context.Background(),
-			staker,
-			common.HexToAddress(operatorAddr),
-			delegationApprover,
-			approverSalt,
-			expiry,
+			elcontracts.ApprovalDigestHashRequest{
+				StakerAddress:     staker,
+				OperatorAddress:   common.HexToAddress(operatorAddr),
+				DelegationAddress: delegationApprover,
+				ApproverSalt:      approverSalt,
+				Expiry:            expiry,
+			},
 		)
 		require.Error(t, err)
 
 		// CalculateOperatorAVSRegistrationDigestHash needs a correct AvsDirectoryAddress
 		_, err = chainReader.CalculateOperatorAVSRegistrationDigestHash(context.Background(),
-			common.HexToAddress(operatorAddr),
-			staker,
-			approverSalt, expiry)
+			elcontracts.AVSRegistrationDigestHashRequest{
+				OperatorAddress: common.HexToAddress(operatorAddr),
+				AVSAddress:      staker,
+				Salt:            approverSalt,
+				Expiry:          expiry,
+			},
+		)
 		require.Error(t, err)
 	})
 
 	t.Run("get root with invalid config", func(t *testing.T) {
 		// GetDistributionRootsLength needs a correct RewardsCoordinatorAddress
-		_, err := chainReader.GetDistributionRootsLength(context.Background())
+		_, err := chainReader.GetDistributionRootsLength(context.Background(), elcontracts.RootRequest{})
 		require.Error(t, err)
 
 		// GetRootIndexFromHash needs a correct RewardsCoordinatorAddress
-		_, err = chainReader.GetRootIndexFromHash(context.Background(), [32]byte{})
+		_, err = chainReader.GetRootIndexFromHash(context.Background(), elcontracts.RootHashRequest{})
 		require.Error(t, err)
 
-		_, err = chainReader.GetCurrentClaimableDistributionRoot(context.Background())
+		_, err = chainReader.GetCurrentClaimableDistributionRoot(context.Background(), elcontracts.RootRequest{})
 		require.Error(t, err)
 	})
 
@@ -883,13 +910,15 @@ func TestInvalidConfig(t *testing.T) {
 		contractAddrs := testutils.GetContractAddressesFromContractRegistry(anvilHttpEndpoint)
 		strategyAddr := contractAddrs.Erc20MockStrategy
 
-		_, err = chainReader.GetCurrentClaimableDistributionRoot(context.Background())
+		_, err = chainReader.GetCurrentClaimableDistributionRoot(context.Background(), elcontracts.RootRequest{})
 		require.Error(t, err)
 
 		_, err := chainReader.GetCumulativeClaimed(
 			context.Background(),
-			common.HexToAddress(testutils.ANVIL_THIRD_ADDRESS),
-			common.HexToAddress(testutils.ANVIL_SECOND_ADDRESS),
+			elcontracts.CumulativeClaimedRequest{
+				EarnerAddress: common.HexToAddress(testutils.ANVIL_THIRD_ADDRESS),
+				TokenAddress:  common.HexToAddress(testutils.ANVIL_SECOND_ADDRESS),
+			},
 		)
 		require.Error(t, err)
 
@@ -915,11 +944,14 @@ func TestInvalidConfig(t *testing.T) {
 
 		_, err = chainReader.CheckClaim(
 			context.Background(),
-			rewardscoordinator.IRewardsCoordinatorTypesRewardsMerkleClaim{},
+			elcontracts.ClaimRequest{},
 		)
 		require.Error(t, err)
 
-		_, err = chainReader.CurrRewardsCalculationEndTimestamp(context.Background())
+		_, err = chainReader.CurrRewardsCalculationEndTimestamp(
+			context.Background(),
+			elcontracts.RewardsEndTimestampRequest{},
+		)
 		require.Error(t, err)
 	})
 

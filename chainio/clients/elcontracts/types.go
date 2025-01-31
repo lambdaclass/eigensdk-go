@@ -123,7 +123,7 @@ type EndTimestampResponse struct {
 }
 
 type ClaimableDistributionRootResponse struct {
-	Root rewardscoordinator.IRewardsCoordinatorTypesDistributionRoot
+	DistributionRoot rewardscoordinator.IRewardsCoordinatorTypesDistributionRoot
 }
 
 type RootHashRequest struct {
@@ -151,5 +151,5 @@ type ClaimRequest struct {
 }
 
 type ClaimResponse struct {
-	ValidClaim bool
+	CheckClaim bool
 }
