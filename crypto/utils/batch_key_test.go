@@ -49,12 +49,16 @@ func TestReadBatchKeys(t *testing.T) {
 		} else {
 			for _, key := range readKeys {
 				fmt.Printf("Valdiate bls key: %s with password %s\n", key.FilePath, key.Password)
-				pk, err := bls.ReadPrivateKeyFromFile(key.FilePath, key.Password)
+
+				blsKey, err := bls.CreateNewBLSKey()
+				require.NoError(t, err)
+
+				pk, err := blsKey.Read(key.FilePath, key.Password)
 				if err != nil {
 					assert.Fail(t, "Error reading bls key")
 					break
 				}
-				assert.Equal(t, key.PrivateKey, pk.PrivKey.String())
+				assert.Equal(t, key.PrivateKey, pk.GetKeyPair().PrivKey.String())
 			}
 		}
 	}

@@ -38,10 +38,13 @@ func TestGenerateBlsKeys(t *testing.T) {
 
 	blsKeyPath := filepath.Join(outputDir, "keys", "1.bls.key.json")
 
-	decryptedKey, err := bls.ReadPrivateKeyFromFile(blsKeyPath, password)
+	blsKey, err := bls.CreateNewBLSKey()
+	require.NoError(t, err)
+
+	decryptedKey, err := blsKey.Read(blsKeyPath, password)
 	assert.NoError(t, err, "error decrypting bls key")
 
-	assert.Equal(t, privateKey, decryptedKey.PrivKey.String())
+	assert.Equal(t, privateKey, decryptedKey.GetKeyPair().PrivKey.String())
 }
 
 func TestGenerateEcdsaKeys(t *testing.T) {

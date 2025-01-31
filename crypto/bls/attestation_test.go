@@ -27,17 +27,19 @@ func TestBlsKeyCreation(t *testing.T) {
 				dir := filepath.Dir(tt.keyPath)
 				_ = os.RemoveAll(dir)
 			})
-			randomKey, err := GenRandomBlsKeys()
+			randomKey, err := CreateNewBLSKey()
 			assert.NoError(t, err)
 
-			err = randomKey.SaveToFile(tt.keyPath, tt.password)
+			err = randomKey.Save(tt.keyPath, tt.password)
 			if tt.wantErr {
 				assert.Error(t, err)
 			} else {
 				assert.NoError(t, err)
 			}
 
-			readKeyPair, err := ReadPrivateKeyFromFile(tt.keyPath, tt.password)
+			otherRandomKey, err := CreateNewBLSKey()
+			assert.NoError(t, err)
+			readKeyPair, err := otherRandomKey.Read(tt.keyPath, tt.password)
 			if tt.wantErr {
 				assert.Error(t, err)
 			} else {
