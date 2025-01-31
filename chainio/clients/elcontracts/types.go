@@ -82,27 +82,32 @@ type RemovePendingAdminRequest struct {
 	WaitForReceipt bool
 }
 
+// OperatorAVSSplitRequest is used to request the split of an operator for a specific AVS
 type OperatorAVSSplitRequest struct {
 	BlockNumber     *big.Int
 	OperatorAddress common.Address
 	AVSAddress      common.Address
 }
 
+// SplitResponse represents the split of an operator
 type SplitResponse struct {
 	Split uint16
 }
 
+// OperatorRequest is used to represent the address of an operator
 type OperatorRequest struct {
 	BlockNumber     *big.Int
 	OperatorAddress common.Address
 }
 
+// OperatorStrategyRequest is used to represent the address of an operator and a strategy
 type OperatorStrategyRequest struct {
 	BlockNumber     *big.Int
 	OperatorAddress common.Address
 	StrategyAddress common.Address
 }
 
+// AllocatableResponse shows the amount of allocatable magnitude for an operator
 type AllocatableResponse struct {
 	Allocatable uint64
 }
@@ -113,24 +118,29 @@ type OperatorStrategiesRequest struct {
 	StrategyAddresses []common.Address
 }
 
+// MaxMagnitudesResponse is used to represent the max magnitudes for an operator for each strategy
 type MaxMagnitudesResponse struct {
 	MaxMagnitudes []uint64
 }
 
+// AllocationResponse is used to represent the allocation info for specific operator and strategy
 type AllocationResponse struct {
 	AllocationInfo []AllocationInfo
 }
 
+// OperatorSharesResponse is used to represent the shares of an operator for each strategy
 type OperatorSharesResponse struct {
 	Shares []*big.Int
 }
 
+// OperatorsStrategiesRequest represents the addresses of operators and strategies
 type OperatorsStrategiesRequest struct {
 	BlockNumber       *big.Int
 	OperatorAddresses []common.Address
 	StrategyAddresses []common.Address
 }
 
+// OperatorsSharesResponse shows the shares of operators for each strategy
 type OperatorsSharesResponse struct {
 	Shares [][]*big.Int
 }

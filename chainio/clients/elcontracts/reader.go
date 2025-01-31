@@ -390,6 +390,7 @@ func (r *ChainReader) GetAllocatableMagnitude(
 	return AllocatableResponse{Allocatable: allocatable}, nil
 }
 
+// GetMaxMagnitudes returns the max magnitudes that an operator can allocate to a list of strategies
 func (r *ChainReader) GetMaxMagnitudes(
 	ctx context.Context,
 	request OperatorStrategiesRequest,
@@ -410,6 +411,7 @@ func (r *ChainReader) GetMaxMagnitudes(
 	return MaxMagnitudesResponse{MaxMagnitudes: maxMagnitudes}, nil
 }
 
+// GetAllocationInfo returns the allocation info for a specific operator and strategy
 func (r *ChainReader) GetAllocationInfo(
 	ctx context.Context,
 	request OperatorStrategyRequest,
@@ -442,6 +444,7 @@ func (r *ChainReader) GetAllocationInfo(
 	return AllocationResponse{AllocationInfo: allocationsInfo}, nil
 }
 
+// GetOperatorShares returns the shares that an operator has in a set of strategies
 func (r *ChainReader) GetOperatorShares(
 	ctx context.Context,
 	request OperatorStrategiesRequest,
@@ -460,6 +463,7 @@ func (r *ChainReader) GetOperatorShares(
 	return OperatorSharesResponse{Shares: shares}, nil
 }
 
+// GetOperatorsShares returns the shares that a list of operators have in a set of strategies
 func (r *ChainReader) GetOperatorsShares(
 	ctx context.Context,
 	request OperatorsStrategiesRequest,
