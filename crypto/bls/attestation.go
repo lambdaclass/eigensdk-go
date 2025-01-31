@@ -162,6 +162,8 @@ type BLSKey struct {
 	key *KeyPair
 }
 
+// Saves a BLS key in a file located in the received path, encrypted
+// by a given password string
 func (e BLSKey) Save(path, password string) error {
 	data, err := e.key.encryptedString(password)
 	if err != nil {
@@ -180,6 +182,8 @@ func (e BLSKey) Save(path, password string) error {
 	return nil
 }
 
+// Reads a BLS key from a file located in the received path, decrypted
+// by a received password string
 func (e BLSKey) Read(path, password string) (BLSKey, error) {
 	keyStoreContents, err := os.ReadFile(filepath.Clean(path))
 	if err != nil {
@@ -211,6 +215,7 @@ func (e BLSKey) Read(path, password string) (BLSKey, error) {
 	return BLSKey{keyPair}, nil
 }
 
+// Generates a random new BLS key
 func CreateNewBLSKey() (BLSKey, error) {
 	//Max random value is order of the curve
 	max := new(big.Int)

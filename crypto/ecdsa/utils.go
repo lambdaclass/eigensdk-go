@@ -19,7 +19,8 @@ type ECDSAKey struct {
 	key *ecdsa.PrivateKey
 }
 
-// Save encrypts and stores the private key at the given path
+// Saves a BLS key in a file located in the received path, encrypted
+// by a given password string
 func (e ECDSAKey) Save(path string, password string) error {
 	UUID, err := uuid.NewRandom()
 	if err != nil {
@@ -42,7 +43,8 @@ func (e ECDSAKey) Save(path string, password string) error {
 	return writeBytesToFile(path, encryptedBytes)
 }
 
-// Read loads an encrypted private key from the given path
+// Reads a BLS key from a file located in the received path, decrypted
+// by a received password string
 func (e *ECDSAKey) Read(path string, password string) (ECDSAKey, error) {
 	keyStoreContents, err := os.ReadFile(filepath.Clean(path))
 	if err != nil {
@@ -57,7 +59,7 @@ func (e *ECDSAKey) Read(path string, password string) (ECDSAKey, error) {
 	return ECDSAKey{key: sk.PrivateKey}, nil
 }
 
-// CreateNewEcdsaKey generates a new ECDSA private key
+// Generates a random new ECDSA key
 func CreateNewEcdsaKey() (ECDSAKey, error) {
 	privateKey, err := crypto.GenerateKey()
 	if err != nil {
