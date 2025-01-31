@@ -18,12 +18,16 @@ type Signer struct {
 }
 
 func New(cfg Config) (*Signer, error) {
-	keyPair, err := sdkBls.ReadPrivateKeyFromFile(cfg.Path, cfg.Password)
+	blsKey, err := sdkBls.CreateNewBLSKey()
+	if err != nil {
+		return nil, err
+	}
+	keyPair, err := blsKey.Read(cfg.Path, cfg.Password)
 	if err != nil {
 		return nil, err
 	}
 	return &Signer{
-		key: keyPair,
+		key: keyPair.GetKeyPair(),
 	}, nil
 }
 

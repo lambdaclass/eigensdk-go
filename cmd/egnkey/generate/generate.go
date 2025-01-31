@@ -161,7 +161,7 @@ func createPasswordAndPrivateKeyFiles(folder string) (passwordFile, privateKeyFi
 
 func generateBlsKeys(numKeys int, path string, passwordFile, privateKeyFile *os.File) error {
 	for i := 0; i < numKeys; i++ {
-		key, err := bls.GenRandomBlsKeys()
+		key, err := bls.CreateNewBLSKey()
 		if err != nil {
 			return err
 		}
@@ -171,9 +171,9 @@ func generateBlsKeys(numKeys int, path string, passwordFile, privateKeyFile *os.
 			return err
 		}
 
-		privateKeyHex := key.PrivKey.String()
+		privateKeyHex := key.GetKeyPair().PrivKey.String()
 		fileName := fmt.Sprintf("%d.bls.key.json", i+1)
-		err = key.SaveToFile(filepath.Clean(path+"/"+DefaultKeyFolder+"/"+fileName), password)
+		err = key.Save(filepath.Clean(path+"/"+DefaultKeyFolder+"/"+fileName), password)
 		if err != nil {
 			return err
 		}
