@@ -439,30 +439,23 @@ func (w *ChainWriter) ProcessClaims(
 }
 
 // Deregisters an operator from each of the operator sets given by
-// `operatorSetIds` for the given AVS, by calling the function
+// `request.OperatorSetIds` for the given AVS, by calling the function
 // `deregisterFromOperatorSets` in the AllocationManager.
 func (w *ChainWriter) ForceDeregisterFromOperatorSets(
 	ctx context.Context,
-	operator gethcommon.Address,
-	avs gethcommon.Address,
-	operatorSetIds []uint32,
-	waitForReceipt bool,
+	request DeregisterFromOperatorSet,
+	txOption *TxOption,
 ) (*gethtypes.Receipt, error) {
 	if w.allocationManager == nil {
 		return nil, errors.New("AVSDirectory contract not provided")
 	}
 
-	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
-	if err != nil {
-		return nil, utils.WrapError("failed to get no send tx opts", err)
-	}
-
 	tx, err := w.allocationManager.DeregisterFromOperatorSets(
-		noSendTxOpts,
+		txOption.Opts,
 		allocationmanager.IAllocationManagerTypesDeregisterParams{
-			Operator:       operator,
-			Avs:            avs,
-			OperatorSetIds: operatorSetIds,
+			Operator:       request.OperatorAddress,
+			Avs:            request.AVSAddress,
+			OperatorSetIds: request.OperatorSetIds,
 		},
 	)
 
@@ -470,7 +463,7 @@ func (w *ChainWriter) ForceDeregisterFromOperatorSets(
 		return nil, utils.WrapError("failed to create ForceDeregisterFromOperatorSets tx", err)
 	}
 
-	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
+	receipt, err := w.txMgr.Send(ctx, tx, request.WaitForReceipt)
 	if err != nil {
 		return nil, utils.WrapError("failed to send tx", err)
 	}
@@ -479,28 +472,22 @@ func (w *ChainWriter) ForceDeregisterFromOperatorSets(
 }
 
 // Modifies the proportions of slashable stake allocated to an operator set
-// from a list of strategies, for the given `operatorAddress`.
+// from a list of strategies, for the given `request.OperatorAddress`.
 func (w *ChainWriter) ModifyAllocations(
 	ctx context.Context,
-	operatorAddress gethcommon.Address,
-	allocations []allocationmanager.IAllocationManagerTypesAllocateParams,
-	waitForReceipt bool,
+	request ModifyAllocationRequest,
+	txOption *TxOption,
 ) (*gethtypes.Receipt, error) {
 	if w.allocationManager == nil {
 		return nil, errors.New("AllocationManager contract not provided")
 	}
 
-	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
-	if err != nil {
-		return nil, utils.WrapError("failed to get no send tx opts", err)
-	}
-
-	tx, err := w.allocationManager.ModifyAllocations(noSendTxOpts, operatorAddress, allocations)
+	tx, err := w.allocationManager.ModifyAllocations(txOption.Opts, request.OperatorAddress, request.Allocations)
 	if err != nil {
 		return nil, utils.WrapError("failed to create ModifyAllocations tx", err)
 	}
 
-	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
+	receipt, err := w.txMgr.Send(ctx, tx, request.WaitForReceipt)
 	if err != nil {
 		return nil, utils.WrapError("failed to send tx", err)
 	}
@@ -514,24 +501,18 @@ func (w *ChainWriter) ModifyAllocations(
 // slashable.
 func (w *ChainWriter) SetAllocationDelay(
 	ctx context.Context,
-	operatorAddress gethcommon.Address,
-	delay uint32,
-	waitForReceipt bool,
+	request AllocationDelayRequest,
+	txOption *TxOption,
 ) (*gethtypes.Receipt, error) {
 	if w.allocationManager == nil {
 		return nil, errors.New("AllocationManager contract not provided")
 	}
 
-	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
-	if err != nil {
-		return nil, utils.WrapError("failed to get no send tx opts", err)
-	}
-
-	tx, err := w.allocationManager.SetAllocationDelay(noSendTxOpts, operatorAddress, delay)
+	tx, err := w.allocationManager.SetAllocationDelay(txOption.Opts, request.OperatorAddress, request.Delay)
 	if err != nil {
 		return nil, utils.WrapError("failed to create InitializeAllocationDelay tx", err)
 	}
-	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
+	receipt, err := w.txMgr.Send(ctx, tx, request.WaitForReceipt)
 	if err != nil {
 		return nil, utils.WrapError("failed to send tx", err)
 	}
@@ -539,27 +520,23 @@ func (w *ChainWriter) SetAllocationDelay(
 	return receipt, nil
 }
 
+// TODO: WE HAVE TWO METHODS THAT DO THE SAME THING - DeregisterFromOperatorSets and ForceDeregisterFromOperatorSets
 // Deregister an operator from one or more of the AVS's operator sets.
 // If the operator has any slashable stake allocated to the AVS,
 // it remains slashable until the deallocation delay has passed.
 func (w *ChainWriter) DeregisterFromOperatorSets(
 	ctx context.Context,
-	operator gethcommon.Address,
-	request DeregistrationRequest,
+	request DeregisterFromOperatorSet,
+	txOption *TxOption,
 ) (*gethtypes.Receipt, error) {
 	if w.allocationManager == nil {
 		return nil, errors.New("AllocationManager contract not provided")
 	}
 
-	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
-	if err != nil {
-		return nil, utils.WrapError("failed to get no send tx opts", err)
-	}
-
 	tx, err := w.allocationManager.DeregisterFromOperatorSets(
-		noSendTxOpts,
+		txOption.Opts,
 		allocationmanager.IAllocationManagerTypesDeregisterParams{
-			Operator:       operator,
+			Operator:       request.OperatorAddress,
 			Avs:            request.AVSAddress,
 			OperatorSetIds: request.OperatorSetIds,
 		})
@@ -580,21 +557,16 @@ func (w *ChainWriter) DeregisterFromOperatorSets(
 // it immediately becomes slashable.
 func (w *ChainWriter) RegisterForOperatorSets(
 	ctx context.Context,
-	registryCoordinatorAddr gethcommon.Address,
-	request RegistrationRequest,
+	request RegisterForOperatorSetRequest,
+	txOption *TxOption,
 ) (*gethtypes.Receipt, error) {
 	if w.allocationManager == nil {
 		return nil, errors.New("AllocationManager contract not provided")
 	}
 
-	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
-	if err != nil {
-		return nil, utils.WrapError("failed to get no send tx opts", err)
-	}
-
 	pubkeyRegParams, err := getPubkeyRegistrationParams(
 		w.ethClient,
-		registryCoordinatorAddr,
+		request.RegistryCoordinatorAddress,
 		request.OperatorAddress,
 		request.BlsKeyPair,
 	)
@@ -607,7 +579,7 @@ func (w *ChainWriter) RegisterForOperatorSets(
 		return nil, utils.WrapError("failed to encode registration params", err)
 	}
 	tx, err := w.allocationManager.RegisterForOperatorSets(
-		noSendTxOpts,
+		txOption.Opts,
 		request.OperatorAddress,
 		allocationmanager.IAllocationManagerTypesRegisterParams{
 			Avs:            request.AVSAddress,
@@ -627,26 +599,24 @@ func (w *ChainWriter) RegisterForOperatorSets(
 }
 
 // Removes permission of an appointee for a specific function
-// (given by request.selector) on a target contract, given an account address.
+// (given by request.Selector) on a target contract, given an account address.
 func (w *ChainWriter) RemovePermission(
 	ctx context.Context,
-	request RemovePermissionRequest,
+	request PermissionRequest,
+	txOption *TxOption,
 ) (*gethtypes.Receipt, error) {
-	txOpts, err := w.txMgr.GetNoSendTxOpts()
-	if err != nil {
-		return nil, utils.WrapError("failed to get no-send tx opts", err)
-	}
-	tx, err := w.NewRemovePermissionTx(txOpts, request)
+	tx, err := w.NewRemovePermissionTx(request, txOption.Opts)
 	if err != nil {
 		return nil, utils.WrapError("failed to create NewRemovePermissionTx", err)
 	}
 	return w.txMgr.Send(ctx, tx, request.WaitForReceipt)
 }
 
+// REVIEW: SHOULD THIS METHOD BE PRIVATE?
 // Builds a transaction for the PermissionController's removeAppointee function.
 func (w *ChainWriter) NewRemovePermissionTx(
+	request PermissionRequest,
 	txOpts *bind.TransactOpts,
-	request RemovePermissionRequest,
 ) (*gethtypes.Transaction, error) {
 	if w.permissionController == nil {
 		return nil, errors.New("permission contract not provided")
@@ -661,10 +631,11 @@ func (w *ChainWriter) NewRemovePermissionTx(
 	)
 }
 
+// REVIEW: SHOULD THIS METHOD BE PRIVATE?
 // Builds a transaction for the PermissionController's setAppointee function.
 func (w *ChainWriter) NewSetPermissionTx(
+	request PermissionRequest,
 	txOpts *bind.TransactOpts,
-	request SetPermissionRequest,
 ) (*gethtypes.Transaction, error) {
 	if w.permissionController == nil {
 		return nil, errors.New("permission contract not provided")
@@ -684,14 +655,10 @@ func (w *ChainWriter) NewSetPermissionTx(
 // by `request.Selector` on the contract given by `request.Target`.
 func (w *ChainWriter) SetPermission(
 	ctx context.Context,
-	request SetPermissionRequest,
+	request PermissionRequest,
+	txOption *TxOption,
 ) (*gethtypes.Receipt, error) {
-	txOpts, err := w.txMgr.GetNoSendTxOpts()
-	if err != nil {
-		return nil, utils.WrapError("failed to get no-send tx opts", err)
-	}
-
-	tx, err := w.NewSetPermissionTx(txOpts, request)
+	tx, err := w.NewSetPermissionTx(request, txOption.Opts)
 	if err != nil {
 		return nil, utils.WrapError("failed to create NewSetPermissionTx", err)
 	}
@@ -699,6 +666,7 @@ func (w *ChainWriter) SetPermission(
 	return w.txMgr.Send(ctx, tx, request.WaitForReceipt)
 }
 
+// REVIEW: SHOULD THIS METHOD BE PRIVATE?
 // Builds a transaction for the PermissionController's acceptAdmin function.
 func (w *ChainWriter) NewAcceptAdminTx(
 	txOpts *bind.TransactOpts,
@@ -715,13 +683,9 @@ func (w *ChainWriter) NewAcceptAdminTx(
 func (w *ChainWriter) AcceptAdmin(
 	ctx context.Context,
 	request AcceptAdminRequest,
+	txOption *TxOption,
 ) (*gethtypes.Receipt, error) {
-	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
-	if err != nil {
-		return nil, utils.WrapError("failed to get no send tx opts", err)
-	}
-
-	tx, err := w.NewAcceptAdminTx(noSendTxOpts, request)
+	tx, err := w.NewAcceptAdminTx(txOption.Opts, request)
 	if err != nil {
 		return nil, utils.WrapError("failed to create AcceptAdmin transaction", err)
 	}
@@ -730,8 +694,8 @@ func (w *ChainWriter) AcceptAdmin(
 
 // Builds a transaction for the PermissionController's addPendingAdmin function.
 func (w *ChainWriter) NewAddPendingAdminTx(
+	request PendingAdminRequest,
 	txOpts *bind.TransactOpts,
-	request AddPendingAdminRequest,
 ) (*gethtypes.Transaction, error) {
 	if w.permissionController == nil {
 		return nil, errors.New("permission contract not provided")
@@ -742,12 +706,12 @@ func (w *ChainWriter) NewAddPendingAdminTx(
 // Set a pending admin. Multiple admins can be set for an account.
 // The caller must be an admin. If the account does not have an admin,
 // the caller must be the account.
-func (w *ChainWriter) AddPendingAdmin(ctx context.Context, request AddPendingAdminRequest) (*gethtypes.Receipt, error) {
-	txOpts, err := w.txMgr.GetNoSendTxOpts()
-	if err != nil {
-		return nil, utils.WrapError("failed to get no send tx opts", err)
-	}
-	tx, err := w.NewAddPendingAdminTx(txOpts, request)
+func (w *ChainWriter) AddPendingAdmin(
+	ctx context.Context,
+	request PendingAdminRequest,
+	txOption *TxOption,
+) (*gethtypes.Receipt, error) {
+	tx, err := w.NewAddPendingAdminTx(request, txOption.Opts)
 	if err != nil {
 		return nil, utils.WrapError("failed to create AddPendingAdminTx", err)
 	}
@@ -770,13 +734,9 @@ func (w *ChainWriter) NewRemoveAdminTx(
 func (w *ChainWriter) RemoveAdmin(
 	ctx context.Context,
 	request RemoveAdminRequest,
+	txOption *TxOption,
 ) (*gethtypes.Receipt, error) {
-	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
-	if err != nil {
-		return nil, utils.WrapError("failed to get no send tx opts", err)
-	}
-
-	tx, err := w.NewRemoveAdminTx(noSendTxOpts, request)
+	tx, err := w.NewRemoveAdminTx(txOption.Opts, request)
 	if err != nil {
 		return nil, utils.WrapError("failed to create RemoveAdmin transaction", err)
 	}
@@ -785,8 +745,8 @@ func (w *ChainWriter) RemoveAdmin(
 
 // Builds a transaction for the PermissionController's removePendingAdmin function.
 func (w *ChainWriter) NewRemovePendingAdminTx(
-	txOpts *bind.TransactOpts,
 	request RemovePendingAdminRequest,
+	txOpts *bind.TransactOpts,
 ) (*gethtypes.Transaction, error) {
 	if w.permissionController == nil {
 		return nil, errors.New("permission contract not provided")
@@ -799,13 +759,9 @@ func (w *ChainWriter) NewRemovePendingAdminTx(
 func (w *ChainWriter) RemovePendingAdmin(
 	ctx context.Context,
 	request RemovePendingAdminRequest,
+	txOption *TxOption,
 ) (*gethtypes.Receipt, error) {
-	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
-	if err != nil {
-		return nil, utils.WrapError("failed to get no send tx opts", err)
-	}
-
-	tx, err := w.NewRemovePendingAdminTx(noSendTxOpts, request)
+	tx, err := w.NewRemovePendingAdminTx(request, txOption.Opts)
 	if err != nil {
 		return nil, utils.WrapError("failed to create RemovePendingAdmin transaction", err)
 	}
