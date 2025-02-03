@@ -82,7 +82,8 @@ type RemovePendingAdminRequest struct {
 	WaitForReceipt bool
 }
 
-// IsAdminRequest represents a request to check if the caller is an admin of an account
+// IsAdminRequest represents a request to check if the caller is an admin of an account.
+// If `BlockNumber` is nil, the latest block will be used
 type AdminCheckRequest struct {
 	BlockNumber    *big.Int
 	AccountAddress common.Address
@@ -94,7 +95,8 @@ type IsAdminResponse struct {
 	IsAdmin bool
 }
 
-// IsPendingAdminRequest represents a request to check if an address is a pending admin of the account
+// IsPendingAdminRequest represents a request to check if an address is a pending admin of the account.
+// If `BlockNumber` is nil, the latest block will be used
 type PendingAdminCheckRequest struct {
 	BlockNumber         *big.Int
 	AccountAddress      common.Address
@@ -106,7 +108,8 @@ type IsPendingAdminResponse struct {
 	IsPendingAdmin bool
 }
 
-// AccountRequest represents the address of an specific account
+// AccountRequest represents the address of an specific account. // If `BlockNumber` is nil, the latest block will be
+// used
 type AccountRequest struct {
 	BlockNumber    *big.Int
 	AccountAddress common.Address
@@ -122,7 +125,8 @@ type PendingAdminsResponse struct {
 	PendingAdmins []common.Address
 }
 
-// AppointeesListRequest represents a request to get the list of appointees of an account
+// AppointeesListRequest represents a request to get the list of appointees of an account.
+// If `BlockNumber` is nil, the latest block will be used
 type AppointeesListRequest struct {
 	BlockNumber    *big.Int
 	AccountAddress common.Address
@@ -135,18 +139,22 @@ type AppointeesResponse struct {
 	Appointees []common.Address
 }
 
+// AppointeePermissionsListRequest represents a request to get the list of permissions of an appointee.
+// If `BlockNumber` is nil, the latest block will be used
 type AppointeePermissionsListRequest struct {
 	BlockNumber      *big.Int
 	AccountAddress   common.Address
 	AppointeeAddress common.Address
 }
 
+// AppointeePermissionsListResponse shows the list of permissions of an appointee
 type AppointeePermissionsListResponse struct {
 	TargetAddresses []common.Address
 	Selectors       [][4]byte
 }
 
-// CanCallRequest represents a request to check if an account can call a target
+// CanCallRequest represents a request to check if an account can call a target.
+// If `BlockNumber` is nil, the latest block will be used
 type CanCallRequest struct {
 	BlockNumber      *big.Int
 	AccountAddress   common.Address
