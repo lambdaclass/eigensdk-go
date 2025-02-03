@@ -35,6 +35,8 @@ type eLReader interface {
 	) ([32]byte, error)
 }
 
+// The ChainWriter provides methods to call the
+// AVS registry contract's state-changing functions.
 type ChainWriter struct {
 	serviceManagerAddr     gethcommon.Address
 	registryCoordinator    *regcoord.ContractRegistryCoordinator
@@ -47,6 +49,7 @@ type ChainWriter struct {
 	txMgr                  txmgr.TxManager
 }
 
+// Returns a new instance of ChainWriter.
 func NewChainWriter(
 	serviceManagerAddr gethcommon.Address,
 	registryCoordinator *regcoord.ContractRegistryCoordinator,
@@ -380,6 +383,8 @@ func (w *ChainWriter) UpdateStakesOfEntireOperatorSetForQuorums(
 
 }
 
+// Updates the stakes of a the given `operators` for all the quorums.
+// On success, returns the receipt of the transaction.
 func (w *ChainWriter) UpdateStakesOfOperatorSubsetForAllQuorums(
 	ctx context.Context,
 	operators []gethcommon.Address,
@@ -408,6 +413,8 @@ func (w *ChainWriter) UpdateStakesOfOperatorSubsetForAllQuorums(
 	return receipt, nil
 }
 
+// Deregisters the caller from the quorums given by `quorumNumbers`.
+// On success, returns the receipt of the transaction.
 func (w *ChainWriter) DeregisterOperator(
 	ctx context.Context,
 	quorumNumbers types.QuorumNums,
@@ -435,6 +442,8 @@ func (w *ChainWriter) DeregisterOperator(
 	return receipt, nil
 }
 
+// Deregisters an operator from the given operator sets.
+// On success, returns the receipt of the transaction.
 func (w *ChainWriter) DeregisterOperatorOperatorSets(
 	ctx context.Context,
 	operatorSetIds types.OperatorSetIds,
@@ -465,6 +474,8 @@ func (w *ChainWriter) DeregisterOperatorOperatorSets(
 	return receipt, nil
 }
 
+// Updates the socket of the sender (if it is a registered operator).
+// On success, returns the receipt of the transaction.
 func (w *ChainWriter) UpdateSocket(
 	ctx context.Context,
 	socket types.Socket,

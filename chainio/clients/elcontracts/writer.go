@@ -35,6 +35,8 @@ type Reader interface {
 	) (*strategy.ContractIStrategy, erc20.ContractIERC20Methods, gethcommon.Address, error)
 }
 
+// The ChainWriter provides methods to call the
+// EigenLayer core contract's state-changing functions.
 type ChainWriter struct {
 	delegationManager    *delegationmanager.ContractDelegationManager
 	strategyManager      *strategymanager.ContractStrategyManager
@@ -49,6 +51,7 @@ type ChainWriter struct {
 	txMgr                txmgr.TxManager
 }
 
+// Returns a new instance of ChainWriter.
 func NewChainWriter(
 	delegationManager *delegationmanager.ContractDelegationManager,
 	strategyManager *strategymanager.ContractStrategyManager,
@@ -80,6 +83,7 @@ func NewChainWriter(
 	}
 }
 
+// Returns a new instance of ChainWriter from a given config.
 func NewWriterFromConfig(
 	cfg Config,
 	ethClient eth.HttpBackend,
@@ -122,6 +126,8 @@ func NewWriterFromConfig(
 	), nil
 }
 
+// Registers the caller as an operator in EigenLayer through the
+// DelegationManager contract.
 func (w *ChainWriter) RegisterAsOperator(
 	ctx context.Context,
 	operator types.Operator,
@@ -159,6 +165,9 @@ func (w *ChainWriter) RegisterAsOperator(
 	return receipt, nil
 }
 
+// Updates an operator's stored `delegationApprover` with
+// the given `operator.DelegationApproverAddress` by calling
+// the `modifyOperatorDetails` function in the DelegationManager contract.
 func (w *ChainWriter) UpdateOperatorDetails(
 	ctx context.Context,
 	operator types.Operator,
@@ -202,6 +211,7 @@ func (w *ChainWriter) UpdateOperatorDetails(
 	return receipt, nil
 }
 
+// Updates the metadata URI for the given operator.
 func (w *ChainWriter) UpdateMetadataURI(
 	ctx context.Context,
 	operatorAddress gethcommon.Address,
@@ -238,6 +248,8 @@ func (w *ChainWriter) UpdateMetadataURI(
 	return receipt, nil
 }
 
+// Deposits `amount` of the `strategyAddr` underlying token
+// into the strategy given by `strategyAddr`.
 func (w *ChainWriter) DepositERC20IntoStrategy(
 	ctx context.Context,
 	strategyAddr gethcommon.Address,
@@ -290,6 +302,9 @@ func (w *ChainWriter) DepositERC20IntoStrategy(
 	return receipt, nil
 }
 
+// Sets `claimer` as the claimer for the earner (in this case the
+// earner is the caller). That means that `claimer` can call `processClaim`
+// on behalf of the earner.
 func (w *ChainWriter) SetClaimerFor(
 	ctx context.Context,
 	claimer gethcommon.Address,
@@ -320,6 +335,8 @@ func (w *ChainWriter) SetClaimerFor(
 	return receipt, nil
 }
 
+// Processes the given `claim` for rewards.
+// The rewards are transferred to the given `recipientAddress`.
 func (w *ChainWriter) ProcessClaim(
 	ctx context.Context,
 	claim rewardscoordinator.IRewardsCoordinatorTypesRewardsMerkleClaim,
@@ -351,6 +368,10 @@ func (w *ChainWriter) ProcessClaim(
 	return receipt, nil
 }
 
+// Sets the split for a specific operator for a specific AVS.
+// The caller must be a registered operator.
+// The split has to be between 0 and 10000 bips (inclusive).
+// The split will be activated after activation delay.
 func (w *ChainWriter) SetOperatorAVSSplit(
 	ctx context.Context,
 	operator gethcommon.Address,
@@ -383,6 +404,10 @@ func (w *ChainWriter) SetOperatorAVSSplit(
 	return receipt, nil
 }
 
+// Sets the split for a specific operator for Programmatic Incentives.
+// The caller must be a registered operator.
+// The split has to be between 0 and 10000 bips (inclusive).
+// The split will be activated after activation delay.
 func (w *ChainWriter) SetOperatorPISplit(
 	ctx context.Context,
 	operator gethcommon.Address,
@@ -414,6 +439,8 @@ func (w *ChainWriter) SetOperatorPISplit(
 	return receipt, nil
 }
 
+// Processes the claims given by `claims`.
+// The rewards are transferred to the given `recipientAddress`.
 func (w *ChainWriter) ProcessClaims(
 	ctx context.Context,
 	claims []rewardscoordinator.IRewardsCoordinatorTypesRewardsMerkleClaim,
@@ -455,6 +482,9 @@ func (w *ChainWriter) ProcessClaims(
 	return receipt, nil
 }
 
+// Deregisters an operator from each of the operator sets given by
+// `operatorSetIds` for the given AVS, by calling the function
+// `deregisterFromOperatorSets` in the AllocationManager.
 func (w *ChainWriter) ForceDeregisterFromOperatorSets(
 	ctx context.Context,
 	operator gethcommon.Address,
@@ -496,6 +526,8 @@ func (w *ChainWriter) ForceDeregisterFromOperatorSets(
 	return receipt, nil
 }
 
+// Modifies the proportions of slashable stake allocated to an operator set
+// from a list of strategies, for the given `operatorAddress`.
 func (w *ChainWriter) ModifyAllocations(
 	ctx context.Context,
 	operatorAddress gethcommon.Address,
@@ -528,6 +560,10 @@ func (w *ChainWriter) ModifyAllocations(
 	return receipt, nil
 }
 
+// Sets the allocation delay for an operator.
+// The allocation delay is the number of blocks between the operator
+// allocating a magnitude to an operator set, and the magnitude becoming
+// slashable.
 func (w *ChainWriter) SetAllocationDelay(
 	ctx context.Context,
 	operatorAddress gethcommon.Address,
@@ -559,6 +595,9 @@ func (w *ChainWriter) SetAllocationDelay(
 	return receipt, nil
 }
 
+// Deregister an operator from one or more of the AVS's operator sets.
+// If the operator has any slashable stake allocated to the AVS,
+// it remains slashable until the deallocation delay has passed.
 func (w *ChainWriter) DeregisterFromOperatorSets(
 	ctx context.Context,
 	operator gethcommon.Address,
@@ -596,6 +635,9 @@ func (w *ChainWriter) DeregisterFromOperatorSets(
 	return receipt, nil
 }
 
+// Register an operator for one or more operator sets for an AVS.
+// If the operator has any stake allocated to these operator sets,
+// it immediately becomes slashable.
 func (w *ChainWriter) RegisterForOperatorSets(
 	ctx context.Context,
 	registryCoordinatorAddr gethcommon.Address,
@@ -660,6 +702,8 @@ func (w *ChainWriter) RegisterForOperatorSets(
 	return receipt, nil
 }
 
+// Removes permission of an appointee for a specific function
+// (given by request.selector) on a target contract, given an account address.
 func (w *ChainWriter) RemovePermission(
 	ctx context.Context,
 	request RemovePermissionRequest,
@@ -688,6 +732,7 @@ func (w *ChainWriter) RemovePermission(
 	return receipt, nil
 }
 
+// Builds a transaction for the PermissionController's removeAppointee function.
 func (w *ChainWriter) NewRemovePermissionTx(
 	txOpts *bind.TransactOpts,
 	request RemovePermissionRequest,
@@ -712,6 +757,7 @@ func (w *ChainWriter) NewRemovePermissionTx(
 	return tx, nil
 }
 
+// Builds a transaction for the PermissionController's setAppointee function.
 func (w *ChainWriter) NewSetPermissionTx(
 	txOpts *bind.TransactOpts,
 	request SetPermissionRequest,
@@ -736,6 +782,10 @@ func (w *ChainWriter) NewSetPermissionTx(
 	return tx, nil
 }
 
+// Set an appointee for a given account.
+// Only the admin of the account can set an appointee.
+// The appointee will be able to call the function given
+// by `request.Selector` on the contract given by `request.Target`.
 func (w *ChainWriter) SetPermission(
 	ctx context.Context,
 	request SetPermissionRequest,
@@ -765,6 +815,7 @@ func (w *ChainWriter) SetPermission(
 	return receipt, nil
 }
 
+// Builds a transaction for the PermissionController's acceptAdmin function.
 func (w *ChainWriter) NewAcceptAdminTx(
 	txOpts *bind.TransactOpts,
 	request AcceptAdminRequest,
@@ -783,6 +834,8 @@ func (w *ChainWriter) NewAcceptAdminTx(
 	return tx, nil
 }
 
+// Accept a pending admin for the account given by `request.AccountAddress`.
+// The sender of the transaction must be the pending admin.
 func (w *ChainWriter) AcceptAdmin(
 	ctx context.Context,
 	request AcceptAdminRequest,
@@ -812,6 +865,7 @@ func (w *ChainWriter) AcceptAdmin(
 	return receipt, nil
 }
 
+// Builds a transaction for the PermissionController's addPendingAdmin function.
 func (w *ChainWriter) NewAddPendingAdminTx(
 	txOpts *bind.TransactOpts,
 	request AddPendingAdminRequest,
@@ -830,6 +884,9 @@ func (w *ChainWriter) NewAddPendingAdminTx(
 	return tx, nil
 }
 
+// Set a pending admin. Multiple admins can be set for an account.
+// The caller must be an admin. If the account does not have an admin,
+// the caller must be the account.
 func (w *ChainWriter) AddPendingAdmin(ctx context.Context, request AddPendingAdminRequest) (*gethtypes.Receipt, error) {
 	txOpts, err := w.txMgr.GetNoSendTxOpts()
 	if err != nil {
@@ -855,6 +912,7 @@ func (w *ChainWriter) AddPendingAdmin(ctx context.Context, request AddPendingAdm
 	return receipt, nil
 }
 
+// Builds a transaction for the PermissionController's removeAdmin function.
 func (w *ChainWriter) NewRemoveAdminTx(
 	txOpts *bind.TransactOpts,
 	request RemoveAdminRequest,
@@ -873,6 +931,8 @@ func (w *ChainWriter) NewRemoveAdminTx(
 	return tx, nil
 }
 
+// Removes the admin given by `request.AdminAddress` from the account given
+// by `request.AccountAddress`. The sender of the transaction must be an admin.
 func (w *ChainWriter) RemoveAdmin(
 	ctx context.Context,
 	request RemoveAdminRequest,
@@ -902,6 +962,7 @@ func (w *ChainWriter) RemoveAdmin(
 	return receipt, nil
 }
 
+// Builds a transaction for the PermissionController's removePendingAdmin function.
 func (w *ChainWriter) NewRemovePendingAdminTx(
 	txOpts *bind.TransactOpts,
 	request RemovePendingAdminRequest,
@@ -920,6 +981,8 @@ func (w *ChainWriter) NewRemovePendingAdminTx(
 	return tx, nil
 }
 
+// Remove pending admin given by `request.AdminAddress` from the account given
+// by `request.AccountAddress`. Only the admin of the account can remove a pending admin.
 func (w *ChainWriter) RemovePendingAdmin(
 	ctx context.Context,
 	request RemovePendingAdminRequest,
@@ -950,6 +1013,7 @@ func (w *ChainWriter) RemovePendingAdmin(
 	return receipt, nil
 }
 
+// Returns the pubkey registration params for the operator given by `operatorAddress`.
 func getPubkeyRegistrationParams(
 	ethClient bind.ContractBackend,
 	registryCoordinatorAddr, operatorAddress gethcommon.Address,
@@ -982,6 +1046,7 @@ func getPubkeyRegistrationParams(
 	return &pubkeyRegParams, nil
 }
 
+// Returns the ABI encoding of the given registration params.
 func abiEncodeRegistrationParams(
 	socket string,
 	pubkeyRegistrationParams regcoord.IBLSApkRegistryPubkeyRegistrationParams,
