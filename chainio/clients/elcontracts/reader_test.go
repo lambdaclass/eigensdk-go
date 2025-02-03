@@ -624,15 +624,22 @@ func TestAdminFunctions(t *testing.T) {
 	assert.NoError(t, err)
 
 	t.Run("non-existent pending admin", func(t *testing.T) {
-		isPendingAdmin, err := chainReader.IsPendingAdmin(context.Background(), operatorAddr, pendingAdminAddr)
+		pendingAdminRequest := elcontracts.PendingAdminCheckRequest{
+			AccountAddress:      operatorAddr,
+			PendingAdminAddress: pendingAdminAddr,
+		}
+		response, err := chainReader.IsPendingAdmin(context.Background(), pendingAdminRequest)
 		assert.NoError(t, err)
-		assert.False(t, isPendingAdmin)
+		assert.False(t, response.IsPendingAdmin)
 	})
 
 	t.Run("list pending admins when empty", func(t *testing.T) {
-		listPendingAdmins, err := chainReader.ListPendingAdmins(context.Background(), operatorAddr)
+		accountRequest := elcontracts.AccountRequest{
+			AccountAddress: operatorAddr,
+		}
+		response, err := chainReader.ListPendingAdmins(context.Background(), accountRequest)
 		assert.NoError(t, err)
-		assert.Empty(t, listPendingAdmins)
+		assert.Empty(t, response.PendingAdmins)
 	})
 
 	t.Run("add pending admin and list", func(t *testing.T) {
@@ -646,19 +653,30 @@ func TestAdminFunctions(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, receipt.Status, gethtypes.ReceiptStatusSuccessful)
 
-		isPendingAdmin, err := chainReader.IsPendingAdmin(context.Background(), operatorAddr, pendingAdminAddr)
+		pendingAdminRequest := elcontracts.PendingAdminCheckRequest{
+			AccountAddress:      operatorAddr,
+			PendingAdminAddress: pendingAdminAddr,
+		}
+		pendingResponse, err := chainReader.IsPendingAdmin(context.Background(), pendingAdminRequest)
 		assert.NoError(t, err)
-		assert.True(t, isPendingAdmin)
+		assert.True(t, pendingResponse.IsPendingAdmin)
 
-		listPendingAdmins, err := chainReader.ListPendingAdmins(context.Background(), operatorAddr)
+		accountRequest := elcontracts.AccountRequest{
+			AccountAddress: operatorAddr,
+		}
+		pendingAdminResponse, err := chainReader.ListPendingAdmins(context.Background(), accountRequest)
 		assert.NoError(t, err)
-		assert.NotEmpty(t, listPendingAdmins)
+		assert.NotEmpty(t, pendingAdminResponse.PendingAdmins)
 	})
 
 	t.Run("non-existent admin", func(t *testing.T) {
-		isAdmin, err := chainReader.IsAdmin(context.Background(), operatorAddr, pendingAdminAddr)
+		adminRequest := elcontracts.AdminCheckRequest{
+			AccountAddress: operatorAddr,
+			AdminAddress:   pendingAdminAddr,
+		}
+		response, err := chainReader.IsAdmin(context.Background(), adminRequest)
 		assert.NoError(t, err)
-		assert.False(t, isAdmin)
+		assert.False(t, response.IsAdmin)
 	})
 
 	t.Run("list admins", func(t *testing.T) {
@@ -671,14 +689,20 @@ func TestAdminFunctions(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, receipt.Status, gethtypes.ReceiptStatusSuccessful)
 
-		listAdmins, err := chainReader.ListAdmins(context.Background(), operatorAddr)
+		adminsRequest := elcontracts.AccountRequest{
+			AccountAddress: operatorAddr,
+		}
+		adminListResponse, err := chainReader.ListAdmins(context.Background(), adminsRequest)
 		assert.NoError(t, err)
-		assert.Len(t, listAdmins, 1)
+		assert.Len(t, adminListResponse.Admins, 1)
 
-		admin := listAdmins[0]
-		isAdmin, err := chainReader.IsAdmin(context.Background(), operatorAddr, admin)
+		adminRequest := elcontracts.AdminCheckRequest{
+			AccountAddress: operatorAddr,
+			AdminAddress:   adminListResponse.Admins[0],
+		}
+		adminResponse, err := chainReader.IsAdmin(context.Background(), adminRequest)
 		assert.NoError(t, err)
-		assert.True(t, isAdmin)
+		assert.True(t, adminResponse.IsAdmin)
 	})
 }
 
@@ -709,9 +733,14 @@ func TestAppointeesFunctions(t *testing.T) {
 	selector := [4]byte{0, 1, 2, 3}
 
 	t.Run("list appointees when empty", func(t *testing.T) {
-		appointees, err := chainReader.ListAppointees(context.Background(), accountAddress, target, selector)
+		appointeesRequest := elcontracts.AppointeesListRequest{
+			AccountAddress: accountAddress,
+			TargetAddress:  target,
+			Selector:       selector,
+		}
+		response, err := chainReader.ListAppointees(context.Background(), appointeesRequest)
 		assert.NoError(t, err)
-		assert.Empty(t, appointees)
+		assert.Empty(t, response.Appointees)
 	})
 
 	t.Run("list appointees", func(t *testing.T) {
@@ -727,23 +756,34 @@ func TestAppointeesFunctions(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, receipt.Status, gethtypes.ReceiptStatusSuccessful)
 
-		canCall, err := chainReader.CanCall(context.Background(), accountAddress, appointeeAddress, target, selector)
+		callRequest := elcontracts.CanCallRequest{
+			AccountAddress:   accountAddress,
+			AppointeeAddress: appointeeAddress,
+			Target:           target,
+			Selector:         selector,
+		}
+		response, err := chainReader.CanCall(context.Background(), callRequest)
 		require.NoError(t, err)
-		require.True(t, canCall)
+		require.True(t, response.CanCall)
 
-		appointees, err := chainReader.ListAppointees(context.Background(), accountAddress, target, selector)
+		appointeesRequest := elcontracts.AppointeesListRequest{
+			AccountAddress: accountAddress,
+			TargetAddress:  target,
+			Selector:       selector,
+		}
+		appointeesResponse, err := chainReader.ListAppointees(context.Background(), appointeesRequest)
 		assert.NoError(t, err)
-		assert.NotEmpty(t, appointees)
+		assert.NotEmpty(t, appointeesResponse.Appointees)
 	})
 
 	t.Run("list appointees permissions", func(t *testing.T) {
-		appointeesPermission, _, err := chainReader.ListAppointeePermissions(
-			context.Background(),
-			accountAddress,
-			appointeeAddress,
-		)
+		request := elcontracts.AppointeePermissionsListRequest{
+			AccountAddress:   accountAddress,
+			AppointeeAddress: appointeeAddress,
+		}
+		response, err := chainReader.ListAppointeePermissions(context.Background(), request)
 		assert.NoError(t, err)
-		assert.NotEmpty(t, appointeesPermission)
+		assert.NotEmpty(t, response.TargetAddresses)
 	})
 }
 
