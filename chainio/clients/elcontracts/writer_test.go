@@ -553,9 +553,15 @@ func TestSetAndRemovePermission(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, gethtypes.ReceiptStatusSuccessful, receipt.Status)
 
-		canCall, err := chainReader.CanCall(context.Background(), accountAddress, appointeeAddress, target, selector)
+		request := elcontracts.CanCallRequest{
+			AccountAddress:   accountAddress,
+			AppointeeAddress: appointeeAddress,
+			Target:           target,
+			Selector:         selector,
+		}
+		response, err := chainReader.CanCall(context.Background(), request)
 		require.NoError(t, err)
-		require.True(t, canCall)
+		require.True(t, response.CanCall)
 	})
 
 	t.Run("set permission to account when already set", func(t *testing.T) {
@@ -568,9 +574,15 @@ func TestSetAndRemovePermission(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, gethtypes.ReceiptStatusSuccessful, receipt.Status)
 
-		canCall, err := chainReader.CanCall(context.Background(), accountAddress, appointeeAddress, target, selector)
+		request := elcontracts.CanCallRequest{
+			AccountAddress:   accountAddress,
+			AppointeeAddress: appointeeAddress,
+			Target:           target,
+			Selector:         selector,
+		}
+		response, err := chainReader.CanCall(context.Background(), request)
 		require.NoError(t, err)
-		require.False(t, canCall)
+		require.False(t, response.CanCall)
 	})
 
 	t.Run("remove permission from account when not set", func(t *testing.T) {
@@ -708,9 +720,13 @@ func TestAddAndRemovePendingAdmin(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, gethtypes.ReceiptStatusSuccessful, receipt.Status)
 
-		isPendingAdmin, err := chainReader.IsPendingAdmin(context.Background(), operatorAddr, pendingAdmin)
+		pendingAdminRequest := elcontracts.PendingAdminCheckRequest{
+			AccountAddress:      operatorAddr,
+			PendingAdminAddress: pendingAdmin,
+		}
+		response, err := chainReader.IsPendingAdmin(context.Background(), pendingAdminRequest)
 		require.NoError(t, err)
-		require.True(t, isPendingAdmin)
+		require.True(t, response.IsPendingAdmin)
 	})
 
 	t.Run("add pending admin when already added", func(t *testing.T) {
@@ -723,9 +739,13 @@ func TestAddAndRemovePendingAdmin(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, gethtypes.ReceiptStatusSuccessful, receipt.Status)
 
-		isPendingAdmin, err := chainReader.IsPendingAdmin(context.Background(), operatorAddr, pendingAdmin)
+		pendingAdminRequest := elcontracts.PendingAdminCheckRequest{
+			AccountAddress:      operatorAddr,
+			PendingAdminAddress: pendingAdmin,
+		}
+		response, err := chainReader.IsPendingAdmin(context.Background(), pendingAdminRequest)
 		require.NoError(t, err)
-		require.False(t, isPendingAdmin)
+		require.False(t, response.IsPendingAdmin)
 	})
 }
 
@@ -778,9 +798,13 @@ func TestAcceptAdmin(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, gethtypes.ReceiptStatusSuccessful, receipt.Status)
 
-		isAdmin, err := chainReader.IsAdmin(context.Background(), accountAddr, pendingAdminAddr)
+		adminRequest := elcontracts.AdminCheckRequest{
+			AccountAddress: accountAddr,
+			AdminAddress:   pendingAdminAddr,
+		}
+		response, err := chainReader.IsAdmin(context.Background(), adminRequest)
 		require.NoError(t, err)
-		require.True(t, isAdmin)
+		require.True(t, response.IsAdmin)
 	})
 
 	t.Run("accept admin when already accepted", func(t *testing.T) {
@@ -869,9 +893,13 @@ func TestRemoveAdmin(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, gethtypes.ReceiptStatusSuccessful, receipt.Status)
 
-		isAdmin, err := chainReader.IsAdmin(context.Background(), accountAddr, admin2)
+		adminRequest := elcontracts.AdminCheckRequest{
+			AccountAddress: accountAddr,
+			AdminAddress:   admin2,
+		}
+		response, err := chainReader.IsAdmin(context.Background(), adminRequest)
 		require.NoError(t, err)
-		require.False(t, isAdmin)
+		require.False(t, response.IsAdmin)
 	})
 
 	t.Run("remove admin 2 when already removed", func(t *testing.T) {
