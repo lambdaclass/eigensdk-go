@@ -187,13 +187,17 @@ func TestRegisterAndDeregisterFromOperatorSets(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, gethtypes.ReceiptStatusSuccessful, receipt.Status)
 
-		isRegistered, err := chainReader.IsOperatorRegisteredWithOperatorSet(
+		request := elcontracts.RegisteredOperatorSetRequest{
+			OperatorAddress: operatorAddress,
+			OperatorSet:     operatorSet,
+		}
+
+		response, err := chainReader.IsOperatorRegisteredWithOperatorSet(
 			context.Background(),
-			operatorAddress,
-			operatorSet,
+			request,
 		)
 		require.NoError(t, err)
-		require.Equal(t, true, isRegistered)
+		require.Equal(t, true, response.IsRegistered)
 	})
 
 	t.Run("register operator for same operator set", func(t *testing.T) {
@@ -221,13 +225,16 @@ func TestRegisterAndDeregisterFromOperatorSets(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, gethtypes.ReceiptStatusSuccessful, receipt.Status)
 
-		isRegistered, err := chainReader.IsOperatorRegisteredWithOperatorSet(
+		request := elcontracts.RegisteredOperatorSetRequest{
+			OperatorAddress: operatorAddress,
+			OperatorSet:     operatorSet,
+		}
+		response, err := chainReader.IsOperatorRegisteredWithOperatorSet(
 			context.Background(),
-			operatorAddress,
-			operatorSet,
+			request,
 		)
 		require.NoError(t, err)
-		require.False(t, isRegistered)
+		require.False(t, response.IsRegistered)
 	})
 
 	t.Run("deregister operator from operator set when not registered", func(t *testing.T) {
@@ -633,7 +640,10 @@ func TestModifyAllocations(t *testing.T) {
 	testutils.AdvanceChainByNBlocksExecInContainer(context.Background(), allocationConfigurationDelay+1, anvilC)
 
 	// Retrieve the allocation delay so that the delay is applied
-	_, err = chainReader.GetAllocationDelay(context.Background(), operatorAddr)
+	_, err = chainReader.GetAllocationDelay(
+		context.Background(),
+		elcontracts.OperatorRequest{OperatorAddress: operatorAddr},
+	)
 	require.NoError(t, err)
 
 	err = createOperatorSet(anvilHttpEndpoint, privateKeyHex, avsAddr, operatorSetId, strategyAddr)
@@ -651,9 +661,12 @@ func TestModifyAllocations(t *testing.T) {
 	require.Equal(t, allocationInfo[0].CurrentMagnitude, big.NewInt(0))
 
 	// Retrieve the allocation delay and advance the chain
-	allocationDelay, err := chainReader.GetAllocationDelay(context.Background(), operatorAddr)
+	delayResponse, err := chainReader.GetAllocationDelay(
+		context.Background(),
+		elcontracts.OperatorRequest{OperatorAddress: operatorAddr},
+	)
 	require.NoError(t, err)
-	testutils.AdvanceChainByNBlocksExecInContainer(context.Background(), int(allocationDelay), anvilC)
+	testutils.AdvanceChainByNBlocksExecInContainer(context.Background(), int(delayResponse.Delay), anvilC)
 
 	// Check the new allocation has been updated after the delay
 	allocationInfo, err = chainReader.GetAllocationInfo(context.Background(), operatorAddr, strategyAddr)
