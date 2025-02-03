@@ -82,7 +82,8 @@ type RemovePendingAdminRequest struct {
 	WaitForReceipt bool
 }
 
-// OperatorAVSSplitRequest is used to request the split of an operator for a specific AVS
+// OperatorAVSSplitRequest is used to request the split of an operator for a specific AVS.
+// If `BlockNumber` is nil, the latest block will be used
 type OperatorAVSSplitRequest struct {
 	BlockNumber     *big.Int
 	OperatorAddress common.Address
@@ -94,13 +95,15 @@ type SplitResponse struct {
 	Split uint16
 }
 
-// OperatorRequest is used to represent the address of an operator
+// OperatorRequest is used to represent the address of an operator.
+// If `BlockNumber` is nil, the latest block will be used
 type OperatorRequest struct {
 	BlockNumber     *big.Int
 	OperatorAddress common.Address
 }
 
-// OperatorStrategyRequest is used to represent the address of an operator and a strategy
+// OperatorStrategyRequest is used to represent the address of an operator and a strategy.
+// If `BlockNumber` is nil, the latest block will be used
 type OperatorStrategyRequest struct {
 	BlockNumber     *big.Int
 	OperatorAddress common.Address
@@ -112,6 +115,8 @@ type AllocatableResponse struct {
 	Allocatable uint64
 }
 
+// OperatorStrategiesRequest is used to represent the addresses of an operator and strategies.
+// If `BlockNumber` is nil, the latest block will be used
 type OperatorStrategiesRequest struct {
 	BlockNumber       *big.Int
 	OperatorAddress   common.Address
@@ -133,7 +138,8 @@ type OperatorSharesResponse struct {
 	Shares []*big.Int
 }
 
-// OperatorsStrategiesRequest represents the addresses of operators and strategies
+// OperatorsStrategiesRequest represents the addresses of operators and strategies.
+// If `BlockNumber` is nil, the latest block will be used
 type OperatorsStrategiesRequest struct {
 	BlockNumber       *big.Int
 	OperatorAddresses []common.Address
