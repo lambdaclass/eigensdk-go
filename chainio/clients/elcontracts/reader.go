@@ -685,111 +685,147 @@ func (r *ChainReader) GetRegisteredSets(
 
 func (r *ChainReader) CanCall(
 	ctx context.Context,
-	accountAddress gethcommon.Address,
-	appointeeAddress gethcommon.Address,
-	target gethcommon.Address,
-	selector [4]byte,
-) (bool, error) {
+	request CanCallRequest,
+) (CanCallResponse, error) {
+	if r.permissionController == nil {
+		return CanCallResponse{}, errors.New("PermissionController contract not provided")
+	}
+
 	canCall, err := r.permissionController.CanCall(
-		&bind.CallOpts{Context: ctx},
-		accountAddress,
-		appointeeAddress,
-		target,
-		selector,
+		&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumber},
+		request.AccountAddress,
+		request.AppointeeAddress,
+		request.Target,
+		request.Selector,
 	)
 	// This call should not fail since it's a getter
 	if err != nil {
-		return false, utils.WrapError("call to permission controller failed", err)
+		return CanCallResponse{}, utils.WrapError("call to permission controller failed", err)
 	}
-	return canCall, nil
+	return CanCallResponse{CanCall: canCall}, nil
 }
 
+// ListAppointees returns the list of appointees of an account
 func (r *ChainReader) ListAppointees(
 	ctx context.Context,
-	accountAddress gethcommon.Address,
-	target gethcommon.Address,
-	selector [4]byte,
-) ([]gethcommon.Address, error) {
+	request AppointeesListRequest,
+) (AppointeesResponse, error) {
+	if r.permissionController == nil {
+		return AppointeesResponse{}, errors.New("PermissionController contract not provided")
+	}
+
 	appointees, err := r.permissionController.GetAppointees(
-		&bind.CallOpts{Context: ctx},
-		accountAddress,
-		target,
-		selector,
+		&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumber},
+		request.AccountAddress,
+		request.TargetAddress,
+		request.Selector,
 	)
 	// This call should not fail since it's a getter
 	if err != nil {
-		return nil, utils.WrapError("call to permission controller failed", err)
+		return AppointeesResponse{}, utils.WrapError("call to permission controller failed", err)
 	}
-	return appointees, nil
+	return AppointeesResponse{Appointees: appointees}, nil
 }
 
+// ListAppointeePermissions returns the list of permissions of an appointee
 func (r *ChainReader) ListAppointeePermissions(
 	ctx context.Context,
-	accountAddress gethcommon.Address,
-	appointeeAddress gethcommon.Address,
-) ([]gethcommon.Address, [][4]byte, error) {
+	request AppointeePermissionsListRequest,
+) (AppointeePermissionsListResponse, error) {
+	if r.permissionController == nil {
+		return AppointeePermissionsListResponse{}, errors.New("PermissionController contract not provided")
+	}
+
 	targets, selectors, err := r.permissionController.GetAppointeePermissions(
-		&bind.CallOpts{Context: ctx},
-		accountAddress,
-		appointeeAddress,
+		&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumber},
+		request.AccountAddress,
+		request.AppointeeAddress,
 	)
 	// This call should not fail since it's a getter
 	if err != nil {
-		return nil, nil, utils.WrapError("call to permission controller failed", err)
+		return AppointeePermissionsListResponse{}, utils.WrapError("call to permission controller failed", err)
 	}
-	return targets, selectors, nil
+	return AppointeePermissionsListResponse{TargetAddresses: targets, Selectors: selectors}, nil
 }
 
+// ListPendingAdmins returns the list of pending admins of an account
 func (r *ChainReader) ListPendingAdmins(
 	ctx context.Context,
-	accountAddress gethcommon.Address,
-) ([]gethcommon.Address, error) {
-	pendingAdmins, err := r.permissionController.GetPendingAdmins(&bind.CallOpts{Context: ctx}, accountAddress)
-	// This call should not fail since it's a getter
-	if err != nil {
-		return nil, utils.WrapError("call to permission controller failed", err)
+	request AccountRequest,
+) (PendingAdminsResponse, error) {
+	if r.permissionController == nil {
+		return PendingAdminsResponse{}, errors.New("PermissionController contract not provided")
 	}
-	return pendingAdmins, nil
-}
 
-func (r *ChainReader) ListAdmins(
-	ctx context.Context,
-	accountAddress gethcommon.Address,
-) ([]gethcommon.Address, error) {
-	pendingAdmins, err := r.permissionController.GetAdmins(&bind.CallOpts{Context: ctx}, accountAddress)
-	// This call should not fail since it's a getter
-	if err != nil {
-		return nil, utils.WrapError("call to permission controller failed", err)
-	}
-	return pendingAdmins, nil
-}
-
-func (r *ChainReader) IsPendingAdmin(
-	ctx context.Context,
-	accountAddress gethcommon.Address,
-	pendingAdminAddress gethcommon.Address,
-) (bool, error) {
-	isPendingAdmin, err := r.permissionController.IsPendingAdmin(
-		&bind.CallOpts{Context: ctx},
-		accountAddress,
-		pendingAdminAddress,
+	pendingAdmins, err := r.permissionController.GetPendingAdmins(
+		&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumber},
+		request.AccountAddress,
 	)
 	// This call should not fail since it's a getter
 	if err != nil {
-		return false, utils.WrapError("call to permission controller failed", err)
+		return PendingAdminsResponse{}, utils.WrapError("call to permission controller failed", err)
 	}
-	return isPendingAdmin, nil
+	return PendingAdminsResponse{PendingAdmins: pendingAdmins}, nil
 }
 
-func (r *ChainReader) IsAdmin(
+// ListAdmins returns the list of admins of an account
+func (r *ChainReader) ListAdmins(
 	ctx context.Context,
-	accountAddress gethcommon.Address,
-	adminAddress gethcommon.Address,
-) (bool, error) {
-	isAdmin, err := r.permissionController.IsAdmin(&bind.CallOpts{Context: ctx}, accountAddress, adminAddress)
+	request AccountRequest,
+) (AdminsResponse, error) {
+	if r.permissionController == nil {
+		return AdminsResponse{}, errors.New("PermissionController contract not provided")
+	}
+
+	admins, err := r.permissionController.GetAdmins(
+		&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumber},
+		request.AccountAddress,
+	)
 	// This call should not fail since it's a getter
 	if err != nil {
-		return false, utils.WrapError("call to permission controller failed", err)
+		return AdminsResponse{}, utils.WrapError("call to permission controller failed", err)
 	}
-	return isAdmin, nil
+	return AdminsResponse{Admins: admins}, nil
+}
+
+// IsPendingAdmin returns if an address is a pending admin of an account
+func (r *ChainReader) IsPendingAdmin(
+	ctx context.Context,
+	request PendingAdminCheckRequest,
+) (IsPendingAdminResponse, error) {
+	if r.permissionController == nil {
+		return IsPendingAdminResponse{}, errors.New("PermissionController contract not provided")
+	}
+
+	isPendingAdmin, err := r.permissionController.IsPendingAdmin(
+		&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumber},
+		request.AccountAddress,
+		request.PendingAdminAddress,
+	)
+	// This call should not fail since it's a getter
+	if err != nil {
+		return IsPendingAdminResponse{}, utils.WrapError("call to permission controller failed", err)
+	}
+	return IsPendingAdminResponse{IsPendingAdmin: isPendingAdmin}, nil
+}
+
+// IsAdmin returns if an address is an admin of an account
+func (r *ChainReader) IsAdmin(
+	ctx context.Context,
+	request AdminCheckRequest,
+) (IsAdminResponse, error) {
+	if r.permissionController == nil {
+		return IsAdminResponse{}, errors.New("PermissionController contract not provided")
+	}
+
+	isAdmin, err := r.permissionController.IsAdmin(
+		&bind.CallOpts{Context: ctx, BlockNumber: request.BlockNumber},
+		request.AccountAddress,
+		request.AdminAddress,
+	)
+	// This call should not fail since it's a getter
+	if err != nil {
+		return IsAdminResponse{}, utils.WrapError("call to permission controller failed", err)
+	}
+	return IsAdminResponse{IsAdmin: isAdmin}, nil
 }
