@@ -442,7 +442,16 @@ func TestGetCumulativeClaimedRewards(t *testing.T) {
 	claim, err := newTestClaim(chainReader, anvilHttpEndpoint, cumulativeEarnings, privateKeyHex)
 	require.NoError(t, err)
 
-	receipt, err = chainWriter.ProcessClaim(context.Background(), *claim, rewardsCoordinatorAddr, true)
+	opts, err := clients.TxManager.GetNoSendTxOpts()
+	require.NoError(t, err)
+	txOpts := &elcontracts.TxOption{Opts: opts}
+
+	claimRequest := elcontracts.ClaimProcessRequest{
+		Claim:            *claim,
+		RecipientAddress: rewardsCoordinatorAddr,
+		WaitForReceipt:   true,
+	}
+	receipt, err = chainWriter.ProcessClaim(context.Background(), claimRequest, txOpts)
 	require.NoError(t, err)
 	require.True(t, receipt.Status == gethtypes.ReceiptStatusSuccessful)
 
@@ -482,7 +491,16 @@ func TestCheckClaim(t *testing.T) {
 	claim, err := newTestClaim(chainReader, anvilHttpEndpoint, cumulativeEarnings, privateKeyHex)
 	require.NoError(t, err)
 
-	receipt, err = chainWriter.ProcessClaim(context.Background(), *claim, rewardsCoordinatorAddr, true)
+	opts, err := clients.TxManager.GetNoSendTxOpts()
+	require.NoError(t, err)
+	txOpts := &elcontracts.TxOption{Opts: opts}
+
+	claimRequest := elcontracts.ClaimProcessRequest{
+		Claim:            *claim,
+		RecipientAddress: rewardsCoordinatorAddr,
+		WaitForReceipt:   true,
+	}
+	receipt, err = chainWriter.ProcessClaim(context.Background(), claimRequest, txOpts)
 	require.NoError(t, err)
 	require.True(t, receipt.Status == gethtypes.ReceiptStatusSuccessful)
 
