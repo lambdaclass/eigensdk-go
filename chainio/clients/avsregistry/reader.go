@@ -30,6 +30,8 @@ type Config struct {
 	OperatorStateRetrieverAddress common.Address
 }
 
+// The ChainReader provides methods to call the
+// AVS registry contract's view functions.
 type ChainReader struct {
 	logger                  logging.Logger
 	blsApkRegistryAddr      common.Address
@@ -40,6 +42,7 @@ type ChainReader struct {
 	ethClient               eth.HttpBackend
 }
 
+// Creates a new instance  of the ChainReader.
 func NewChainReader(
 	registryCoordinatorAddr common.Address,
 	blsApkRegistryAddr common.Address,
@@ -84,6 +87,7 @@ func NewReaderFromConfig(
 	), nil
 }
 
+// Returns the total quorum count read from the RegistryCoordinator
 func (r *ChainReader) GetQuorumCount(opts *bind.CallOpts) (uint8, error) {
 	if r.registryCoordinator == nil {
 		return 0, errors.New("RegistryCoordinator contract not provided")
@@ -91,6 +95,8 @@ func (r *ChainReader) GetQuorumCount(opts *bind.CallOpts) (uint8, error) {
 	return r.registryCoordinator.QuorumCount(opts)
 }
 
+// Returns, for each quorum in `quorumNumbers`, a vector of the operators registered for
+// that quorum at the current block, containing each operator's `operatorId` and `stake`.
 func (r *ChainReader) GetOperatorsStakeInQuorumsAtCurrentBlock(
 	opts *bind.CallOpts,
 	quorumNumbers types.QuorumNums,
@@ -130,6 +136,8 @@ func (r *ChainReader) GetOperatorsStakeInQuorumsAtBlock(
 	return operatorStakes, nil
 }
 
+// Returns, for each quorum in `quorumNumbers`, a vector of the addresses of the
+// operators registered for that quorum at the current block.
 func (r *ChainReader) GetOperatorAddrsInQuorumsAtCurrentBlock(
 	opts *bind.CallOpts,
 	quorumNumbers types.QuorumNums,
@@ -137,7 +145,6 @@ func (r *ChainReader) GetOperatorAddrsInQuorumsAtCurrentBlock(
 	if r.operatorStateRetriever == nil {
 		return nil, errors.New("OperatorStateRetriever contract not provided")
 	}
-
 	if opts.Context == nil {
 		opts.Context = context.Background()
 	}
@@ -169,6 +176,10 @@ func (r *ChainReader) GetOperatorAddrsInQuorumsAtCurrentBlock(
 
 }
 
+// Returns a tuple containing
+//   - An array with the quorum IDs in which the given operator is registered at the given block
+//   - An array that contains, for each quorum, an array with the address, id and stake
+//     of each operator registered in that quorum.
 func (r *ChainReader) GetOperatorsStakeInQuorumsOfOperatorAtBlock(
 	opts *bind.CallOpts,
 	operatorId types.OperatorId,
@@ -261,6 +272,8 @@ func (r *ChainReader) GetOperatorStakeInQuorumsOfOperatorAtCurrentBlock(
 	return quorumStakes, nil
 }
 
+// Returns a struct containing the indices of the quorum members that signed,
+// and the ones that didn't.
 func (r *ChainReader) GetCheckSignaturesIndices(
 	opts *bind.CallOpts,
 	referenceBlockNumber uint32,
@@ -293,6 +306,7 @@ func (r *ChainReader) GetCheckSignaturesIndices(
 	return checkSignatureIndices, nil
 }
 
+// Given an operator address, returns its ID.
 func (r *ChainReader) GetOperatorId(
 	opts *bind.CallOpts,
 	operatorAddress common.Address,
@@ -311,6 +325,7 @@ func (r *ChainReader) GetOperatorId(
 	return operatorId, nil
 }
 
+// Given an operator ID, returns its address.
 func (r *ChainReader) GetOperatorFromId(
 	opts *bind.CallOpts,
 	operatorId types.OperatorId,
@@ -329,6 +344,8 @@ func (r *ChainReader) GetOperatorFromId(
 	return operatorAddress, nil
 }
 
+// Returns an array of booleans, where the boolean at index i represents
+// whether the operator is registered for the quorum i.
 func (r *ChainReader) QueryRegistrationDetail(
 	opts *bind.CallOpts,
 	operatorAddress common.Address,
@@ -358,6 +375,7 @@ func (r *ChainReader) QueryRegistrationDetail(
 	return quorums, nil
 }
 
+// Returns true if the operator is registered, false otherwise.
 func (r *ChainReader) IsOperatorRegistered(
 	opts *bind.CallOpts,
 	operatorAddress common.Address,
@@ -376,6 +394,9 @@ func (r *ChainReader) IsOperatorRegistered(
 	return registeredWithAvs, nil
 }
 
+// Queries existing operators for a particular block range.
+// Returns two arrays. The first one contains the addresses
+// of the operators, and the second contains their corresponding public keys.
 func (r *ChainReader) QueryExistingRegisteredOperatorPubKeys(
 	ctx context.Context,
 	startBlock *big.Int,
@@ -475,6 +496,9 @@ func (r *ChainReader) QueryExistingRegisteredOperatorPubKeys(
 	return operatorAddresses, operatorPubkeys, nil
 }
 
+// Queries existing operator sockets for a particular block range.
+// Returns a mapping containing operator IDs as keys and their
+// corresponding sockets as values.
 func (r *ChainReader) QueryExistingRegisteredOperatorSockets(
 	ctx context.Context,
 	startBlock *big.Int,
