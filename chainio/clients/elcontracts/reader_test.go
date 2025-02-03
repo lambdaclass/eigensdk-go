@@ -543,9 +543,22 @@ func TestGetAllocatableMagnitudeAndGetMaxMagnitudes(t *testing.T) {
 	chainWriter, err := testclients.NewTestChainWriterFromConfig(anvilHttpEndpoint, privateKeyHex, config)
 	require.NoError(t, err)
 
-	waitForReceipt := true
+	txManager, err := testclients.NewTestTxManager(anvilHttpEndpoint, testutils.ANVIL_FIRST_PRIVATE_KEY)
+	require.NoError(t, err)
+
+	opts, err := txManager.GetNoSendTxOpts()
+	require.NoError(t, err)
+	txOption := &elcontracts.TxOption{
+		Opts: opts,
+	}
+
 	delay := uint32(1)
-	receipt, err := chainWriter.SetAllocationDelay(context.Background(), operatorAddr, delay, waitForReceipt)
+	receipt, err := chainWriter.SetAllocationDelay(
+		context.Background(),
+		elcontracts.AllocationDelayRequest{OperatorAddress: operatorAddr, Delay: delay, WaitForReceipt: true},
+		txOption,
+	)
+
 	require.NoError(t, err)
 	require.Equal(t, gethtypes.ReceiptStatusSuccessful, receipt.Status)
 
@@ -572,7 +585,15 @@ func TestGetAllocatableMagnitudeAndGetMaxMagnitudes(t *testing.T) {
 		},
 	}
 
-	receipt, err = chainWriter.ModifyAllocations(context.Background(), operatorAddr, allocateParams, waitForReceipt)
+	receipt, err = chainWriter.ModifyAllocations(
+		context.Background(),
+		elcontracts.ModifyAllocationRequest{
+			OperatorAddress: operatorAddr,
+			Allocations:     allocateParams,
+			WaitForReceipt:  true,
+		},
+		txOption,
+	)
 	require.NoError(t, err)
 	require.Equal(t, gethtypes.ReceiptStatusSuccessful, receipt.Status)
 
@@ -636,7 +657,7 @@ func TestAdminFunctions(t *testing.T) {
 	})
 
 	t.Run("add pending admin and list", func(t *testing.T) {
-		request := elcontracts.AddPendingAdminRequest{
+		request := elcontracts.PendingAdminRequest{
 			AccountAddress: operatorAddr,
 			AdminAddress:   pendingAdminAddr,
 			WaitForReceipt: true,
