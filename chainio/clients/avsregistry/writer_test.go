@@ -204,6 +204,35 @@ func TestWriterMethods(t *testing.T) {
 	})
 }
 
+func TestWithRegistryBinding(t *testing.T) {
+	testConfig := testutils.GetDefaultTestConfig()
+	anvilC, err := testutils.StartAnvilContainer(testConfig.AnvilStateFileName)
+	require.NoError(t, err)
+
+	anvilHttpEndpoint, err := anvilC.Endpoint(context.Background(), "http")
+	require.NoError(t, err)
+	contractAddrs := testutils.GetContractAddressesFromContractRegistry(anvilHttpEndpoint)
+
+	operatorPrivateKeyHex := testutils.ANVIL_FIRST_PRIVATE_KEY
+
+	config := avsregistry.Config{
+		RegistryCoordinatorAddress:    contractAddrs.RegistryCoordinator,
+		OperatorStateRetrieverAddress: contractAddrs.OperatorStateRetriever,
+	}
+
+	chainWriter, err := testclients.NewTestAvsRegistryWriterFromConfig(anvilHttpEndpoint, operatorPrivateKeyHex, config)
+	require.NoError(t, err)
+
+	receipt, err := chainWriter.SetSlashableStakeLookahead(
+		context.Background(),
+		1,
+		0,
+		true,
+	)
+	require.NoError(t, err)
+	require.NotNil(t, receipt)
+}
+
 // Compliance test for BLS signature
 func TestBlsSignature(t *testing.T) {
 	// read input from JSON if available, otherwise use default values
