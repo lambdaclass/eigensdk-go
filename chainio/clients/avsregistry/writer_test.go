@@ -6,12 +6,16 @@ import (
 
 	"github.com/Layr-Labs/eigensdk-go/chainio/clients/avsregistry"
 	chainioutils "github.com/Layr-Labs/eigensdk-go/chainio/utils"
+	regcoordinator "github.com/Layr-Labs/eigensdk-go/contracts/bindings/RegistryCoordinator"
+	stakeregistry "github.com/Layr-Labs/eigensdk-go/contracts/bindings/StakeRegistry"
 	"github.com/Layr-Labs/eigensdk-go/crypto/bls"
 	"github.com/Layr-Labs/eigensdk-go/testutils"
 	"github.com/Layr-Labs/eigensdk-go/testutils/testclients"
 	"github.com/Layr-Labs/eigensdk-go/types"
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	gethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -205,6 +209,7 @@ func TestWriterMethods(t *testing.T) {
 }
 
 func TestWithRegistryBinding(t *testing.T) {
+	// Set up chainWriter and stakeRegistry binding
 	testConfig := testutils.GetDefaultTestConfig()
 	anvilC, err := testutils.StartAnvilContainer(testConfig.AnvilStateFileName)
 	require.NoError(t, err)
@@ -223,14 +228,45 @@ func TestWithRegistryBinding(t *testing.T) {
 	chainWriter, err := testclients.NewTestAvsRegistryWriterFromConfig(anvilHttpEndpoint, operatorPrivateKeyHex, config)
 	require.NoError(t, err)
 
+	ethHttpClient, err := ethclient.Dial(anvilHttpEndpoint)
+	require.NoError(t, err)
+
+	contractBlsRegistryCoordinator, err := regcoordinator.NewContractRegistryCoordinator(
+		contractAddrs.RegistryCoordinator,
+		ethHttpClient,
+	)
+	require.NoError(t, err)
+
+	stakeRegistryAddr, err := contractBlsRegistryCoordinator.StakeRegistry(&bind.CallOpts{})
+	require.NoError(t, err)
+
+	stakeRegistry, err := stakeregistry.NewContractStakeRegistry(
+		stakeRegistryAddr,
+		ethHttpClient,
+	)
+	require.NoError(t, err)
+
+	// When not set, lookAheadPeriod is Zero
+	lookAheadPeriod, err := stakeRegistry.SlashableStakeLookAheadPerQuorum(&bind.CallOpts{}, 0)
+	require.NoError(t, err)
+	assert.Zero(t, lookAheadPeriod)
+
+	// Modify lookAheadPeriod, set it as 32
+	newLookAheadPeriod := 32
 	receipt, err := chainWriter.SetSlashableStakeLookahead(
 		context.Background(),
-		1,
 		0,
+		uint32(newLookAheadPeriod),
 		true,
 	)
 	require.NoError(t, err)
 	require.NotNil(t, receipt)
+
+	// After modify, lookAheadPeriod's value is 32
+	lookAheadPeriod, err = stakeRegistry.SlashableStakeLookAheadPerQuorum(&bind.CallOpts{}, 0)
+	require.NoError(t, err)
+
+	assert.Equal(t, lookAheadPeriod, uint32(newLookAheadPeriod))
 }
 
 // Compliance test for BLS signature
