@@ -495,3 +495,24 @@ func (w *ChainWriter) UpdateSocket(
 	}
 	return receipt, nil
 }
+
+func (w *ChainWriter) SetSlashableStakeLookahead(
+	ctx context.Context,
+	quorumNumber uint8,
+	lookAheadPeriod uint32,
+	waitForReceipt bool,
+) (*gethtypes.Receipt, error) {
+	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
+	if err != nil {
+		return nil, err
+	}
+	tx, err := w.stakeRegistry.SetSlashableStakeLookahead(noSendTxOpts, quorumNumber, lookAheadPeriod)
+	if err != nil {
+		return nil, err
+	}
+	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
+	if err != nil {
+		return nil, utils.WrapError("failed to send SetSlashableStakeLookahead tx with err", err.Error())
+	}
+	return receipt, nil
+}
