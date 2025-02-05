@@ -2,6 +2,7 @@ package elcontracts
 
 import (
 	"context"
+	"errors"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -27,6 +28,7 @@ import (
 	"github.com/Layr-Labs/eigensdk-go/logging"
 	"github.com/Layr-Labs/eigensdk-go/metrics"
 	"github.com/Layr-Labs/eigensdk-go/types"
+	"github.com/Layr-Labs/eigensdk-go/utils"
 )
 
 type Reader interface {
@@ -555,6 +557,39 @@ func (w *ChainWriter) ModifyAllocations(
 	if err != nil {
 		wrappedError := CreateForSendError(err)
 		return nil, wrappedError
+	}
+
+	return receipt, nil
+}
+
+// Receives an operator address, and a list of strategies and numsToClear (number of elements to clear from queue),
+// and clears the operators deallocation queue in numbers to clear for the given strategies, by completing the
+// pending deallocations if their effect timestamps have passed. Note that strategies and numsToClear should have
+// equal length, since there should be a number of elements to clear from queue for each strategy queue.
+func (w *ChainWriter) ClearDeallocationQueue(
+	ctx context.Context,
+	operatorAddress gethcommon.Address,
+	strategies []gethcommon.Address,
+	numsToClear []uint16,
+	waitForReceipt bool,
+) (*gethtypes.Receipt, error) {
+	if w.allocationManager == nil {
+		return nil, errors.New("AllocationManager contract not provided")
+	}
+
+	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
+	if err != nil {
+		return nil, utils.WrapError("failed to get no send tx opts", err)
+	}
+
+	tx, err := w.allocationManager.ClearDeallocationQueue(noSendTxOpts, operatorAddress, strategies, numsToClear)
+	if err != nil {
+		return nil, utils.WrapError("failed to create ClearDeallocationQueue tx", err)
+	}
+
+	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
+	if err != nil {
+		return nil, utils.WrapError("failed to send tx", err)
 	}
 
 	return receipt, nil

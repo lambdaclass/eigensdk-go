@@ -6,12 +6,16 @@ import (
 
 	"github.com/Layr-Labs/eigensdk-go/chainio/clients/avsregistry"
 	chainioutils "github.com/Layr-Labs/eigensdk-go/chainio/utils"
+	regcoordinator "github.com/Layr-Labs/eigensdk-go/contracts/bindings/RegistryCoordinator"
+	servicemanager "github.com/Layr-Labs/eigensdk-go/contracts/bindings/ServiceManagerBase"
 	"github.com/Layr-Labs/eigensdk-go/crypto/bls"
 	"github.com/Layr-Labs/eigensdk-go/testutils"
 	"github.com/Layr-Labs/eigensdk-go/testutils/testclients"
 	"github.com/Layr-Labs/eigensdk-go/types"
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	gethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -43,6 +47,9 @@ func TestWriterMethods(t *testing.T) {
 	require.NoError(t, err)
 
 	quorumNumbers := types.QuorumNums{0}
+
+	subCtx, cancelFn := context.WithCancel(context.Background())
+	cancelFn()
 
 	t.Run("update socket without being registered", func(t *testing.T) {
 		receipt, err := chainWriter.UpdateSocket(
@@ -120,10 +127,49 @@ func TestWriterMethods(t *testing.T) {
 		require.NotNil(t, receipt)
 	})
 
+	t.Run("set rewards initiator", func(t *testing.T) {
+		// Set up to create a ServiceManager binding
+		ethHttpClient, err := ethclient.Dial(anvilHttpEndpoint)
+		require.NoError(t, err)
+
+		contractBlsRegistryCoordinator, err := regcoordinator.NewContractRegistryCoordinator(
+			contractAddrs.RegistryCoordinator,
+			ethHttpClient,
+		)
+		require.NoError(t, err)
+
+		serviceManagerAddr, err := contractBlsRegistryCoordinator.ServiceManager(&bind.CallOpts{})
+		require.NoError(t, err)
+
+		serviceManager, err := servicemanager.NewContractServiceManagerBase(
+			serviceManagerAddr,
+			ethHttpClient,
+		)
+		require.NoError(t, err)
+
+		// Check that, first, initiator address is anvil first address
+		initiator_initial_addr, err := serviceManager.RewardsInitiator(&bind.CallOpts{})
+		require.NoError(t, err)
+		assert.Equal(t, initiator_initial_addr.String(), testutils.ANVIL_FIRST_ADDRESS)
+
+		// Modify initiator address, set it as anvil second address
+		new_initiator_addr := gethcommon.HexToAddress(testutils.ANVIL_SECOND_ADDRESS)
+		receipt, err := chainWriter.SetRewardsInitiator(
+			context.Background(),
+			new_initiator_addr,
+			true,
+		)
+		require.NoError(t, err)
+		require.NotNil(t, receipt)
+
+		// Check that, after modifying it, initiator address is now anvil second address
+		initiator_modified_addr, err := serviceManager.RewardsInitiator(&bind.CallOpts{})
+		require.NoError(t, err)
+		assert.Equal(t, initiator_modified_addr, new_initiator_addr)
+	})
+
 	// Error cases
 	t.Run("fail register operator cancelling context", func(t *testing.T) {
-		subCtx, cancelFn := context.WithCancel(context.Background())
-		cancelFn()
 		receipt, err := chainWriter.RegisterOperator(
 			subCtx,
 			ecdsaPrivateKey,
@@ -137,8 +183,6 @@ func TestWriterMethods(t *testing.T) {
 	})
 
 	t.Run("fail update stake of operator subset cancelling context", func(t *testing.T) {
-		subCtx, cancelFn := context.WithCancel(context.Background())
-		cancelFn()
 		receipt, err := chainWriter.UpdateStakesOfOperatorSubsetForAllQuorums(
 			subCtx,
 			[]gethcommon.Address{addr},
@@ -149,8 +193,6 @@ func TestWriterMethods(t *testing.T) {
 	})
 
 	t.Run("fail update stake of entire operator set cancelling context", func(t *testing.T) {
-		subCtx, cancelFn := context.WithCancel(context.Background())
-		cancelFn()
 		receipt, err := chainWriter.UpdateStakesOfEntireOperatorSetForQuorums(
 			subCtx,
 			[][]gethcommon.Address{{addr}},
@@ -174,8 +216,6 @@ func TestWriterMethods(t *testing.T) {
 	})
 
 	t.Run("fail deregister operator cancelling context", func(t *testing.T) {
-		subCtx, cancelFn := context.WithCancel(context.Background())
-		cancelFn()
 		receipt, err := chainWriter.DeregisterOperator(
 			subCtx,
 			quorumNumbers,
@@ -199,9 +239,6 @@ func TestWriterMethods(t *testing.T) {
 	})
 
 	t.Run("fail update socket cancelling context", func(t *testing.T) {
-		subCtx, cancelFn := context.WithCancel(context.Background())
-
-		cancelFn()
 		receipt, err := chainWriter.UpdateSocket(
 			subCtx,
 			types.Socket(""),
