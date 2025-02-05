@@ -59,22 +59,31 @@ func OtherError(errDescription string, errorCause error) Error {
 	}
 }
 
-func CreateNoSendTxOptsFailedError(errorCause error) Error {
-	return Error{3, "Other errors", "Failed to get no send tx opts", errorCause}
-}
-
-func CreateForTxGenerationError(bindingName string, errorCause error) Error {
-	errDescription := fmt.Sprintf("Error generating tx for %s", bindingName)
+func NoSendTxOptsFailedError(errorCause error) Error {
 	return Error{
-		4,
-		"Tx Generation",
-		errDescription,
-		errorCause,
+		code:        3,
+		message:     "Other errors",
+		description: "Failed to get no send tx opts",
+		cause:       errorCause,
 	}
 }
 
-func CreateForSendError(errorCause error) Error {
-	return Error{5, "Send error", "Failed to send tx with err", errorCause}
+func TxGenerationError(bindingName string, errorCause error) Error {
+	errDescription := fmt.Sprintf("Error generating tx for %s", bindingName)
+	return Error{
+		code:        4,
+		message:     "Tx Generation",
+		description: errDescription,
+		cause:       errorCause,
+	}
+}
+
+func SendError(errorCause error) Error {
+	return Error{
+		code:        5,
+		message:     "Send error",
+		description: "Failed to send tx with err",
+		cause:       errorCause}
 }
 
 func CommonErrorMissingContract(contractName string) string {
