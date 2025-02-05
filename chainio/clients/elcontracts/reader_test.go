@@ -1265,17 +1265,18 @@ func TestOperatorSetsWithWrongInput(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Run("test operator set with invalid id", func(t *testing.T) {
+		legacyAVSsNotSupportedErrorMsg := elcontracts.OtherError("Method not supported for legacy AVSs", nil).Error()
 		_, err := chainReader.GetOperatorsForOperatorSet(ctx, operatorSet)
 		require.Error(t, err)
-		assert.Equal(t, err.Error(), "Other errors(3) - Method not supported for legacy AVSs")
+		assert.EqualError(t, err, legacyAVSsNotSupportedErrorMsg)
 
 		_, err = chainReader.GetNumOperatorsForOperatorSet(ctx, operatorSet)
 		require.Error(t, err)
-		assert.Equal(t, err.Error(), "Other errors(3) - Method not supported for legacy AVSs")
+		assert.EqualError(t, err, legacyAVSsNotSupportedErrorMsg)
 
 		_, err = chainReader.GetStrategiesForOperatorSet(ctx, operatorSet)
 		require.Error(t, err)
-		assert.Equal(t, err.Error(), "Other errors(3) - Method not supported for legacy AVSs")
+		assert.EqualError(t, err, legacyAVSsNotSupportedErrorMsg)
 
 		strategies := []common.Address{contractAddrs.Erc20MockStrategy}
 
