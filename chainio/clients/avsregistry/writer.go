@@ -496,6 +496,9 @@ func (w *ChainWriter) UpdateSocket(
 	return receipt, nil
 }
 
+// Receives the quorum number to modify and the new look ahead period to set. Sets the look ahead
+// time for checking operator shares for a specific quorum, and returns the receipt of the
+// transaction in case of success.
 func (w *ChainWriter) SetSlashableStakeLookahead(
 	ctx context.Context,
 	quorumNumber uint8,
