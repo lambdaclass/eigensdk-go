@@ -155,7 +155,7 @@ func (w *ChainWriter) RegisterAsOperator(
 	}
 	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
 	if err != nil {
-		return nil, errors.New("failed to send tx with err: " + err.Error())
+		return nil, utils.WrapError("failed to send tx", err)
 	}
 	w.logger.Info("tx successfully included", "txHash", receipt.TxHash.String())
 
@@ -191,7 +191,7 @@ func (w *ChainWriter) UpdateOperatorDetails(
 	}
 	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
 	if err != nil {
-		return nil, errors.New("failed to send tx with err: " + err.Error())
+		return nil, utils.WrapError("failed to send tx", err)
 	}
 	w.logger.Info(
 		"successfully updated operator details",
@@ -226,7 +226,7 @@ func (w *ChainWriter) UpdateMetadataURI(
 	}
 	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
 	if err != nil {
-		return nil, errors.New("failed to send tx with err: " + err.Error())
+		return nil, utils.WrapError("failed to send tx", err)
 	}
 	w.logger.Info(
 		"successfully updated operator metadata uri",
@@ -268,7 +268,7 @@ func (w *ChainWriter) DepositERC20IntoStrategy(
 	}
 	_, err = w.txMgr.Send(ctx, tx, waitForReceipt)
 	if err != nil {
-		return nil, errors.New("failed to send tx with err: " + err.Error())
+		return nil, utils.WrapError("failed to send tx", err)
 	}
 
 	tx, err = w.strategyManager.DepositIntoStrategy(noSendTxOpts, strategyAddr, underlyingTokenAddr, amount)
@@ -277,7 +277,7 @@ func (w *ChainWriter) DepositERC20IntoStrategy(
 	}
 	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
 	if err != nil {
-		return nil, errors.New("failed to send tx with err: " + err.Error())
+		return nil, utils.WrapError("failed to send tx", err)
 	}
 
 	w.logger.Infof("deposited %s into strategy %s", amount.String(), strategyAddr)
@@ -498,6 +498,39 @@ func (w *ChainWriter) ModifyAllocations(
 	tx, err := w.allocationManager.ModifyAllocations(noSendTxOpts, operatorAddress, allocations)
 	if err != nil {
 		return nil, utils.WrapError("failed to create ModifyAllocations tx", err)
+	}
+
+	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
+	if err != nil {
+		return nil, utils.WrapError("failed to send tx", err)
+	}
+
+	return receipt, nil
+}
+
+// Receives an operator address, and a list of strategies and numsToClear (number of elements to clear from queue),
+// and clears the operators deallocation queue in numbers to clear for the given strategies, by completing the
+// pending deallocations if their effect timestamps have passed. Note that strategies and numsToClear should have
+// equal length, since there should be a number of elements to clear from queue for each strategy queue.
+func (w *ChainWriter) ClearDeallocationQueue(
+	ctx context.Context,
+	operatorAddress gethcommon.Address,
+	strategies []gethcommon.Address,
+	numsToClear []uint16,
+	waitForReceipt bool,
+) (*gethtypes.Receipt, error) {
+	if w.allocationManager == nil {
+		return nil, errors.New("AllocationManager contract not provided")
+	}
+
+	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
+	if err != nil {
+		return nil, utils.WrapError("failed to get no send tx opts", err)
+	}
+
+	tx, err := w.allocationManager.ClearDeallocationQueue(noSendTxOpts, operatorAddress, strategies, numsToClear)
+	if err != nil {
+		return nil, utils.WrapError("failed to create ClearDeallocationQueue tx", err)
 	}
 
 	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
