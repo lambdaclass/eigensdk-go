@@ -152,7 +152,7 @@ func (w *ChainWriter) RegisterAsOperator(
 		operator.MetadataUrl,
 	)
 	if err != nil {
-		wrappedError := TxGenerationError("delegationManager.RegisterAsOperator", err)
+		wrappedError := TxGenerationError("DelegationManager.registerAsOperator", err)
 		return nil, wrappedError
 	}
 	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
@@ -192,7 +192,7 @@ func (w *ChainWriter) UpdateOperatorDetails(
 		gethcommon.HexToAddress(operator.DelegationApproverAddress),
 	)
 	if err != nil {
-		wrappedError := TxGenerationError("delegationManager.ModifyOperatorDetails", err)
+		wrappedError := TxGenerationError("DelegationManager.modifyOperatorDetails", err)
 		return nil, wrappedError
 	}
 	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
@@ -231,7 +231,7 @@ func (w *ChainWriter) UpdateMetadataURI(
 
 	tx, err := w.delegationManager.UpdateOperatorMetadataURI(noSendTxOpts, operatorAddress, uri)
 	if err != nil {
-		wrappedError := TxGenerationError("delegationManager.UpdateOperatorMetadataURI", err)
+		wrappedError := TxGenerationError("DelegationManager.updateOperatorMetadataURI", err)
 		return nil, wrappedError
 	}
 	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
@@ -289,7 +289,7 @@ func (w *ChainWriter) DepositERC20IntoStrategy(
 
 	tx, err = w.strategyManager.DepositIntoStrategy(noSendTxOpts, strategyAddr, underlyingTokenAddr, amount)
 	if err != nil {
-		wrappedError := TxGenerationError("strategyManager.DepositIntoStrategy", err)
+		wrappedError := TxGenerationError("StrategyManager.depositIntoStrategy", err)
 		return nil, wrappedError
 	}
 	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
@@ -323,7 +323,7 @@ func (w *ChainWriter) SetClaimerFor(
 
 	tx, err := w.rewardsCoordinator.SetClaimerFor(noSendTxOpts, claimer)
 	if err != nil {
-		wrappedError := TxGenerationError("rewardsCoordinator.SetClaimerFor", err)
+		wrappedError := TxGenerationError("RewardsCoordinator.setClaimerFor", err)
 		return nil, wrappedError
 	}
 	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
@@ -356,7 +356,7 @@ func (w *ChainWriter) ProcessClaim(
 
 	tx, err := w.rewardsCoordinator.ProcessClaim(noSendTxOpts, claim, recipientAddress)
 	if err != nil {
-		wrappedError := TxGenerationError("rewardsCoordinator.ProcessClaim", err)
+		wrappedError := TxGenerationError("RewardsCoordinator.processClaim", err)
 		return nil, wrappedError
 	}
 	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
@@ -392,7 +392,7 @@ func (w *ChainWriter) SetOperatorAVSSplit(
 
 	tx, err := w.rewardsCoordinator.SetOperatorAVSSplit(noSendTxOpts, operator, avs, split)
 	if err != nil {
-		wrappedError := TxGenerationError("rewardsCoordinator.SetOperatorAVSSplit", err)
+		wrappedError := TxGenerationError("RewardsCoordinator.setOperatorAVSSplit", err)
 		return nil, wrappedError
 	}
 	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
@@ -427,7 +427,7 @@ func (w *ChainWriter) SetOperatorPISplit(
 
 	tx, err := w.rewardsCoordinator.SetOperatorPISplit(noSendTxOpts, operator, split)
 	if err != nil {
-		wrappedError := TxGenerationError("rewardsCoordinator.SetOperatorPISplit", err)
+		wrappedError := TxGenerationError("RewardsCoordinator.setOperatorPISplit", err)
 		return nil, wrappedError
 	}
 	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
@@ -470,7 +470,7 @@ func (w *ChainWriter) ProcessClaims(
 
 	tx, err := w.rewardsCoordinator.ProcessClaims(noSendTxOpts, claims, recipientAddress)
 	if err != nil {
-		wrappedError := TxGenerationError("rewardsCoordinator.ProcessClaims", err)
+		wrappedError := TxGenerationError("RewardsCoordinator.processClaims", err)
 		return nil, wrappedError
 	}
 	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
@@ -513,7 +513,7 @@ func (w *ChainWriter) ForceDeregisterFromOperatorSets(
 	)
 
 	if err != nil {
-		wrappedError := TxGenerationError("allocationManager.DeregisterFromOperatorSets", err)
+		wrappedError := TxGenerationError("AllocationManager.deregisterFromOperatorSets", err)
 		return nil, wrappedError
 	}
 
@@ -547,7 +547,7 @@ func (w *ChainWriter) ModifyAllocations(
 
 	tx, err := w.allocationManager.ModifyAllocations(noSendTxOpts, operatorAddress, allocations)
 	if err != nil {
-		wrappedError := TxGenerationError("allocationManager.ModifyAllocations", err)
+		wrappedError := TxGenerationError("AllocationManager.modifyAllocations", err)
 		return nil, wrappedError
 	}
 
@@ -584,7 +584,7 @@ func (w *ChainWriter) ClearDeallocationQueue(
 
 	tx, err := w.allocationManager.ClearDeallocationQueue(noSendTxOpts, operatorAddress, strategies, numsToClear)
 	if err != nil {
-		wrappedError := TxGenerationError("allocationManager.ClearDeallocationQueue", err)
+		wrappedError := TxGenerationError("AllocationManager.clearDeallocationQueue", err)
 		return nil, wrappedError
 	}
 
@@ -620,7 +620,7 @@ func (w *ChainWriter) SetAllocationDelay(
 
 	tx, err := w.allocationManager.SetAllocationDelay(noSendTxOpts, operatorAddress, delay)
 	if err != nil {
-		wrappedError := TxGenerationError("allocationManager.SetAllocationDelay", err)
+		wrappedError := TxGenerationError("AllocationManager.setAllocationDelay", err)
 		return nil, wrappedError
 	}
 	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
@@ -659,7 +659,7 @@ func (w *ChainWriter) DeregisterFromOperatorSets(
 			OperatorSetIds: request.OperatorSetIds,
 		})
 	if err != nil {
-		wrappedError := TxGenerationError("allocationManager.DeregisterFromOperatorSets", err)
+		wrappedError := TxGenerationError("AllocationManager.deregisterFromOperatorSets", err)
 		return nil, wrappedError
 	}
 
@@ -726,7 +726,7 @@ func (w *ChainWriter) RegisterForOperatorSets(
 			Data:           data,
 		})
 	if err != nil {
-		wrappedError := TxGenerationError("allocationManager.RegisterForOperatorSets", err)
+		wrappedError := TxGenerationError("AllocationManager.registerForOperatorSets", err)
 		return nil, wrappedError
 	}
 
@@ -787,7 +787,7 @@ func (w *ChainWriter) NewRemovePermissionTx(
 		request.Selector,
 	)
 	if err != nil {
-		wrappedError := TxGenerationError("permissionController.RemoveAppointee", err)
+		wrappedError := TxGenerationError("PermissionController.removeAppointee", err)
 		return nil, wrappedError
 	}
 
@@ -812,7 +812,7 @@ func (w *ChainWriter) NewSetPermissionTx(
 		request.Selector,
 	)
 	if err != nil {
-		wrappedError := TxGenerationError("permissionController.SetAppointee", err)
+		wrappedError := TxGenerationError("PermissionController.setAppointee", err)
 		return nil, wrappedError
 	}
 
@@ -864,7 +864,7 @@ func (w *ChainWriter) NewAcceptAdminTx(
 
 	tx, err := w.permissionController.AcceptAdmin(txOpts, request.AccountAddress)
 	if err != nil {
-		wrappedError := TxGenerationError("permissionController.AcceptAdmin", err)
+		wrappedError := TxGenerationError("PermissionController.acceptAdmin", err)
 		return nil, wrappedError
 	}
 
@@ -914,7 +914,7 @@ func (w *ChainWriter) NewAddPendingAdminTx(
 
 	tx, err := w.permissionController.AddPendingAdmin(txOpts, request.AccountAddress, request.AdminAddress)
 	if err != nil {
-		wrappedError := TxGenerationError("permissionController.AddPendingAdmin", err)
+		wrappedError := TxGenerationError("PermissionController.addPendingAdmin", err)
 		return nil, wrappedError
 	}
 
@@ -961,7 +961,7 @@ func (w *ChainWriter) NewRemoveAdminTx(
 
 	tx, err := w.permissionController.RemoveAdmin(txOpts, request.AccountAddress, request.AdminAddress)
 	if err != nil {
-		wrappedError := TxGenerationError("permissionController.RemoveAdmin", err)
+		wrappedError := TxGenerationError("PermissionController.removeAdmin", err)
 		return nil, wrappedError
 	}
 
@@ -1011,7 +1011,7 @@ func (w *ChainWriter) NewRemovePendingAdminTx(
 
 	tx, err := w.permissionController.RemovePendingAdmin(txOpts, request.AccountAddress, request.AdminAddress)
 	if err != nil {
-		wrappedError := TxGenerationError("permissionController.RemovePendingAdmin", err)
+		wrappedError := TxGenerationError("PermissionController.removePendingAdmin", err)
 		return nil, wrappedError
 	}
 
@@ -1058,7 +1058,7 @@ func getPubkeyRegistrationParams(
 ) (*regcoord.IBLSApkRegistryPubkeyRegistrationParams, error) {
 	registryCoordinator, err := regcoord.NewContractRegistryCoordinator(registryCoordinatorAddr, ethClient)
 	if err != nil {
-		wrappedError := BindingError("regcoord.NewContractRegistryCoordinator", err)
+		wrappedError := BindingError("regcoord.newContractRegistryCoordinator", err)
 		return nil, wrappedError
 	}
 	// params to register bls pubkey with bls apk registry
@@ -1067,7 +1067,7 @@ func getPubkeyRegistrationParams(
 		operatorAddress,
 	)
 	if err != nil {
-		wrappedError := BindingError("registryCoordinator.PubkeyRegistrationMessageHash", err)
+		wrappedError := BindingError("RegistryCoordinator.pubkeyRegistrationMessageHash", err)
 		return nil, wrappedError
 	}
 	signedMsg := chainioutils.ConvertToBN254G1Point(
