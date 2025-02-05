@@ -104,7 +104,7 @@ func (r *ChainReader) IsOperatorRegistered(
 		gethcommon.HexToAddress(operator.Address),
 	)
 	if err != nil {
-		wrappedError := BindingError("delegationManager.IsOperator", err)
+		wrappedError := BindingError("DelegationManager.isOperator", err)
 		return false, wrappedError
 	}
 
@@ -124,7 +124,7 @@ func (r *ChainReader) GetStakerShares(
 
 	addresses, shares, err := r.delegationManager.GetDepositedShares(&bind.CallOpts{Context: ctx}, stakerAddress)
 	if err != nil {
-		wrappedError := BindingError("delegationManager.GetDepositedShares", err)
+		wrappedError := BindingError("DelegationManager.getDepositedShares", err)
 		return nil, nil, wrappedError
 	}
 
@@ -144,7 +144,7 @@ func (r *ChainReader) GetDelegatedOperator(
 
 	delegatedOperator, err := r.delegationManager.DelegatedTo(&bind.CallOpts{Context: ctx}, stakerAddress)
 	if err != nil {
-		wrappedError := BindingError("delegationManager.DelegatedTo", err)
+		wrappedError := BindingError("DelegationManager.delegatedTo", err)
 		return gethcommon.Address{}, wrappedError
 	}
 
@@ -166,7 +166,7 @@ func (r *ChainReader) GetOperatorDetails(
 	)
 	// This call should not fail since it's a getter
 	if err != nil {
-		wrappedError := BindingError("delegationManager.DelegationApprover", err)
+		wrappedError := BindingError("DelegationManager.delegationApprover", err)
 		return types.Operator{}, wrappedError
 	}
 
@@ -179,7 +179,7 @@ func (r *ChainReader) GetOperatorDetails(
 	)
 	// This call should not fail
 	if err != nil {
-		wrappedError := BindingError("allocationManager.GetAllocationDelay", err)
+		wrappedError := BindingError("AllocationManager.getAllocationDelay", err)
 		return types.Operator{}, wrappedError
 	}
 
@@ -258,7 +258,7 @@ func (r *ChainReader) GetOperatorSharesInStrategy(
 		strategyAddr,
 	)
 	if err != nil {
-		wrappedError := BindingError("delegationManager.OperatorShares", err)
+		wrappedError := BindingError("DelegationManager.operatorShares", err)
 		return &big.Int{}, wrappedError
 	}
 
@@ -287,7 +287,7 @@ func (r *ChainReader) CalculateDelegationApprovalDigestHash(
 		expiry,
 	)
 	if err != nil {
-		wrappedError := BindingError("delegationManager.CalculateDelegationApprovalDigestHash", err)
+		wrappedError := BindingError("DelegationManager.calculateDelegationApprovalDigestHash", err)
 		return [32]byte{}, wrappedError
 	}
 
@@ -314,7 +314,7 @@ func (r *ChainReader) CalculateOperatorAVSRegistrationDigestHash(
 		expiry,
 	)
 	if err != nil {
-		wrappedError := BindingError("avsDirectory.CalculateOperatorAVSRegistrationDigestHash", err)
+		wrappedError := BindingError("AvsDirectory.calculateOperatorAVSRegistrationDigestHash", err)
 		return [32]byte{}, wrappedError
 	}
 
@@ -329,7 +329,7 @@ func (r *ChainReader) GetDistributionRootsLength(ctx context.Context) (*big.Int,
 
 	distributionRootsLength, err := r.rewardsCoordinator.GetDistributionRootsLength(&bind.CallOpts{Context: ctx})
 	if err != nil {
-		wrappedError := BindingError("rewardsCoordinator.GetDistributionRootsLength", err)
+		wrappedError := BindingError("RewardsCoordinator.getDistributionRootsLength", err)
 		return &big.Int{}, wrappedError
 	}
 
@@ -344,7 +344,7 @@ func (r *ChainReader) CurrRewardsCalculationEndTimestamp(ctx context.Context) (u
 
 	endTimestamp, err := r.rewardsCoordinator.CurrRewardsCalculationEndTimestamp(&bind.CallOpts{Context: ctx})
 	if err != nil {
-		wrappedError := BindingError("rewardsCoordinator.CurrRewardsCalculationEndTimestamp", err)
+		wrappedError := BindingError("RewardsCoordinator.currRewardsCalculationEndTimestamp", err)
 		return 0, wrappedError
 	}
 
@@ -361,7 +361,7 @@ func (r *ChainReader) GetCurrentClaimableDistributionRoot(
 
 	distributionRoot, err := r.rewardsCoordinator.GetCurrentClaimableDistributionRoot(&bind.CallOpts{Context: ctx})
 	if err != nil {
-		wrappedError := BindingError("rewardsCoordinator.GetCurrentClaimableDistributionRoot", err)
+		wrappedError := BindingError("RewardsCoordinator.getCurrentClaimableDistributionRoot", err)
 		return rewardscoordinator.IRewardsCoordinatorTypesDistributionRoot{}, wrappedError
 	}
 
@@ -379,7 +379,7 @@ func (r *ChainReader) GetRootIndexFromHash(
 
 	rootIndex, err := r.rewardsCoordinator.GetRootIndexFromHash(&bind.CallOpts{Context: ctx}, rootHash)
 	if err != nil {
-		wrappedError := BindingError("rewardsCoordinator.GetRootIndexFromHash", err)
+		wrappedError := BindingError("RewardsCoordinator.getRootIndexFromHash", err)
 		return 0, wrappedError
 	}
 
@@ -398,7 +398,7 @@ func (r *ChainReader) GetCumulativeClaimed(
 
 	cumulativeClaimed, err := r.rewardsCoordinator.CumulativeClaimed(&bind.CallOpts{Context: ctx}, earner, token)
 	if err != nil {
-		wrappedError := BindingError("rewardsCoordinator.CumulativeClaimed", err)
+		wrappedError := BindingError("RewardsCoordinator.cumulativeClaimed", err)
 		return nil, wrappedError
 	}
 
@@ -416,7 +416,7 @@ func (r *ChainReader) CheckClaim(
 
 	claimChecked, err := r.rewardsCoordinator.CheckClaim(&bind.CallOpts{Context: ctx}, claim)
 	if err != nil {
-		wrappedError := BindingError("rewardsCoordinator.CheckClaim", err)
+		wrappedError := BindingError("RewardsCoordinator.checkClaim", err)
 		return false, wrappedError
 	}
 
@@ -435,7 +435,7 @@ func (r *ChainReader) GetOperatorAVSSplit(
 
 	operatorSplit, err := r.rewardsCoordinator.GetOperatorAVSSplit(&bind.CallOpts{Context: ctx}, operator, avs)
 	if err != nil {
-		wrappedError := BindingError("rewardsCoordinator.GetOperatorAVSSplit", err)
+		wrappedError := BindingError("RewardsCoordinator.getOperatorAVSSplit", err)
 		return 0, wrappedError
 	}
 
@@ -453,7 +453,7 @@ func (r *ChainReader) GetOperatorPISplit(
 
 	operatorSplit, err := r.rewardsCoordinator.GetOperatorPISplit(&bind.CallOpts{Context: ctx}, operator)
 	if err != nil {
-		wrappedError := BindingError("rewardsCoordinator.GetOperatorPISplit", err)
+		wrappedError := BindingError("RewardsCoordinator.getOperatorPISplit", err)
 		return 0, wrappedError
 	}
 
@@ -476,7 +476,7 @@ func (r *ChainReader) GetAllocatableMagnitude(
 		strategyAddress,
 	)
 	if err != nil {
-		wrappedError := BindingError("allocationManager.GetAllocatableMagnitude", err)
+		wrappedError := BindingError("AllocationManager.getAllocatableMagnitude", err)
 		return 0, wrappedError
 	}
 
@@ -499,7 +499,7 @@ func (r *ChainReader) GetMaxMagnitudes(
 		strategyAddresses,
 	)
 	if err != nil {
-		wrappedError := BindingError("allocationManager.GetMaxMagnitudes0", err)
+		wrappedError := BindingError("AllocationManager.getMaxMagnitudes0", err)
 		return []uint64{}, wrappedError
 	}
 
@@ -523,7 +523,7 @@ func (r *ChainReader) GetAllocationInfo(
 	)
 	// This call should not fail since it's a getter
 	if err != nil {
-		wrappedError := BindingError("allocationManager.GetStrategyAllocations", err)
+		wrappedError := BindingError("AllocationManager.getStrategyAllocations", err)
 		return nil, wrappedError
 	}
 
@@ -555,7 +555,7 @@ func (r *ChainReader) GetOperatorShares(
 		Context: ctx,
 	}, operatorAddress, strategyAddresses)
 	if err != nil {
-		wrappedError := BindingError("delegationManager.GetOperatorShares", err)
+		wrappedError := BindingError("DelegationManager.getOperatorShares", err)
 		return nil, wrappedError
 	}
 
@@ -578,7 +578,7 @@ func (r *ChainReader) GetOperatorsShares(
 		strategyAddresses,
 	)
 	if err != nil {
-		wrappedError := BindingError("delegationManager.GetOperatorsShares", err)
+		wrappedError := BindingError("DelegationManager.getOperatorsShares", err)
 		return nil, wrappedError
 	}
 
@@ -597,7 +597,7 @@ func (r *ChainReader) GetNumOperatorSetsForOperator(
 	}
 	opSets, err := r.allocationManager.GetAllocatedSets(&bind.CallOpts{Context: ctx}, operatorAddress)
 	if err != nil {
-		wrappedError := BindingError("allocationManager.GetAllocatedSets", err)
+		wrappedError := BindingError("AllocationManager.getAllocatedSets", err)
 		return nil, wrappedError
 	}
 	return big.NewInt(int64(len(opSets))), nil
@@ -617,7 +617,7 @@ func (r *ChainReader) GetOperatorSetsForOperator(
 	// paginate?
 	allocatedSets, err := r.allocationManager.GetAllocatedSets(&bind.CallOpts{Context: ctx}, operatorAddress)
 	if err != nil {
-		wrappedError := BindingError("allocationManager.GetAllocatedSets", err)
+		wrappedError := BindingError("AllocationManager.getAllocatedSets", err)
 		return nil, wrappedError
 	}
 
@@ -640,7 +640,7 @@ func (r *ChainReader) IsOperatorRegisteredWithOperatorSet(
 		status, err := r.avsDirectory.AvsOperatorStatus(&bind.CallOpts{Context: ctx}, operatorSet.Avs, operatorAddress)
 		// This call should not fail since it's a getter
 		if err != nil {
-			wrappedError := BindingError("avsDirectory.AvsOperatorStatus", err)
+			wrappedError := BindingError("AvsDirectory.avsOperatorStatus", err)
 			return false, wrappedError
 		}
 
@@ -653,7 +653,7 @@ func (r *ChainReader) IsOperatorRegisteredWithOperatorSet(
 		registeredOperatorSets, err := r.allocationManager.GetRegisteredSets(&bind.CallOpts{Context: ctx}, operatorAddress)
 		// This call should not fail since it's a getter
 		if err != nil {
-			wrappedError := BindingError("allocationManager.GetRegisteredSets", err)
+			wrappedError := BindingError("AllocationManager.getRegisteredSets", err)
 			return false, wrappedError
 		}
 		for _, registeredOperatorSet := range registeredOperatorSets {
@@ -682,7 +682,7 @@ func (r *ChainReader) GetOperatorsForOperatorSet(
 
 		members, err := r.allocationManager.GetMembers(&bind.CallOpts{Context: ctx}, operatorSet)
 		if err != nil {
-			wrappedError := BindingError("allocationManager.GetMembers", err)
+			wrappedError := BindingError("AllocationManager.getMembers", err)
 			return nil, wrappedError
 		}
 
@@ -705,7 +705,7 @@ func (r *ChainReader) GetNumOperatorsForOperatorSet(
 
 		memberCount, err := r.allocationManager.GetMemberCount(&bind.CallOpts{Context: ctx}, operatorSet)
 		if err != nil {
-			wrappedError := BindingError("allocationManager.GetMemberCount", err)
+			wrappedError := BindingError("AllocationManager.getMemberCount", err)
 			return nil, wrappedError
 		}
 
@@ -729,7 +729,7 @@ func (r *ChainReader) GetStrategiesForOperatorSet(
 
 		strategiesInSet, err := r.allocationManager.GetStrategiesInOperatorSet(&bind.CallOpts{Context: ctx}, operatorSet)
 		if err != nil {
-			wrappedError := BindingError("allocationManager.GetStrategiesInOperatorSet", err)
+			wrappedError := BindingError("AllocationManager.getStrategiesInOperatorSet", err)
 			return nil, wrappedError
 		}
 
@@ -751,7 +751,7 @@ func (r *ChainReader) GetSlashableShares(
 	currentBlock, err := r.ethClient.BlockNumber(ctx)
 	// This call should not fail since it's a getter
 	if err != nil {
-		wrappedError := BindingError("ethClient.BlockNumber", err)
+		wrappedError := BindingError("EthClient.blockNumber", err)
 		return nil, wrappedError
 	}
 
@@ -764,7 +764,7 @@ func (r *ChainReader) GetSlashableShares(
 	)
 	// This call should not fail since it's a getter
 	if err != nil {
-		wrappedError := BindingError("allocationManager.GetMinimumSlashableStake", err)
+		wrappedError := BindingError("AllocationManager.getMinimumSlashableStake", err)
 		return nil, wrappedError
 	}
 	if len(slashableShares) == 0 {
@@ -791,7 +791,7 @@ func (r *ChainReader) GetSlashableSharesForOperatorSets(
 	currentBlock, err := r.ethClient.BlockNumber(ctx)
 	// This call should not fail since it's a getter
 	if err != nil {
-		wrappedError := BindingError("ethClient.BlockNumber", err)
+		wrappedError := BindingError("EthClient.blockNumber", err)
 		return nil, wrappedError
 	}
 
@@ -841,7 +841,7 @@ func (r *ChainReader) GetSlashableSharesForOperatorSetsBefore(
 		)
 		// This call should not fail since it's a getter
 		if err != nil {
-			wrappedError := BindingError("allocationManager.GetMinimumSlashableStake", err)
+			wrappedError := BindingError("AllocationManager.getMinimumSlashableStake", err)
 			return nil, wrappedError
 		}
 
@@ -867,7 +867,7 @@ func (r *ChainReader) GetAllocationDelay(
 	isSet, delay, err := r.allocationManager.GetAllocationDelay(&bind.CallOpts{Context: ctx}, operatorAddress)
 	// This call should not fail since it's a getter
 	if err != nil {
-		wrappedError := BindingError("allocationManager.GetAllocationDelay", err)
+		wrappedError := BindingError("AllocationManager.getAllocationDelay", err)
 		return 0, wrappedError
 	}
 	if !isSet {
@@ -888,7 +888,7 @@ func (r *ChainReader) GetRegisteredSets(
 
 	registeredSets, err := r.allocationManager.GetRegisteredSets(&bind.CallOpts{Context: ctx}, operatorAddress)
 	if err != nil {
-		wrappedError := BindingError("allocationManager.GetRegisteredSets", err)
+		wrappedError := BindingError("AllocationManager.getRegisteredSets", err)
 		return nil, wrappedError
 	}
 
@@ -916,7 +916,7 @@ func (r *ChainReader) CanCall(
 	)
 	// This call should not fail since it's a getter
 	if err != nil {
-		wrappedError := BindingError("permissionController.CanCall", err)
+		wrappedError := BindingError("PermissionController.canCall", err)
 		return false, wrappedError
 	}
 	return canCall, nil
@@ -941,7 +941,7 @@ func (r *ChainReader) ListAppointees(
 	)
 	// This call should not fail since it's a getter
 	if err != nil {
-		wrappedError := BindingError("permissionController.GetAppointees", err)
+		wrappedError := BindingError("PermissionController.getAppointees", err)
 		return nil, wrappedError
 	}
 	return appointees, nil
@@ -964,7 +964,7 @@ func (r *ChainReader) ListAppointeePermissions(
 	)
 	// This call should not fail since it's a getter
 	if err != nil {
-		wrappedError := BindingError("permissionController.GetAppointeePermissions", err)
+		wrappedError := BindingError("PermissionController.getAppointeePermissions", err)
 		return nil, nil, wrappedError
 	}
 	return targets, selectors, nil
@@ -982,7 +982,7 @@ func (r *ChainReader) ListPendingAdmins(
 	pendingAdmins, err := r.permissionController.GetPendingAdmins(&bind.CallOpts{Context: ctx}, accountAddress)
 	// This call should not fail since it's a getter
 	if err != nil {
-		wrappedError := BindingError("permissionController.GetPendingAdmins", err)
+		wrappedError := BindingError("PermissionController.getPendingAdmins", err)
 		return nil, wrappedError
 	}
 	return pendingAdmins, nil
@@ -1000,7 +1000,7 @@ func (r *ChainReader) ListAdmins(
 	pendingAdmins, err := r.permissionController.GetAdmins(&bind.CallOpts{Context: ctx}, accountAddress)
 	// This call should not fail since it's a getter
 	if err != nil {
-		wrappedError := BindingError("permissionController.GetAdmins", err)
+		wrappedError := BindingError("PermissionController.getAdmins", err)
 		return nil, wrappedError
 	}
 	return pendingAdmins, nil
@@ -1023,7 +1023,7 @@ func (r *ChainReader) IsPendingAdmin(
 	)
 	// This call should not fail since it's a getter
 	if err != nil {
-		wrappedError := BindingError("permissionController.IsPendingAdmin", err)
+		wrappedError := BindingError("PermissionController.isPendingAdmin", err)
 		return false, wrappedError
 	}
 	return isPendingAdmin, nil
@@ -1042,7 +1042,7 @@ func (r *ChainReader) IsAdmin(
 	isAdmin, err := r.permissionController.IsAdmin(&bind.CallOpts{Context: ctx}, accountAddress, adminAddress)
 	// This call should not fail since it's a getter
 	if err != nil {
-		wrappedError := BindingError("permissionController.IsAdmin", err)
+		wrappedError := BindingError("PermissionController.isAdmin", err)
 		return false, wrappedError
 	}
 	return isAdmin, nil
