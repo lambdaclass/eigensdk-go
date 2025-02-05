@@ -28,20 +28,20 @@ func MissingContractError(contractName string) Error {
 func BindingError(bindingName string, errorCause error) Error {
 	errDescription := fmt.Sprintf("Error happened while calling %s", bindingName)
 	return Error{
-		0,
-		"Binding error",
-		errDescription,
-		errorCause,
+		code:        0,
+		message:     "Binding error",
+		description: errDescription,
+		cause:       errorCause,
 	}
 }
 
 func NestedError(functionName string, errorCause error) Error {
 	errDescription := fmt.Sprintf("Error happened while calling %s", functionName)
 	return Error{
-		2,
-		"Nested error",
-		errDescription,
-		errorCause,
+		code:        2,
+		message:     "Nested error",
+		description: errDescription,
+		cause:       errorCause,
 	}
 }
 
