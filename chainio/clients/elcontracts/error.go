@@ -20,11 +20,6 @@ func (e Error) Unwrap() error {
 	return e.cause
 }
 
-func MissingContractError(contractName string) Error {
-	errDescription := fmt.Sprintf("%s contract not provided", contractName)
-	return Error{1, "Missing needed contract", errDescription, nil}
-}
-
 func BindingError(bindingName string, errorCause error) Error {
 	errDescription := fmt.Sprintf("Error happened while calling %s", bindingName)
 	return Error{
@@ -32,6 +27,16 @@ func BindingError(bindingName string, errorCause error) Error {
 		message:     "Binding error",
 		description: errDescription,
 		cause:       errorCause,
+	}
+}
+
+func MissingContractError(contractName string) Error {
+	errDescription := fmt.Sprintf("%s contract not provided", contractName)
+	return Error{
+		code:        1,
+		message:     "Missing needed contract",
+		description: errDescription,
+		cause:       nil,
 	}
 }
 
