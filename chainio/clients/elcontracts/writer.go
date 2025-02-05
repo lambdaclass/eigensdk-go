@@ -2,7 +2,6 @@ package elcontracts
 
 import (
 	"context"
-	"errors"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -28,7 +27,6 @@ import (
 	"github.com/Layr-Labs/eigensdk-go/logging"
 	"github.com/Layr-Labs/eigensdk-go/metrics"
 	"github.com/Layr-Labs/eigensdk-go/types"
-	"github.com/Layr-Labs/eigensdk-go/utils"
 )
 
 type Reader interface {
@@ -574,22 +572,26 @@ func (w *ChainWriter) ClearDeallocationQueue(
 	waitForReceipt bool,
 ) (*gethtypes.Receipt, error) {
 	if w.allocationManager == nil {
-		return nil, errors.New("AllocationManager contract not provided")
+		wrappedError := CreateErrorForMissingContract("AllocationManager")
+		return nil, wrappedError
 	}
 
 	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
 	if err != nil {
-		return nil, utils.WrapError("failed to get no send tx opts", err)
+		wrappedError := CreateNoSendTxOptsFailedError(err)
+		return nil, wrappedError
 	}
 
 	tx, err := w.allocationManager.ClearDeallocationQueue(noSendTxOpts, operatorAddress, strategies, numsToClear)
 	if err != nil {
-		return nil, utils.WrapError("failed to create ClearDeallocationQueue tx", err)
+		wrappedError := CreateForTxGenerationError("allocationManager.ClearDeallocationQueue", err)
+		return nil, wrappedError
 	}
 
 	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
 	if err != nil {
-		return nil, utils.WrapError("failed to send tx", err)
+		wrappedError := CreateForSendError(err)
+		return nil, wrappedError
 	}
 
 	return receipt, nil
