@@ -2,7 +2,6 @@ package elcontracts_test
 
 import (
 	"context"
-	"fmt"
 	"math/big"
 	"os"
 	"testing"
@@ -1483,8 +1482,7 @@ func TestInvalidConfigChainWriter(t *testing.T) {
 		assert.Error(t, err)
 		assert.Nil(t, receipt)
 
-		expectedErrMsg := fmt.Sprintf(
-			"Nested error(2) - Failed to create a new remove permission Tx: %s",
+		expectedErrMsg := elcontracts.NestedErrorMessage("create a new remove permission Tx",
 			elcontracts.CommonErrorMissingContract("PermissionController"),
 		)
 		assert.Equal(t, err.Error(), expectedErrMsg)
@@ -1511,8 +1509,7 @@ func TestInvalidConfigChainWriter(t *testing.T) {
 		)
 		assert.Error(t, err)
 		assert.Nil(t, receipt)
-		expectedErrMsg := fmt.Sprintf(
-			"Nested error(2) - Failed to create a new set permission Tx: %s",
+		expectedErrMsg := elcontracts.NestedErrorMessage("create a new set permission Tx",
 			elcontracts.CommonErrorMissingContract("PermissionController"),
 		)
 		assert.Equal(t, err.Error(), expectedErrMsg)
@@ -1531,8 +1528,7 @@ func TestInvalidConfigChainWriter(t *testing.T) {
 		)
 		assert.Error(t, err)
 		assert.Nil(t, receipt)
-		expectedErrMsg := fmt.Sprintf(
-			"Nested error(2) - Failed to create a new accept admin Tx: %s",
+		expectedErrMsg := elcontracts.NestedErrorMessage("create a new accept admin Tx",
 			elcontracts.CommonErrorMissingContract("PermissionController"),
 		)
 		assert.Equal(t, err.Error(), expectedErrMsg)
@@ -1554,8 +1550,7 @@ func TestInvalidConfigChainWriter(t *testing.T) {
 		)
 		assert.Error(t, err)
 		assert.Nil(t, receipt)
-		expectedErrMsg := fmt.Sprintf(
-			"Nested error(2) - Failed to create a new add pending admin Tx: %s",
+		expectedErrMsg := elcontracts.NestedErrorMessage("create a new add pending admin Tx",
 			elcontracts.CommonErrorMissingContract("PermissionController"),
 		)
 		assert.Equal(t, err.Error(), expectedErrMsg)
@@ -1577,8 +1572,7 @@ func TestInvalidConfigChainWriter(t *testing.T) {
 		)
 		assert.Error(t, err)
 		assert.Nil(t, receipt)
-		expectedErrMsg := fmt.Sprintf(
-			"Nested error(2) - Failed to create a new remove admin Tx: %s",
+		expectedErrMsg := elcontracts.NestedErrorMessage("create a new remove admin Tx",
 			elcontracts.CommonErrorMissingContract("PermissionController"),
 		)
 		assert.Equal(t, err.Error(), expectedErrMsg)
@@ -1598,8 +1592,7 @@ func TestInvalidConfigChainWriter(t *testing.T) {
 		)
 		assert.Error(t, err)
 		assert.Nil(t, receipt)
-		expectedErrMsg := fmt.Sprintf(
-			"Nested error(2) - Failed to create a new remove pending admin Tx: %s",
+		expectedErrMsg := elcontracts.NestedErrorMessage("create a new remove pending admin Tx",
 			elcontracts.CommonErrorMissingContract("PermissionController"),
 		)
 		assert.Equal(t, err.Error(), expectedErrMsg)

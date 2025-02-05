@@ -99,3 +99,7 @@ func SendError(errorCause error) Error {
 func CommonErrorMissingContract(contractName string) string {
 	return fmt.Sprintf("Missing needed contract(1) - %s contract not provided", contractName)
 }
+
+func NestedErrorMessage(actionFailed string, innerError string) string {
+	return fmt.Sprintf("Nested error(2) - Failed to %s: %s", actionFailed, innerError)
+}
