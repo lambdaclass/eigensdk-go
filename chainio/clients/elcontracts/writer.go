@@ -97,7 +97,7 @@ func NewWriterFromConfig(
 		logger,
 	)
 	if err != nil {
-		wrappedError := NestedError("NewBindingsFromConfig", err)
+		wrappedError := NestedErrorWithFunction("NewBindingsFromConfig", err)
 		return nil, wrappedError
 	}
 	elChainReader := NewChainReader(
@@ -272,13 +272,13 @@ func (w *ChainWriter) DepositERC20IntoStrategy(
 		strategyAddr,
 	)
 	if err != nil {
-		wrappedError := NestedError("elChainReader.GetStrategyAndUnderlyingERC20Token", err)
+		wrappedError := NestedErrorWithFunction("elChainReader.GetStrategyAndUnderlyingERC20Token", err)
 		return nil, wrappedError
 	}
 
 	tx, err := underlyingTokenContract.Approve(noSendTxOpts, w.strategyManagerAddr, amount)
 	if err != nil {
-		wrappedError := Error{3, "Other errors", "failed to approve token transfer", err}
+		wrappedError := OtherError("failed to approve token transfer", err)
 		return nil, wrappedError
 	}
 	_, err = w.txMgr.Send(ctx, tx, waitForReceipt)
@@ -453,12 +453,7 @@ func (w *ChainWriter) ProcessClaims(
 	}
 
 	if len(claims) == 0 {
-		wrappedError := Error{
-			3,
-			"Other errors",
-			"No claims were found to process, at least one claim must be provided",
-			nil,
-		}
+		wrappedError := OtherError("No claims were found to process, at least one claim must be provided", nil)
 		return nil, wrappedError
 	}
 
@@ -698,23 +693,13 @@ func (w *ChainWriter) RegisterForOperatorSets(
 		request.BlsKeyPair,
 	)
 	if err != nil {
-		wrappedError := Error{
-			2,
-			"Nested error",
-			"Failed to get public key registration params",
-			err,
-		}
+		wrappedError := NestedErrorWithDescription("get public key registration params", err)
 		return nil, wrappedError
 	}
 
 	data, err := abiEncodeRegistrationParams(request.Socket, *pubkeyRegParams)
 	if err != nil {
-		wrappedError := Error{
-			2,
-			"Nested error",
-			"Failed to encode registration params",
-			err,
-		}
+		wrappedError := NestedErrorWithDescription("encode registration params", err)
 		return nil, wrappedError
 	}
 	tx, err := w.allocationManager.RegisterForOperatorSets(
@@ -752,12 +737,7 @@ func (w *ChainWriter) RemovePermission(
 	}
 	tx, err := w.NewRemovePermissionTx(txOpts, request)
 	if err != nil {
-		wrappedError := Error{
-			2,
-			"Nested error",
-			"Failed to create a new remove permission Tx",
-			err,
-		}
+		wrappedError := NestedErrorWithDescription("create a new remove permission Tx", err)
 		return nil, wrappedError
 	}
 	receipt, err := w.txMgr.Send(ctx, tx, request.WaitForReceipt)
@@ -835,12 +815,7 @@ func (w *ChainWriter) SetPermission(
 
 	tx, err := w.NewSetPermissionTx(txOpts, request)
 	if err != nil {
-		wrappedError := Error{
-			2,
-			"Nested error",
-			"Failed to create a new set permission Tx",
-			err,
-		}
+		wrappedError := NestedErrorWithDescription("create a new set permission Tx", err)
 		return nil, wrappedError
 	}
 	receipt, err := w.txMgr.Send(ctx, tx, request.WaitForReceipt)
@@ -885,12 +860,7 @@ func (w *ChainWriter) AcceptAdmin(
 
 	tx, err := w.NewAcceptAdminTx(noSendTxOpts, request)
 	if err != nil {
-		wrappedError := Error{
-			2,
-			"Nested error",
-			"Failed to create a new accept admin Tx",
-			err,
-		}
+		wrappedError := NestedErrorWithDescription("create a new accept admin Tx", err)
 		return nil, wrappedError
 	}
 	receipt, err := w.txMgr.Send(ctx, tx, request.WaitForReceipt)
@@ -932,12 +902,7 @@ func (w *ChainWriter) AddPendingAdmin(ctx context.Context, request AddPendingAdm
 	}
 	tx, err := w.NewAddPendingAdminTx(txOpts, request)
 	if err != nil {
-		wrappedError := Error{
-			2,
-			"Nested error",
-			"Failed to create a new add pending admin Tx",
-			err,
-		}
+		wrappedError := NestedErrorWithDescription("create a new add pending admin Tx", err)
 		return nil, wrappedError
 	}
 	receipt, err := w.txMgr.Send(ctx, tx, request.WaitForReceipt)
@@ -982,12 +947,7 @@ func (w *ChainWriter) RemoveAdmin(
 
 	tx, err := w.NewRemoveAdminTx(noSendTxOpts, request)
 	if err != nil {
-		wrappedError := Error{
-			2,
-			"Nested error",
-			"Failed to create a new remove admin Tx",
-			err,
-		}
+		wrappedError := NestedErrorWithDescription("create a new remove admin Tx", err)
 		return nil, wrappedError
 	}
 	receipt, err := w.txMgr.Send(ctx, tx, request.WaitForReceipt)
@@ -1032,12 +992,7 @@ func (w *ChainWriter) RemovePendingAdmin(
 
 	tx, err := w.NewRemovePendingAdminTx(noSendTxOpts, request)
 	if err != nil {
-		wrappedError := Error{
-			2,
-			"Nested error",
-			"Failed to create a new remove pending admin Tx",
-			err,
-		}
+		wrappedError := NestedErrorWithDescription("create a new remove pending admin Tx", err)
 		return nil, wrappedError
 	}
 
@@ -1106,7 +1061,7 @@ func abiEncodeRegistrationParams(
 		}},
 	})
 	if err != nil {
-		wrappedError := Error{3, "Other errors", "Failed to encode abi params", err}
+		wrappedError := OtherError("Failed to encode abi params", err)
 		return nil, wrappedError
 	}
 
@@ -1124,7 +1079,7 @@ func abiEncodeRegistrationParams(
 
 	data, err := args.Pack(&registrationParams)
 	if err != nil {
-		wrappedError := Error{3, "Other errors", "Failed to pack arguments", err}
+		wrappedError := OtherError("Failed to pack arguments", err)
 		return nil, wrappedError
 	}
 	// The encoder is prepending 32 bytes to the data as if it was used in a dynamic function parameter.

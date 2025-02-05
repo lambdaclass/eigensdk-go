@@ -40,8 +40,18 @@ func MissingContractError(contractName string) Error {
 	}
 }
 
-func NestedError(functionName string, errorCause error) Error {
+func NestedErrorWithFunction(functionName string, errorCause error) Error {
 	errDescription := fmt.Sprintf("Error happened while calling %s", functionName)
+	return Error{
+		code:        2,
+		message:     "Nested error",
+		description: errDescription,
+		cause:       errorCause,
+	}
+}
+
+func NestedErrorWithDescription(description string, errorCause error) Error {
+	errDescription := fmt.Sprintf("Failed to %s", description)
 	return Error{
 		code:        2,
 		message:     "Nested error",
