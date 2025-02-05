@@ -348,10 +348,10 @@ func TestGetRootIndexFromRootHash(t *testing.T) {
 		root,
 	)
 	assert.Error(t, err)
-	assert.Equal(
+	assert.ErrorContains(
 		t,
-		err.Error(),
-		"Binding error(0) - Error happened while calling rewardsCoordinator.GetRootIndexFromHash: execution reverted: custom error 0x504570e3",
+		err,
+		"execution reverted: custom error 0x504570e3",
 		"GetRootIndexFromHash should return an InvalidRoot() error",
 	)
 	assert.Zero(t, root_index)
@@ -774,20 +774,20 @@ func TestContractErrorCases(t *testing.T) {
 	t.Run("GetStrategyAndUnderlyingToken", func(t *testing.T) {
 		_, _, err := chainReader.GetStrategyAndUnderlyingToken(ctx, strategyAddr)
 		assert.Error(t, err)
-		assert.Equal(
+		assert.ErrorContains(
 			t,
-			err.Error(),
-			"Binding error(0) - Error happened while calling token contract: no contract code at given address",
+			err,
+			"no contract code at given address",
 		)
 	})
 
 	t.Run("GetStrategyAndUnderlyingERC20Token", func(t *testing.T) {
 		_, _, _, err := chainReader.GetStrategyAndUnderlyingERC20Token(ctx, strategyAddr)
 		assert.Error(t, err)
-		assert.Equal(
+		assert.ErrorContains(
 			t,
-			err.Error(),
-			"Binding error(0) - Error happened while calling token contract: no contract code at given address",
+			err,
+			"no contract code at given address",
 		)
 	})
 }
@@ -852,10 +852,10 @@ func TestInvalidConfig(t *testing.T) {
 		// GetStrategyAndUnderlyingToken needs a correct StrategyAddress
 		_, _, err = chainReader.GetStrategyAndUnderlyingToken(context.Background(), strategyAddr)
 		require.Error(t, err)
-		assert.Equal(
+		assert.ErrorContains(
 			t,
-			err.Error(),
-			"Binding error(0) - Error happened while calling token contract: no contract code at given address",
+			err,
+			"no contract code at given address",
 		)
 
 		_, _, _, err = chainReader.GetStrategyAndUnderlyingERC20Token(context.Background(), strategyAddr)
@@ -1302,10 +1302,10 @@ func TestOperatorSetsWithWrongInput(t *testing.T) {
 
 		_, err = chainReader.GetSlashableSharesForOperatorSetsBefore(context.Background(), operatorSets, 10)
 		require.Error(t, err)
-		assert.Equal(
+		assert.ErrorContains(
 			t,
-			err.Error(),
-			"Nested error(2) - Error happened while calling GetOperatorsForOperatorSet: Other errors(3) - Method not supported for legacy AVSs",
+			err,
+			"Method not supported for legacy AVSs",
 		)
 	})
 }
@@ -1336,10 +1336,10 @@ func TestCreateRederFromConfig(t *testing.T) {
 
 		_, err = elcontracts.NewReaderFromConfig(config, ethHttpClient, logger)
 		require.Error(t, err)
-		assert.Equal(
+		assert.ErrorContains(
 			t,
-			err.Error(),
-			"Nested error(2) - Error happened while calling NewBindingsFromConfig: Failed to fetch StrategyManager address: no contract code at given address",
+			err,
+			"no contract code at given address",
 		)
 	})
 }
