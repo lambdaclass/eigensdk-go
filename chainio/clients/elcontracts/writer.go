@@ -97,7 +97,7 @@ func NewWriterFromConfig(
 		logger,
 	)
 	if err != nil {
-		wrappedError := CreateForNestedError("NewBindingsFromConfig", err)
+		wrappedError := NestedError("NewBindingsFromConfig", err)
 		return nil, wrappedError
 	}
 	elChainReader := NewChainReader(
@@ -134,7 +134,7 @@ func (w *ChainWriter) RegisterAsOperator(
 	waitForReceipt bool,
 ) (*gethtypes.Receipt, error) {
 	if w.delegationManager == nil {
-		wrappedError := CreateErrorForMissingContract("DelegationManager")
+		wrappedError := MissingContractError("DelegationManager")
 		return nil, wrappedError
 	}
 
@@ -142,7 +142,7 @@ func (w *ChainWriter) RegisterAsOperator(
 
 	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
 	if err != nil {
-		wrappedError := CreateNoSendTxOptsFailedError(err)
+		wrappedError := NoSendTxOptsFailedError(err)
 		return nil, wrappedError
 	}
 	tx, err := w.delegationManager.RegisterAsOperator(
@@ -152,12 +152,12 @@ func (w *ChainWriter) RegisterAsOperator(
 		operator.MetadataUrl,
 	)
 	if err != nil {
-		wrappedError := CreateForTxGenerationError("delegationManager.RegisterAsOperator", err)
+		wrappedError := TxGenerationError("delegationManager.RegisterAsOperator", err)
 		return nil, wrappedError
 	}
 	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
 	if err != nil {
-		wrappedError := CreateForSendError(err)
+		wrappedError := SendError(err)
 		return nil, wrappedError
 	}
 	w.logger.Info("tx successfully included", "txHash", receipt.TxHash.String())
@@ -174,7 +174,7 @@ func (w *ChainWriter) UpdateOperatorDetails(
 	waitForReceipt bool,
 ) (*gethtypes.Receipt, error) {
 	if w.delegationManager == nil {
-		wrappedError := CreateErrorForMissingContract("DelegationManager")
+		wrappedError := MissingContractError("DelegationManager")
 		return nil, wrappedError
 	}
 
@@ -182,7 +182,7 @@ func (w *ChainWriter) UpdateOperatorDetails(
 
 	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
 	if err != nil {
-		wrappedError := CreateNoSendTxOptsFailedError(err)
+		wrappedError := NoSendTxOptsFailedError(err)
 		return nil, wrappedError
 	}
 
@@ -192,12 +192,12 @@ func (w *ChainWriter) UpdateOperatorDetails(
 		gethcommon.HexToAddress(operator.DelegationApproverAddress),
 	)
 	if err != nil {
-		wrappedError := CreateForTxGenerationError("delegationManager.ModifyOperatorDetails", err)
+		wrappedError := TxGenerationError("delegationManager.ModifyOperatorDetails", err)
 		return nil, wrappedError
 	}
 	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
 	if err != nil {
-		wrappedError := CreateForSendError(err)
+		wrappedError := SendError(err)
 		return nil, wrappedError
 	}
 	w.logger.Info(
@@ -219,24 +219,24 @@ func (w *ChainWriter) UpdateMetadataURI(
 	waitForReceipt bool,
 ) (*gethtypes.Receipt, error) {
 	if w.delegationManager == nil {
-		wrappedError := CreateErrorForMissingContract("DelegationManager")
+		wrappedError := MissingContractError("DelegationManager")
 		return nil, wrappedError
 	}
 
 	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
 	if err != nil {
-		wrappedError := CreateNoSendTxOptsFailedError(err)
+		wrappedError := NoSendTxOptsFailedError(err)
 		return nil, wrappedError
 	}
 
 	tx, err := w.delegationManager.UpdateOperatorMetadataURI(noSendTxOpts, operatorAddress, uri)
 	if err != nil {
-		wrappedError := CreateForTxGenerationError("delegationManager.UpdateOperatorMetadataURI", err)
+		wrappedError := TxGenerationError("delegationManager.UpdateOperatorMetadataURI", err)
 		return nil, wrappedError
 	}
 	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
 	if err != nil {
-		wrappedError := CreateForSendError(err)
+		wrappedError := SendError(err)
 		return nil, wrappedError
 	}
 	w.logger.Info(
@@ -257,14 +257,14 @@ func (w *ChainWriter) DepositERC20IntoStrategy(
 	waitForReceipt bool,
 ) (*gethtypes.Receipt, error) {
 	if w.strategyManager == nil {
-		wrappedError := CreateErrorForMissingContract("StrategyManager")
+		wrappedError := MissingContractError("StrategyManager")
 		return nil, wrappedError
 	}
 
 	w.logger.Infof("depositing %s tokens into strategy %s", amount.String(), strategyAddr)
 	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
 	if err != nil {
-		wrappedError := CreateNoSendTxOptsFailedError(err)
+		wrappedError := NoSendTxOptsFailedError(err)
 		return nil, wrappedError
 	}
 	_, underlyingTokenContract, underlyingTokenAddr, err := w.elChainReader.GetStrategyAndUnderlyingERC20Token(
@@ -272,7 +272,7 @@ func (w *ChainWriter) DepositERC20IntoStrategy(
 		strategyAddr,
 	)
 	if err != nil {
-		wrappedError := CreateForNestedError("elChainReader.GetStrategyAndUnderlyingERC20Token", err)
+		wrappedError := NestedError("elChainReader.GetStrategyAndUnderlyingERC20Token", err)
 		return nil, wrappedError
 	}
 
@@ -283,18 +283,18 @@ func (w *ChainWriter) DepositERC20IntoStrategy(
 	}
 	_, err = w.txMgr.Send(ctx, tx, waitForReceipt)
 	if err != nil {
-		wrappedError := CreateForSendError(err)
+		wrappedError := SendError(err)
 		return nil, wrappedError
 	}
 
 	tx, err = w.strategyManager.DepositIntoStrategy(noSendTxOpts, strategyAddr, underlyingTokenAddr, amount)
 	if err != nil {
-		wrappedError := CreateForTxGenerationError("strategyManager.DepositIntoStrategy", err)
+		wrappedError := TxGenerationError("strategyManager.DepositIntoStrategy", err)
 		return nil, wrappedError
 	}
 	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
 	if err != nil {
-		wrappedError := CreateForSendError(err)
+		wrappedError := SendError(err)
 		return nil, wrappedError
 	}
 
@@ -311,24 +311,24 @@ func (w *ChainWriter) SetClaimerFor(
 	waitForReceipt bool,
 ) (*gethtypes.Receipt, error) {
 	if w.rewardsCoordinator == nil {
-		wrappedError := CreateErrorForMissingContract("RewardsCoordinator")
+		wrappedError := MissingContractError("RewardsCoordinator")
 		return nil, wrappedError
 	}
 
 	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
 	if err != nil {
-		wrappedError := CreateNoSendTxOptsFailedError(err)
+		wrappedError := NoSendTxOptsFailedError(err)
 		return nil, wrappedError
 	}
 
 	tx, err := w.rewardsCoordinator.SetClaimerFor(noSendTxOpts, claimer)
 	if err != nil {
-		wrappedError := CreateForTxGenerationError("rewardsCoordinator.SetClaimerFor", err)
+		wrappedError := TxGenerationError("rewardsCoordinator.SetClaimerFor", err)
 		return nil, wrappedError
 	}
 	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
 	if err != nil {
-		wrappedError := CreateForSendError(err)
+		wrappedError := SendError(err)
 		return nil, wrappedError
 	}
 
@@ -344,24 +344,24 @@ func (w *ChainWriter) ProcessClaim(
 	waitForReceipt bool,
 ) (*gethtypes.Receipt, error) {
 	if w.rewardsCoordinator == nil {
-		wrappedError := CreateErrorForMissingContract("RewardsCoordinator")
+		wrappedError := MissingContractError("RewardsCoordinator")
 		return nil, wrappedError
 	}
 
 	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
 	if err != nil {
-		wrappedError := CreateNoSendTxOptsFailedError(err)
+		wrappedError := NoSendTxOptsFailedError(err)
 		return nil, wrappedError
 	}
 
 	tx, err := w.rewardsCoordinator.ProcessClaim(noSendTxOpts, claim, recipientAddress)
 	if err != nil {
-		wrappedError := CreateForTxGenerationError("rewardsCoordinator.ProcessClaim", err)
+		wrappedError := TxGenerationError("rewardsCoordinator.ProcessClaim", err)
 		return nil, wrappedError
 	}
 	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
 	if err != nil {
-		wrappedError := CreateForSendError(err)
+		wrappedError := SendError(err)
 		return nil, wrappedError
 	}
 
@@ -380,24 +380,24 @@ func (w *ChainWriter) SetOperatorAVSSplit(
 	waitForReceipt bool,
 ) (*gethtypes.Receipt, error) {
 	if w.rewardsCoordinator == nil {
-		wrappedError := CreateErrorForMissingContract("RewardsCoordinator")
+		wrappedError := MissingContractError("RewardsCoordinator")
 		return nil, wrappedError
 	}
 
 	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
 	if err != nil {
-		wrappedError := CreateNoSendTxOptsFailedError(err)
+		wrappedError := NoSendTxOptsFailedError(err)
 		return nil, wrappedError
 	}
 
 	tx, err := w.rewardsCoordinator.SetOperatorAVSSplit(noSendTxOpts, operator, avs, split)
 	if err != nil {
-		wrappedError := CreateForTxGenerationError("rewardsCoordinator.SetOperatorAVSSplit", err)
+		wrappedError := TxGenerationError("rewardsCoordinator.SetOperatorAVSSplit", err)
 		return nil, wrappedError
 	}
 	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
 	if err != nil {
-		wrappedError := CreateForSendError(err)
+		wrappedError := SendError(err)
 		return nil, wrappedError
 	}
 
@@ -415,24 +415,24 @@ func (w *ChainWriter) SetOperatorPISplit(
 	waitForReceipt bool,
 ) (*gethtypes.Receipt, error) {
 	if w.rewardsCoordinator == nil {
-		wrappedError := CreateErrorForMissingContract("RewardsCoordinator")
+		wrappedError := MissingContractError("RewardsCoordinator")
 		return nil, wrappedError
 	}
 
 	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
 	if err != nil {
-		wrappedError := CreateNoSendTxOptsFailedError(err)
+		wrappedError := NoSendTxOptsFailedError(err)
 		return nil, wrappedError
 	}
 
 	tx, err := w.rewardsCoordinator.SetOperatorPISplit(noSendTxOpts, operator, split)
 	if err != nil {
-		wrappedError := CreateForTxGenerationError("rewardsCoordinator.SetOperatorPISplit", err)
+		wrappedError := TxGenerationError("rewardsCoordinator.SetOperatorPISplit", err)
 		return nil, wrappedError
 	}
 	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
 	if err != nil {
-		wrappedError := CreateForSendError(err)
+		wrappedError := SendError(err)
 		return nil, wrappedError
 	}
 
@@ -448,7 +448,7 @@ func (w *ChainWriter) ProcessClaims(
 	waitForReceipt bool,
 ) (*gethtypes.Receipt, error) {
 	if w.rewardsCoordinator == nil {
-		wrappedError := CreateErrorForMissingContract("RewardsCoordinator")
+		wrappedError := MissingContractError("RewardsCoordinator")
 		return nil, wrappedError
 	}
 
@@ -464,18 +464,18 @@ func (w *ChainWriter) ProcessClaims(
 
 	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
 	if err != nil {
-		wrappedError := CreateNoSendTxOptsFailedError(err)
+		wrappedError := NoSendTxOptsFailedError(err)
 		return nil, wrappedError
 	}
 
 	tx, err := w.rewardsCoordinator.ProcessClaims(noSendTxOpts, claims, recipientAddress)
 	if err != nil {
-		wrappedError := CreateForTxGenerationError("rewardsCoordinator.ProcessClaims", err)
+		wrappedError := TxGenerationError("rewardsCoordinator.ProcessClaims", err)
 		return nil, wrappedError
 	}
 	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
 	if err != nil {
-		wrappedError := CreateForSendError(err)
+		wrappedError := SendError(err)
 		return nil, wrappedError
 	}
 
@@ -493,13 +493,13 @@ func (w *ChainWriter) ForceDeregisterFromOperatorSets(
 	waitForReceipt bool,
 ) (*gethtypes.Receipt, error) {
 	if w.allocationManager == nil {
-		wrappedError := CreateErrorForMissingContract("AllocationManager")
+		wrappedError := MissingContractError("AllocationManager")
 		return nil, wrappedError
 	}
 
 	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
 	if err != nil {
-		wrappedError := CreateNoSendTxOptsFailedError(err)
+		wrappedError := NoSendTxOptsFailedError(err)
 		return nil, wrappedError
 	}
 
@@ -513,13 +513,13 @@ func (w *ChainWriter) ForceDeregisterFromOperatorSets(
 	)
 
 	if err != nil {
-		wrappedError := CreateForTxGenerationError("allocationManager.DeregisterFromOperatorSets", err)
+		wrappedError := TxGenerationError("allocationManager.DeregisterFromOperatorSets", err)
 		return nil, wrappedError
 	}
 
 	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
 	if err != nil {
-		wrappedError := CreateForSendError(err)
+		wrappedError := SendError(err)
 		return nil, wrappedError
 	}
 
@@ -535,25 +535,25 @@ func (w *ChainWriter) ModifyAllocations(
 	waitForReceipt bool,
 ) (*gethtypes.Receipt, error) {
 	if w.allocationManager == nil {
-		wrappedError := CreateErrorForMissingContract("AllocationManager")
+		wrappedError := MissingContractError("AllocationManager")
 		return nil, wrappedError
 	}
 
 	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
 	if err != nil {
-		wrappedError := CreateNoSendTxOptsFailedError(err)
+		wrappedError := NoSendTxOptsFailedError(err)
 		return nil, wrappedError
 	}
 
 	tx, err := w.allocationManager.ModifyAllocations(noSendTxOpts, operatorAddress, allocations)
 	if err != nil {
-		wrappedError := CreateForTxGenerationError("allocationManager.ModifyAllocations", err)
+		wrappedError := TxGenerationError("allocationManager.ModifyAllocations", err)
 		return nil, wrappedError
 	}
 
 	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
 	if err != nil {
-		wrappedError := CreateForSendError(err)
+		wrappedError := SendError(err)
 		return nil, wrappedError
 	}
 
@@ -572,25 +572,25 @@ func (w *ChainWriter) ClearDeallocationQueue(
 	waitForReceipt bool,
 ) (*gethtypes.Receipt, error) {
 	if w.allocationManager == nil {
-		wrappedError := CreateErrorForMissingContract("AllocationManager")
+		wrappedError := MissingContractError("AllocationManager")
 		return nil, wrappedError
 	}
 
 	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
 	if err != nil {
-		wrappedError := CreateNoSendTxOptsFailedError(err)
+		wrappedError := NoSendTxOptsFailedError(err)
 		return nil, wrappedError
 	}
 
 	tx, err := w.allocationManager.ClearDeallocationQueue(noSendTxOpts, operatorAddress, strategies, numsToClear)
 	if err != nil {
-		wrappedError := CreateForTxGenerationError("allocationManager.ClearDeallocationQueue", err)
+		wrappedError := TxGenerationError("allocationManager.ClearDeallocationQueue", err)
 		return nil, wrappedError
 	}
 
 	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
 	if err != nil {
-		wrappedError := CreateForSendError(err)
+		wrappedError := SendError(err)
 		return nil, wrappedError
 	}
 
@@ -608,24 +608,24 @@ func (w *ChainWriter) SetAllocationDelay(
 	waitForReceipt bool,
 ) (*gethtypes.Receipt, error) {
 	if w.allocationManager == nil {
-		wrappedError := CreateErrorForMissingContract("AllocationManager")
+		wrappedError := MissingContractError("AllocationManager")
 		return nil, wrappedError
 	}
 
 	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
 	if err != nil {
-		wrappedError := CreateNoSendTxOptsFailedError(err)
+		wrappedError := NoSendTxOptsFailedError(err)
 		return nil, wrappedError
 	}
 
 	tx, err := w.allocationManager.SetAllocationDelay(noSendTxOpts, operatorAddress, delay)
 	if err != nil {
-		wrappedError := CreateForTxGenerationError("allocationManager.SetAllocationDelay", err)
+		wrappedError := TxGenerationError("allocationManager.SetAllocationDelay", err)
 		return nil, wrappedError
 	}
 	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
 	if err != nil {
-		wrappedError := CreateForSendError(err)
+		wrappedError := SendError(err)
 		return nil, wrappedError
 	}
 
@@ -641,13 +641,13 @@ func (w *ChainWriter) DeregisterFromOperatorSets(
 	request DeregistrationRequest,
 ) (*gethtypes.Receipt, error) {
 	if w.allocationManager == nil {
-		wrappedError := CreateErrorForMissingContract("AllocationManager")
+		wrappedError := MissingContractError("AllocationManager")
 		return nil, wrappedError
 	}
 
 	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
 	if err != nil {
-		wrappedError := CreateNoSendTxOptsFailedError(err)
+		wrappedError := NoSendTxOptsFailedError(err)
 		return nil, wrappedError
 	}
 
@@ -659,13 +659,13 @@ func (w *ChainWriter) DeregisterFromOperatorSets(
 			OperatorSetIds: request.OperatorSetIds,
 		})
 	if err != nil {
-		wrappedError := CreateForTxGenerationError("allocationManager.DeregisterFromOperatorSets", err)
+		wrappedError := TxGenerationError("allocationManager.DeregisterFromOperatorSets", err)
 		return nil, wrappedError
 	}
 
 	receipt, err := w.txMgr.Send(ctx, tx, request.WaitForReceipt)
 	if err != nil {
-		wrappedError := CreateForSendError(err)
+		wrappedError := SendError(err)
 		return nil, wrappedError
 	}
 
@@ -681,13 +681,13 @@ func (w *ChainWriter) RegisterForOperatorSets(
 	request RegistrationRequest,
 ) (*gethtypes.Receipt, error) {
 	if w.allocationManager == nil {
-		wrappedError := CreateErrorForMissingContract("AllocationManager")
+		wrappedError := MissingContractError("AllocationManager")
 		return nil, wrappedError
 	}
 
 	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
 	if err != nil {
-		wrappedError := CreateNoSendTxOptsFailedError(err)
+		wrappedError := NoSendTxOptsFailedError(err)
 		return nil, wrappedError
 	}
 
@@ -726,13 +726,13 @@ func (w *ChainWriter) RegisterForOperatorSets(
 			Data:           data,
 		})
 	if err != nil {
-		wrappedError := CreateForTxGenerationError("allocationManager.RegisterForOperatorSets", err)
+		wrappedError := TxGenerationError("allocationManager.RegisterForOperatorSets", err)
 		return nil, wrappedError
 	}
 
 	receipt, err := w.txMgr.Send(ctx, tx, request.WaitForReceipt)
 	if err != nil {
-		wrappedError := CreateForSendError(err)
+		wrappedError := SendError(err)
 		return nil, wrappedError
 	}
 
@@ -747,7 +747,7 @@ func (w *ChainWriter) RemovePermission(
 ) (*gethtypes.Receipt, error) {
 	txOpts, err := w.txMgr.GetNoSendTxOpts()
 	if err != nil {
-		wrappedError := CreateNoSendTxOptsFailedError(err)
+		wrappedError := NoSendTxOptsFailedError(err)
 		return nil, wrappedError
 	}
 	tx, err := w.NewRemovePermissionTx(txOpts, request)
@@ -762,7 +762,7 @@ func (w *ChainWriter) RemovePermission(
 	}
 	receipt, err := w.txMgr.Send(ctx, tx, request.WaitForReceipt)
 	if err != nil {
-		wrappedError := CreateForSendError(err)
+		wrappedError := SendError(err)
 		return nil, wrappedError
 	}
 
@@ -775,7 +775,7 @@ func (w *ChainWriter) NewRemovePermissionTx(
 	request RemovePermissionRequest,
 ) (*gethtypes.Transaction, error) {
 	if w.permissionController == nil {
-		wrappedError := CreateErrorForMissingContract("PermissionController")
+		wrappedError := MissingContractError("PermissionController")
 		return nil, wrappedError
 	}
 
@@ -787,7 +787,7 @@ func (w *ChainWriter) NewRemovePermissionTx(
 		request.Selector,
 	)
 	if err != nil {
-		wrappedError := CreateForTxGenerationError("permissionController.RemoveAppointee", err)
+		wrappedError := TxGenerationError("permissionController.RemoveAppointee", err)
 		return nil, wrappedError
 	}
 
@@ -800,7 +800,7 @@ func (w *ChainWriter) NewSetPermissionTx(
 	request SetPermissionRequest,
 ) (*gethtypes.Transaction, error) {
 	if w.permissionController == nil {
-		wrappedError := CreateErrorForMissingContract("PermissionController")
+		wrappedError := MissingContractError("PermissionController")
 		return nil, wrappedError
 	}
 
@@ -812,7 +812,7 @@ func (w *ChainWriter) NewSetPermissionTx(
 		request.Selector,
 	)
 	if err != nil {
-		wrappedError := CreateForTxGenerationError("permissionController.SetAppointee", err)
+		wrappedError := TxGenerationError("permissionController.SetAppointee", err)
 		return nil, wrappedError
 	}
 
@@ -829,7 +829,7 @@ func (w *ChainWriter) SetPermission(
 ) (*gethtypes.Receipt, error) {
 	txOpts, err := w.txMgr.GetNoSendTxOpts()
 	if err != nil {
-		wrappedError := CreateNoSendTxOptsFailedError(err)
+		wrappedError := NoSendTxOptsFailedError(err)
 		return nil, wrappedError
 	}
 
@@ -845,7 +845,7 @@ func (w *ChainWriter) SetPermission(
 	}
 	receipt, err := w.txMgr.Send(ctx, tx, request.WaitForReceipt)
 	if err != nil {
-		wrappedError := CreateForSendError(err)
+		wrappedError := SendError(err)
 		return nil, wrappedError
 	}
 
@@ -858,13 +858,13 @@ func (w *ChainWriter) NewAcceptAdminTx(
 	request AcceptAdminRequest,
 ) (*gethtypes.Transaction, error) {
 	if w.permissionController == nil {
-		wrappedError := CreateErrorForMissingContract("PermissionController")
+		wrappedError := MissingContractError("PermissionController")
 		return nil, wrappedError
 	}
 
 	tx, err := w.permissionController.AcceptAdmin(txOpts, request.AccountAddress)
 	if err != nil {
-		wrappedError := CreateForTxGenerationError("permissionController.AcceptAdmin", err)
+		wrappedError := TxGenerationError("permissionController.AcceptAdmin", err)
 		return nil, wrappedError
 	}
 
@@ -879,7 +879,7 @@ func (w *ChainWriter) AcceptAdmin(
 ) (*gethtypes.Receipt, error) {
 	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
 	if err != nil {
-		wrappedError := CreateNoSendTxOptsFailedError(err)
+		wrappedError := NoSendTxOptsFailedError(err)
 		return nil, wrappedError
 	}
 
@@ -895,7 +895,7 @@ func (w *ChainWriter) AcceptAdmin(
 	}
 	receipt, err := w.txMgr.Send(ctx, tx, request.WaitForReceipt)
 	if err != nil {
-		wrappedError := CreateForSendError(err)
+		wrappedError := SendError(err)
 		return nil, wrappedError
 	}
 
@@ -908,13 +908,13 @@ func (w *ChainWriter) NewAddPendingAdminTx(
 	request AddPendingAdminRequest,
 ) (*gethtypes.Transaction, error) {
 	if w.permissionController == nil {
-		wrappedError := CreateErrorForMissingContract("PermissionController")
+		wrappedError := MissingContractError("PermissionController")
 		return nil, wrappedError
 	}
 
 	tx, err := w.permissionController.AddPendingAdmin(txOpts, request.AccountAddress, request.AdminAddress)
 	if err != nil {
-		wrappedError := CreateForTxGenerationError("permissionController.AddPendingAdmin", err)
+		wrappedError := TxGenerationError("permissionController.AddPendingAdmin", err)
 		return nil, wrappedError
 	}
 
@@ -927,7 +927,7 @@ func (w *ChainWriter) NewAddPendingAdminTx(
 func (w *ChainWriter) AddPendingAdmin(ctx context.Context, request AddPendingAdminRequest) (*gethtypes.Receipt, error) {
 	txOpts, err := w.txMgr.GetNoSendTxOpts()
 	if err != nil {
-		wrappedError := CreateNoSendTxOptsFailedError(err)
+		wrappedError := NoSendTxOptsFailedError(err)
 		return nil, wrappedError
 	}
 	tx, err := w.NewAddPendingAdminTx(txOpts, request)
@@ -942,7 +942,7 @@ func (w *ChainWriter) AddPendingAdmin(ctx context.Context, request AddPendingAdm
 	}
 	receipt, err := w.txMgr.Send(ctx, tx, request.WaitForReceipt)
 	if err != nil {
-		wrappedError := CreateForSendError(err)
+		wrappedError := SendError(err)
 		return nil, wrappedError
 	}
 
@@ -955,13 +955,13 @@ func (w *ChainWriter) NewRemoveAdminTx(
 	request RemoveAdminRequest,
 ) (*gethtypes.Transaction, error) {
 	if w.permissionController == nil {
-		wrappedError := CreateErrorForMissingContract("PermissionController")
+		wrappedError := MissingContractError("PermissionController")
 		return nil, wrappedError
 	}
 
 	tx, err := w.permissionController.RemoveAdmin(txOpts, request.AccountAddress, request.AdminAddress)
 	if err != nil {
-		wrappedError := CreateForTxGenerationError("permissionController.RemoveAdmin", err)
+		wrappedError := TxGenerationError("permissionController.RemoveAdmin", err)
 		return nil, wrappedError
 	}
 
@@ -976,7 +976,7 @@ func (w *ChainWriter) RemoveAdmin(
 ) (*gethtypes.Receipt, error) {
 	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
 	if err != nil {
-		wrappedError := CreateNoSendTxOptsFailedError(err)
+		wrappedError := NoSendTxOptsFailedError(err)
 		return nil, wrappedError
 	}
 
@@ -992,7 +992,7 @@ func (w *ChainWriter) RemoveAdmin(
 	}
 	receipt, err := w.txMgr.Send(ctx, tx, request.WaitForReceipt)
 	if err != nil {
-		wrappedError := CreateForSendError(err)
+		wrappedError := SendError(err)
 		return nil, wrappedError
 	}
 
@@ -1005,13 +1005,13 @@ func (w *ChainWriter) NewRemovePendingAdminTx(
 	request RemovePendingAdminRequest,
 ) (*gethtypes.Transaction, error) {
 	if w.permissionController == nil {
-		wrappedError := CreateErrorForMissingContract("PermissionController")
+		wrappedError := MissingContractError("PermissionController")
 		return nil, wrappedError
 	}
 
 	tx, err := w.permissionController.RemovePendingAdmin(txOpts, request.AccountAddress, request.AdminAddress)
 	if err != nil {
-		wrappedError := CreateForTxGenerationError("permissionController.RemovePendingAdmin", err)
+		wrappedError := TxGenerationError("permissionController.RemovePendingAdmin", err)
 		return nil, wrappedError
 	}
 
@@ -1026,7 +1026,7 @@ func (w *ChainWriter) RemovePendingAdmin(
 ) (*gethtypes.Receipt, error) {
 	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
 	if err != nil {
-		wrappedError := CreateNoSendTxOptsFailedError(err)
+		wrappedError := NoSendTxOptsFailedError(err)
 		return nil, wrappedError
 	}
 
@@ -1043,7 +1043,7 @@ func (w *ChainWriter) RemovePendingAdmin(
 
 	receipt, err := w.txMgr.Send(ctx, tx, request.WaitForReceipt)
 	if err != nil {
-		wrappedError := CreateForSendError(err)
+		wrappedError := SendError(err)
 		return nil, wrappedError
 	}
 
@@ -1058,7 +1058,7 @@ func getPubkeyRegistrationParams(
 ) (*regcoord.IBLSApkRegistryPubkeyRegistrationParams, error) {
 	registryCoordinator, err := regcoord.NewContractRegistryCoordinator(registryCoordinatorAddr, ethClient)
 	if err != nil {
-		wrappedError := CreateForBindingError("regcoord.NewContractRegistryCoordinator", err)
+		wrappedError := BindingError("regcoord.NewContractRegistryCoordinator", err)
 		return nil, wrappedError
 	}
 	// params to register bls pubkey with bls apk registry
@@ -1067,7 +1067,7 @@ func getPubkeyRegistrationParams(
 		operatorAddress,
 	)
 	if err != nil {
-		wrappedError := CreateForBindingError("registryCoordinator.PubkeyRegistrationMessageHash", err)
+		wrappedError := BindingError("registryCoordinator.PubkeyRegistrationMessageHash", err)
 		return nil, wrappedError
 	}
 	signedMsg := chainioutils.ConvertToBN254G1Point(
