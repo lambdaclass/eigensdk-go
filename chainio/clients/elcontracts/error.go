@@ -50,6 +50,15 @@ func NestedError(functionName string, errorCause error) Error {
 	}
 }
 
+func OtherError(errDescription string, errorCause error) Error {
+	return Error{
+		code:        3,
+		message:     "Other error",
+		description: errDescription,
+		cause:       errorCause,
+	}
+}
+
 func CommonErrorMissingContract(contractName string) string {
 	return fmt.Sprintf("Missing needed contract(1) - %s contract not provided", contractName)
 }

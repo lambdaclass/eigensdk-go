@@ -38,7 +38,7 @@ type ChainReader struct {
 	ethClient            eth.HttpBackend
 }
 
-var errLegacyAVSsNotSupported = Error{3, "Other errors", "Method not supported for legacy AVSs", nil}
+var errLegacyAVSsNotSupported = OtherError("Method not supported for legacy AVSs", nil)
 
 func NewChainReader(
 	delegationManager *delegationmanager.ContractDelegationManager,
@@ -768,7 +768,7 @@ func (r *ChainReader) GetSlashableShares(
 		return nil, wrappedError
 	}
 	if len(slashableShares) == 0 {
-		wrappedError := Error{3, "Other errors", "No slashable shares found for operator", err}
+		wrappedError := OtherError("No slashable shares found for operator", err)
 		return nil, wrappedError
 	}
 
@@ -871,7 +871,7 @@ func (r *ChainReader) GetAllocationDelay(
 		return 0, wrappedError
 	}
 	if !isSet {
-		wrappedError := Error{3, "Other errors", "Allocation delay not set", err}
+		wrappedError := OtherError("Allocation delay not set", err)
 		return 0, wrappedError
 	}
 	return delay, nil
