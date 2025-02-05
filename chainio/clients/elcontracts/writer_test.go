@@ -663,6 +663,94 @@ func TestModifyAllocations(t *testing.T) {
 	require.Equal(t, big.NewInt(int64(newAllocation)), currentMagnitude)
 }
 
+func TestClearDeallocationQueue(t *testing.T) {
+	testConfig := testutils.GetDefaultTestConfig()
+	anvilC, err := testutils.StartAnvilContainer(testConfig.AnvilStateFileName)
+	require.NoError(t, err)
+
+	anvilHttpEndpoint, err := anvilC.Endpoint(context.Background(), "http")
+	require.NoError(t, err)
+	contractAddrs := testutils.GetContractAddressesFromContractRegistry(anvilHttpEndpoint)
+
+	operatorAddr := common.HexToAddress(testutils.ANVIL_FIRST_ADDRESS)
+	privateKeyHex := testutils.ANVIL_FIRST_PRIVATE_KEY
+	config := elcontracts.Config{
+		DelegationManagerAddress: contractAddrs.DelegationManager,
+	}
+
+	chainWriter, err := testclients.NewTestChainWriterFromConfig(anvilHttpEndpoint, privateKeyHex, config)
+	require.NoError(t, err)
+
+	chainReader, err := testclients.NewTestChainReaderFromConfig(anvilHttpEndpoint, config)
+	require.NoError(t, err)
+
+	strategyAddr := contractAddrs.Erc20MockStrategy
+	avsAddr := common.HexToAddress(testutils.ANVIL_FIRST_ADDRESS)
+	operatorSetId := uint32(1)
+
+	operatorSet := allocationmanager.OperatorSet{
+		Avs: avsAddr,
+		Id:  operatorSetId,
+	}
+	newAllocation := uint64(100)
+	allocateParams := []allocationmanager.IAllocationManagerTypesAllocateParams{
+		{
+			OperatorSet:   operatorSet,
+			Strategies:    []common.Address{strategyAddr},
+			NewMagnitudes: []uint64{newAllocation},
+		},
+	}
+
+	waitForReceipt := true
+	delay := uint32(1)
+	// The allocation delay must be initialized before modifying the allocations
+	receipt, err := chainWriter.SetAllocationDelay(context.Background(), operatorAddr, delay, waitForReceipt)
+	require.NoError(t, err)
+	require.Equal(t, gethtypes.ReceiptStatusSuccessful, receipt.Status)
+
+	allocationConfigurationDelay := 1200
+	// Advance the chain by the required number of blocks
+	// (ALLOCATION_CONFIGURATION_DELAY) to apply the allocation delay
+	testutils.AdvanceChainByNBlocksExecInContainer(context.Background(), allocationConfigurationDelay+1, anvilC)
+
+	// Retrieve the allocation delay so that the delay is applied
+	_, err = chainReader.GetAllocationDelay(context.Background(), operatorAddr)
+	require.NoError(t, err)
+
+	err = createOperatorSet(anvilHttpEndpoint, privateKeyHex, avsAddr, operatorSetId, strategyAddr)
+	require.NoError(t, err)
+
+	receipt, err = chainWriter.ModifyAllocations(context.Background(), operatorAddr, allocateParams, waitForReceipt)
+	require.NoError(t, err)
+	require.Equal(t, gethtypes.ReceiptStatusSuccessful, receipt.Status)
+
+	// Check that the new allocation is pending and the current magnitude is zero
+	allocationInfo, err := chainReader.GetAllocationInfo(context.Background(), operatorAddr, strategyAddr)
+	require.NoError(t, err)
+	pendingDiff := allocationInfo[0].PendingDiff
+	require.Equal(t, big.NewInt(int64(newAllocation)), pendingDiff)
+	require.Equal(t, allocationInfo[0].CurrentMagnitude, big.NewInt(0))
+
+	strategies := []common.Address{strategyAddr}
+	numsToClear := []uint16{uint16(1)}
+
+	receipt, err = chainWriter.ClearDeallocationQueue(context.Background(), operatorAddr, strategies, numsToClear, true)
+	require.NoError(t, err)
+	require.Equal(t, gethtypes.ReceiptStatusSuccessful, receipt.Status)
+
+	// Check that the pending allocation has been completed after calling ClearDeallocationQueue
+	allocationInfo, err = chainReader.GetAllocationInfo(context.Background(), operatorAddr, strategyAddr)
+	require.NoError(t, err)
+	assert.Equal(t, big.NewInt(int64(newAllocation)), allocationInfo[0].CurrentMagnitude)
+
+	// Assert that ClearDeallocationQueue fails if strategies and numsToClear have different legths
+	numsToClear = []uint16{}
+	_, err = chainWriter.ClearDeallocationQueue(context.Background(), operatorAddr, strategies, numsToClear, true)
+	require.Error(t, err)
+	require.ErrorContains(t, err, "execution reverted: custom error 0x43714afd")
+
+}
+
 func TestAddAndRemovePendingAdmin(t *testing.T) {
 	testConfig := testutils.GetDefaultTestConfig()
 	anvilC, err := testutils.StartAnvilContainer(testConfig.AnvilStateFileName)
@@ -1280,6 +1368,22 @@ func TestInvalidConfigChainWriter(t *testing.T) {
 			context.Background(),
 			common.HexToAddress(operatorAddr),
 			allocateParams,
+			true,
+		)
+		assert.Error(t, err)
+		assert.Nil(t, receipt)
+	})
+
+	t.Run("clear deallocation queue", func(t *testing.T) {
+		strategyAddr := contractAddrs.Erc20MockStrategy
+		strategies := []common.Address{strategyAddr}
+		numsToClear := []uint16{uint16(1)}
+
+		receipt, err := chainWriter.ClearDeallocationQueue(
+			context.Background(),
+			common.HexToAddress(operatorAddr),
+			strategies,
+			numsToClear,
 			true,
 		)
 		assert.Error(t, err)
