@@ -1367,7 +1367,7 @@ func TestFailingNetwork(t *testing.T) {
 			contractAddrs.Erc20MockStrategy,
 		)
 		assert.Error(t, err)
-		assert.Zero(t, shares)
+		assert.Zero(t, shares.Int64())
 	})
 
 	t.Run("calculate delegation approval digest hash", func(t *testing.T) {
