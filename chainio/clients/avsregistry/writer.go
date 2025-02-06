@@ -547,7 +547,12 @@ func (w *ChainWriter) CreateTotalDelegatedStakeQuorum(
 		return nil, err
 	}
 
-	tx, err := w.registryCoordinator.CreateTotalDelegatedStakeQuorum(noSendTxOpts, operatorSetParams, minimumStakeRequired, strategyParams)
+	tx, err := w.registryCoordinator.CreateTotalDelegatedStakeQuorum(
+		noSendTxOpts,
+		operatorSetParams,
+		minimumStakeRequired,
+		strategyParams,
+	)
 	if err != nil {
 		return nil, err
 	}
