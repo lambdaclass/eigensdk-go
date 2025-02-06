@@ -48,6 +48,7 @@ func BuildTestClients(t *testing.T) (*clients.Clients, string) {
 		OperatorStateRetrieverAddr: contractAddrs.OperatorStateRetriever.String(),
 		AvsName:                    "exampleAvs",
 		PromMetricsIpPortAddress:   ":9090",
+		ServiceManagerAddress:      contractAddrs.ServiceManager.String(),
 	}
 
 	clients, err := clients.BuildAll(
@@ -82,6 +83,7 @@ func BuildTestReadClients(t *testing.T) (*clients.ReadClients, string) {
 		OperatorStateRetrieverAddr: contractAddrs.OperatorStateRetriever.String(),
 		AvsName:                    "exampleAvs",
 		PromMetricsIpPortAddress:   ":9090",
+		ServiceManagerAddress:      contractAddrs.ServiceManager.String(),
 	}
 
 	clients, err := clients.BuildReadClients(
@@ -195,7 +197,7 @@ func NewTestTxManager(httpEndpoint string, privateKeyHex string) (*txmgr.SimpleT
 	return txManager, nil
 }
 
-// Creates a testing ChainWriter from an httpEndpoint, private key and config.
+// Creates an avsRegistry testing ChainWriter from an httpEndpoint, private key and config.
 // This is needed because the existing testclients.BuildTestClients returns a
 // ChainWriter with a null rewardsCoordinator, which is required for some of the tests.
 func NewTestAvsRegistryWriterFromConfig(

@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"crypto/rand"
-	"errors"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -19,10 +18,12 @@ import (
 	blsapkregistry "github.com/Layr-Labs/eigensdk-go/contracts/bindings/BLSApkRegistry"
 	opstateretriever "github.com/Layr-Labs/eigensdk-go/contracts/bindings/OperatorStateRetriever"
 	regcoord "github.com/Layr-Labs/eigensdk-go/contracts/bindings/RegistryCoordinator"
+	servicemanager "github.com/Layr-Labs/eigensdk-go/contracts/bindings/ServiceManagerBase"
 	stakeregistry "github.com/Layr-Labs/eigensdk-go/contracts/bindings/StakeRegistry"
 	"github.com/Layr-Labs/eigensdk-go/crypto/bls"
 	"github.com/Layr-Labs/eigensdk-go/logging"
 	"github.com/Layr-Labs/eigensdk-go/types"
+	"github.com/Layr-Labs/eigensdk-go/utils"
 )
 
 type eLReader interface {
@@ -144,15 +145,15 @@ func (w *ChainWriter) RegisterOperator(
 	)
 	G1pubkeyBN254 := chainioutils.ConvertToBN254G1Point(blsKeyPair.GetPubKeyG1())
 	G2pubkeyBN254 := chainioutils.ConvertToBN254G2Point(blsKeyPair.GetPubKeyG2())
-	pubkeyRegParams := regcoord.IBLSApkRegistryPubkeyRegistrationParams{
+	pubkeyRegParams := regcoord.IBLSApkRegistryTypesPubkeyRegistrationParams{
 		PubkeyRegistrationSignature: signedMsg,
 		PubkeyG1:                    G1pubkeyBN254,
 		PubkeyG2:                    G2pubkeyBN254,
 	}
 
 	// generate a random salt and 1 hour expiry for the signature
-	var operatorToAvsRegistrationSigSalt [32]byte
-	_, err = rand.Read(operatorToAvsRegistrationSigSalt[:])
+	var signatureSalt [32]byte
+	_, err = rand.Read(signatureSalt[:])
 	if err != nil {
 		return nil, err
 	}
@@ -166,17 +167,17 @@ func (w *ChainWriter) RegisterOperator(
 		return nil, err
 	}
 	sigValidForSeconds := int64(60 * 60) // 1 hour
-	operatorToAvsRegistrationSigExpiry := new(
-		big.Int,
-	).Add(new(big.Int).SetUint64(curBlock.Time()), big.NewInt(sigValidForSeconds))
+
+	curTime := new(big.Int).SetUint64(curBlock.Time())
+	signatureExpiry := new(big.Int).Add(curTime, big.NewInt(sigValidForSeconds))
 
 	// params to register operator in delegation manager's operator-avs mapping
 	msgToSign, err := w.elReader.CalculateOperatorAVSRegistrationDigestHash(
 		ctx,
 		operatorAddr,
 		w.serviceManagerAddr,
-		operatorToAvsRegistrationSigSalt,
-		operatorToAvsRegistrationSigExpiry,
+		signatureSalt,
+		signatureExpiry,
 	)
 	if err != nil {
 		return nil, err
@@ -191,8 +192,8 @@ func (w *ChainWriter) RegisterOperator(
 	operatorSignature[64] += 27
 	operatorSignatureWithSaltAndExpiry := regcoord.ISignatureUtilsSignatureWithSaltAndExpiry{
 		Signature: operatorSignature,
-		Salt:      operatorToAvsRegistrationSigSalt,
-		Expiry:    operatorToAvsRegistrationSigExpiry,
+		Salt:      signatureSalt,
+		Expiry:    signatureExpiry,
 	}
 
 	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
@@ -213,7 +214,7 @@ func (w *ChainWriter) RegisterOperator(
 	}
 	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
 	if err != nil {
-		return nil, errors.New("failed to send tx with err: " + err.Error())
+		return nil, utils.WrapError("failed to send tx with err", err.Error())
 	}
 	w.logger.Info(
 		"successfully registered operator with AVS registry coordinator",
@@ -255,7 +256,7 @@ func (w *ChainWriter) UpdateStakesOfEntireOperatorSetForQuorums(
 	}
 	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
 	if err != nil {
-		return nil, errors.New("failed to send tx with err: " + err.Error())
+		return nil, utils.WrapError("failed to send tx with err: ", err.Error())
 	}
 	w.logger.Info(
 		"successfully updated stakes for entire operator set",
@@ -286,7 +287,7 @@ func (w *ChainWriter) UpdateStakesOfOperatorSubsetForAllQuorums(
 	}
 	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
 	if err != nil {
-		return nil, errors.New("failed to send tx with err: " + err.Error())
+		return nil, utils.WrapError("failed to send tx with err", err.Error())
 	}
 	w.logger.Info(
 		"successfully updated stakes of operator subset for all quorums",
@@ -317,7 +318,7 @@ func (w *ChainWriter) DeregisterOperator(
 	}
 	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
 	if err != nil {
-		return nil, errors.New("failed to send tx with err: " + err.Error())
+		return nil, utils.WrapError("failed to send tx with err", err.Error())
 	}
 	w.logger.Info(
 		"successfully deregistered operator with the AVS's registry coordinator",
@@ -349,7 +350,7 @@ func (w *ChainWriter) DeregisterOperatorOperatorSets(
 	}
 	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
 	if err != nil {
-		return nil, errors.New("failed to send tx with err: " + err.Error())
+		return nil, utils.WrapError("failed to send tx with err", err.Error())
 	}
 	w.logger.Info(
 		"successfully deregistered operator with the AVS's registry coordinator",
@@ -376,7 +377,39 @@ func (w *ChainWriter) UpdateSocket(
 	}
 	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
 	if err != nil {
-		return nil, errors.New("failed to send UpdateSocket tx with err: " + err.Error())
+		return nil, utils.WrapError("failed to send UpdateSocket tx with err", err.Error())
+	}
+	return receipt, nil
+}
+
+// Sets the rewards initiator address as the received as parameter. This address is the only one
+// that can initiate rewards. Returns the receipt of the transaction in case of success.
+func (w *ChainWriter) SetRewardsInitiator(
+	ctx context.Context,
+	rewardsInitiatorAddr gethcommon.Address,
+	waitForReceipt bool,
+) (*gethtypes.Receipt, error) {
+	w.logger.Info("setting rewards initiator with addr ", rewardsInitiatorAddr)
+
+	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
+	if err != nil {
+		return nil, err
+	}
+
+	serviceManagerContract, err := servicemanager.NewContractServiceManagerBase(
+		w.serviceManagerAddr,
+		w.ethClient,
+	)
+	if err != nil {
+		return nil, utils.WrapError("Failed to create ServiceManager contract", err)
+	}
+	tx, err := serviceManagerContract.SetRewardsInitiator(noSendTxOpts, rewardsInitiatorAddr)
+	if err != nil {
+		return nil, err
+	}
+	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
+	if err != nil {
+		return nil, utils.WrapError("failed to send SetRewardsInitiator tx with err", err.Error())
 	}
 	return receipt, nil
 }
