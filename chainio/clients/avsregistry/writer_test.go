@@ -295,7 +295,7 @@ func TestCreateDelegatedStakeQuorum(t *testing.T) {
 	chainWriter := clients.AvsRegistryChainWriter
 
 	// Beyond MaxOperatorCount, the other params are not used anywhere other than in registerOperatorWithChurn
-	operatorSetParams := regcoord.IRegistryCoordinatorOperatorSetParam{
+	operatorSetParams := regcoord.ISlashingRegistryCoordinatorTypesOperatorSetParam{
 		MaxOperatorCount:        192,
 		KickBIPsOfOperatorStake: 0,
 		KickBIPsOfTotalStake:    0,
@@ -303,7 +303,7 @@ func TestCreateDelegatedStakeQuorum(t *testing.T) {
 	minimumStakeNeeded := big.NewInt(0)
 
 	strategyAddr := contractAddrs.Erc20MockStrategy
-	strategyParam := regcoord.IStakeRegistryStrategyParams{
+	strategyParam := regcoord.IStakeRegistryTypesStrategyParams{
 		Strategy:   strategyAddr,
 		Multiplier: big.NewInt(1e18),
 	}
@@ -316,7 +316,7 @@ func TestCreateDelegatedStakeQuorum(t *testing.T) {
 		context.Background(),
 		operatorSetParams,
 		minimumStakeNeeded,
-		[]regcoord.IStakeRegistryStrategyParams{strategyParam},
+		[]regcoord.IStakeRegistryTypesStrategyParams{strategyParam},
 		true,
 	)
 	require.NoError(t, err)

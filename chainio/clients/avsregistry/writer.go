@@ -535,9 +535,9 @@ func (w *ChainWriter) SetRewardsInitiator(
 // to the operator to be in the quorum. Returns the transaction receipt in case of success.
 func (w *ChainWriter) CreateTotalDelegatedStakeQuorum(
 	ctx context.Context,
-	operatorSetParams regcoord.IRegistryCoordinatorOperatorSetParam,
+	operatorSetParams regcoord.ISlashingRegistryCoordinatorTypesOperatorSetParam,
 	minimumStakeRequired *big.Int,
-	strategyParams []regcoord.IStakeRegistryStrategyParams,
+	strategyParams []regcoord.IStakeRegistryTypesStrategyParams,
 	waitForReceipt bool,
 ) (*gethtypes.Receipt, error) {
 	w.logger.Info("Creating total delegated stake quorum")
