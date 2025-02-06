@@ -529,6 +529,11 @@ func (w *ChainWriter) SetRewardsInitiator(
 	return receipt, nil
 }
 
+// This function creates a new Quorum from the new flow (with staking). The operator set params contains
+// the max operator count for that quorum and some churn options, the strategy params contains the specified
+// strategy for that quorum and its corresponding multiplier, the minimum stake is the minimum required
+// to the operator to be in the quorum and the lookAheadPeriod is the period in days for checking operator
+// shares for a specific quorum. Returns the transaction receipt in case of success.
 func (w *ChainWriter) CreateSlashableStakeQuorum(
 	ctx context.Context,
 	operatorSetParams regcoord.ISlashingRegistryCoordinatorTypesOperatorSetParam,
