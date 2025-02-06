@@ -28,6 +28,9 @@ var DefaultQueryBlockRange = big.NewInt(10_000)
 type Config struct {
 	RegistryCoordinatorAddress    common.Address
 	OperatorStateRetrieverAddress common.Address
+
+	/// The address of the ServiceManager contract.
+	ServiceManagerAddress common.Address
 }
 
 // The ChainReader provides methods to call the

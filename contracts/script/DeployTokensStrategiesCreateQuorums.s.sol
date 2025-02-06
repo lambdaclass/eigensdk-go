@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.12;
+pragma solidity ^0.8.27;
 
 import "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 import "eigenlayer-contracts/src/contracts/permissions/PauserRegistry.sol";
@@ -8,8 +8,9 @@ import {IStrategyManager, IStrategy} from "eigenlayer-contracts/src/contracts/in
 import {StrategyBaseTVLLimits} from "eigenlayer-contracts/src/contracts/strategies/StrategyBaseTVLLimits.sol";
 
 import "eigenlayer-middleware/src/interfaces/IStakeRegistry.sol";
-import "eigenlayer-middleware/src/RegistryCoordinator.sol" as regcoord;
-import {StakeType} from "eigenlayer-middleware/src/interfaces/IStakeRegistry.sol";
+import {ISlashingRegistryCoordinatorTypes} from "eigenlayer-middleware/src/interfaces/ISlashingRegistryCoordinator.sol";
+import {RegistryCoordinator} from "eigenlayer-middleware/src/RegistryCoordinator.sol";
+import {IStakeRegistryTypes} from "eigenlayer-middleware/src/interfaces/IStakeRegistry.sol";
 
 import {MockERC20, IERC20} from "../src/MockERC20.sol";
 import "./parsers/EigenlayerContractsParser.sol";
@@ -35,7 +36,6 @@ contract DeployTokensStrategiesCreateQuorums is Script, EigenlayerContractsParse
         if (block.chainid == 31337 || block.chainid == 1337) {
             (mockToken, strat) = _deployErc20AndStrategyAndWhitelistStrategy(
                 eigenlayerContracts.eigenlayerProxyAdmin,
-                eigenlayerContracts.eigenlayerPauserReg,
                 eigenlayerContracts.baseStrategyImplementation,
                 eigenlayerContracts.strategyManager
             );
@@ -54,7 +54,6 @@ contract DeployTokensStrategiesCreateQuorums is Script, EigenlayerContractsParse
 
     function _deployErc20AndStrategyAndWhitelistStrategy(
         ProxyAdmin eigenLayerProxyAdmin,
-        PauserRegistry eigenLayerPauserReg,
         StrategyBaseTVLLimits baseStrategyImplementation,
         IStrategyManager strategyManager
     ) internal returns (IERC20, IStrategy) {
@@ -62,17 +61,15 @@ contract DeployTokensStrategiesCreateQuorums is Script, EigenlayerContractsParse
         mockERC20.mint(tx.origin, MINT_AMOUNT);
         // TODO(samlaf): any reason why we are using the strategybase with tvl limits instead of just using strategybase?
         // the maxPerDeposit and maxDeposits below are just arbitrary values.
+        uint256 maxPerDeposit = 1_000 ether;
+        uint256 maxTotalDeposits = 1_000 ether;
         StrategyBaseTVLLimits erc20MockStrategy = StrategyBaseTVLLimits(
             address(
                 new TransparentUpgradeableProxy(
                     address(baseStrategyImplementation),
                     address(eigenLayerProxyAdmin),
-                    abi.encodeWithSelector(
-                        StrategyBaseTVLLimits.initialize.selector,
-                        1_000 ether, // maxPerDeposit
-                        1_000 ether, // maxDeposits
-                        IERC20(mockERC20),
-                        eigenLayerPauserReg
+                    abi.encodeCall(
+                        StrategyBaseTVLLimits.initialize, (maxPerDeposit, maxTotalDeposits, IERC20(mockERC20))
                     )
                 )
             )
@@ -96,11 +93,10 @@ contract DeployTokensStrategiesCreateQuorums is Script, EigenlayerContractsParse
         return (IERC20(mockERC20), erc20MockStrategy);
     }
 
-    function _createQuorum(regcoord.RegistryCoordinator mockAvsRegCoord, IStrategy strat) internal {
+    function _createQuorum(RegistryCoordinator mockAvsRegCoord, IStrategy strat) internal {
         // for each quorum to setup, we need to define
         // quorumsOperatorSetParams, quorumsMinimumStake, and quorumsStrategyParams
-        regcoord.RegistryCoordinator.OperatorSetParam memory quorumOperatorSetParams = regcoord
-            .IRegistryCoordinator
+        RegistryCoordinator.OperatorSetParam memory quorumOperatorSetParams = ISlashingRegistryCoordinatorTypes
             .OperatorSetParam({
             // hardcoded for now
             maxOperatorCount: 10000,
@@ -108,8 +104,8 @@ contract DeployTokensStrategiesCreateQuorums is Script, EigenlayerContractsParse
             kickBIPsOfTotalStake: 100
         });
         uint96 quorumMinimumStake = 0;
-        IStakeRegistry.StrategyParams[] memory quorumStrategyParams = new IStakeRegistry.StrategyParams[](1);
-        quorumStrategyParams[0] = IStakeRegistry.StrategyParams({
+        IStakeRegistryTypes.StrategyParams[] memory quorumStrategyParams = new IStakeRegistryTypes.StrategyParams[](1);
+        quorumStrategyParams[0] = IStakeRegistryTypes.StrategyParams({
             strategy: strat,
             // setting this to 1 ether since the divisor is also 1 ether
             // therefore this allows an operator to register with even just 1 token
@@ -118,7 +114,7 @@ contract DeployTokensStrategiesCreateQuorums is Script, EigenlayerContractsParse
             multiplier: 1 ether
         });
 
-        regcoord.RegistryCoordinator(address(mockAvsRegCoord)).createTotalDelegatedStakeQuorum(
+        RegistryCoordinator(address(mockAvsRegCoord)).createTotalDelegatedStakeQuorum(
             quorumOperatorSetParams, quorumMinimumStake, quorumStrategyParams
         );
     }

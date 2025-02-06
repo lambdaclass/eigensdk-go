@@ -34,6 +34,7 @@ func TestWriterMethods(t *testing.T) {
 	config := avsregistry.Config{
 		RegistryCoordinatorAddress:    contractAddrs.RegistryCoordinator,
 		OperatorStateRetrieverAddress: contractAddrs.OperatorStateRetriever,
+		ServiceManagerAddress:         contractAddrs.ServiceManager,
 	}
 
 	chainWriter, err := testclients.NewTestAvsRegistryWriterFromConfig(anvilHttpEndpoint, operatorPrivateKeyHex, config)
