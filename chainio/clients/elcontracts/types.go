@@ -9,6 +9,13 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
+type RegistrationType uint8
+
+const (
+	RegistrationTypeNormal RegistrationType = 0
+	RegistrationTypeChurn  RegistrationType = 1
+)
+
 type OperatorSetStakes struct {
 	OperatorSet     allocationmanager.OperatorSet
 	Strategies      []common.Address

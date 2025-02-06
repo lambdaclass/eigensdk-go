@@ -63,7 +63,7 @@ core_default := "DelegationManager IRewardsCoordinator StrategyManager EigenPod 
 core_location := "./lib/eigenlayer-middleware/lib/eigenlayer-contracts"
 core_bindings_location := "../../../../bindings"
 
-middleware_default := "RegistryCoordinator IndexRegistry OperatorStateRetriever StakeRegistry BLSApkRegistry IBLSSignatureChecker ServiceManagerBase IERC20"
+middleware_default := "RegistryCoordinator SlashingRegistryCoordinator IndexRegistry OperatorStateRetriever StakeRegistry BLSApkRegistry SocketRegistry IBLSSignatureChecker ServiceManagerBase IERC20"
 middleware_location := "./lib/eigenlayer-middleware"
 middleware_bindings_location := "../../bindings"
 
@@ -113,7 +113,7 @@ eigenpod-bindings: ## generates contract bindings for eigenpod
 
 .PHONY: bindings
 bindings: ## generates all contract bindings
-	rm -rf bindings/* && make core-bindings middleware-bindings sdk-bindings eigenpod-bindings
+	rm -rf contracts/bindings/* && make core-bindings middleware-bindings sdk-bindings eigenpod-bindings
 
 
 ___CONTRACTS___: ## 

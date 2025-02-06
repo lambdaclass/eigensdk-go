@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.12;
+pragma solidity ^0.8.27;
 
 import {RegistryCoordinator} from "eigenlayer-middleware/src/RegistryCoordinator.sol";
 import {OperatorStateRetriever} from "eigenlayer-middleware/src/OperatorStateRetriever.sol";
 
-import "../../src/MockAvsServiceManager.sol";
+import {MockAvsServiceManager} from "../../src/MockAvsServiceManager.sol";
 
 import {ConfigsReadWriter} from "./ConfigsReadWriter.sol";
 import "forge-std/StdJson.sol";
