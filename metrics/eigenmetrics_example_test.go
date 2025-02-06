@@ -47,6 +47,7 @@ func ExampleEigenMetrics() {
 		OperatorStateRetrieverAddr: "0x0",
 		AvsName:                    "exampleAvs",
 		PromMetricsIpPortAddress:   ":9090",
+		ServiceManagerAddress:      "0x0",
 	}
 	clients, err := clients.BuildAll(chainioConfig, ecdsaPrivateKey, logger)
 	if err != nil {

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.12;
+pragma solidity ^0.8.27;
 
 import "./DeployMockAvsRegistries.s.sol";
 import "forge-std/console.sol";
@@ -33,19 +33,13 @@ contract DeployMockAvs is DeployMockAvsRegistries {
             eigenlayerContracts, addressConfig, mockAvsServiceManager, mockAvsServiceManagerImplementation
         );
 
-        console.log("HERE16");
-        console.logAddress(address(mockAvsContracts.registryCoordinator));
-        console.logAddress(address(eigenlayerContracts.avsDirectory));
-        console.logAddress(address(eigenlayerContracts.rewardsCoordinator));
-        console.logAddress(address(eigenlayerContracts.allocationManager));
         mockAvsServiceManagerImplementation = new MockAvsServiceManager(
             mockAvsContracts.registryCoordinator,
             eigenlayerContracts.avsDirectory,
             eigenlayerContracts.rewardsCoordinator,
+            eigenlayerContracts.permissionController,
             eigenlayerContracts.allocationManager
         );
-
-        console.log("HERE17");
 
         mockAvsProxyAdmin.upgradeAndCall(
             TransparentUpgradeableProxy(payable(address(mockAvsServiceManager))),
@@ -53,6 +47,10 @@ contract DeployMockAvs is DeployMockAvsRegistries {
             abi.encodeWithSelector(mockAvsServiceManager.initialize.selector, addressConfig.communityMultisig)
         );
         require(Ownable(address(mockAvsServiceManager)).owner() != address(0), "Owner uninitialized");
+
+        address avsAddress = address(mockAvsServiceManager);
+        eigenlayerContracts.permissionController.acceptAdmin(avsAddress);
+        _setupPermissions(avsAddress, eigenlayerContracts);
 
         if (block.chainid == 31337 || block.chainid == 1337) {
             _writeContractsToRegistry(contractsRegistry, eigenlayerContracts, mockAvsContracts);

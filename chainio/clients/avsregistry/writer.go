@@ -158,7 +158,7 @@ func (w *ChainWriter) RegisterOperatorInQuorumWithAVSRegistryCoordinator(
 	)
 	G1pubkeyBN254 := chainioutils.ConvertToBN254G1Point(blsKeyPair.GetPubKeyG1())
 	G2pubkeyBN254 := chainioutils.ConvertToBN254G2Point(blsKeyPair.GetPubKeyG2())
-	pubkeyRegParams := regcoord.IBLSApkRegistryPubkeyRegistrationParams{
+	pubkeyRegParams := regcoord.IBLSApkRegistryTypesPubkeyRegistrationParams{
 		PubkeyRegistrationSignature: signedMsg,
 		PubkeyG1:                    G1pubkeyBN254,
 		PubkeyG2:                    G2pubkeyBN254,
@@ -260,15 +260,15 @@ func (w *ChainWriter) RegisterOperator(
 	)
 	G1pubkeyBN254 := chainioutils.ConvertToBN254G1Point(blsKeyPair.GetPubKeyG1())
 	G2pubkeyBN254 := chainioutils.ConvertToBN254G2Point(blsKeyPair.GetPubKeyG2())
-	pubkeyRegParams := regcoord.IBLSApkRegistryPubkeyRegistrationParams{
+	pubkeyRegParams := regcoord.IBLSApkRegistryTypesPubkeyRegistrationParams{
 		PubkeyRegistrationSignature: signedMsg,
 		PubkeyG1:                    G1pubkeyBN254,
 		PubkeyG2:                    G2pubkeyBN254,
 	}
 
 	// generate a random salt and 1 hour expiry for the signature
-	var operatorToAvsRegistrationSigSalt [32]byte
-	_, err = rand.Read(operatorToAvsRegistrationSigSalt[:])
+	var signatureSalt [32]byte
+	_, err = rand.Read(signatureSalt[:])
 	if err != nil {
 		return nil, err
 	}
@@ -282,17 +282,17 @@ func (w *ChainWriter) RegisterOperator(
 		return nil, err
 	}
 	sigValidForSeconds := int64(60 * 60) // 1 hour
-	operatorToAvsRegistrationSigExpiry := new(
-		big.Int,
-	).Add(new(big.Int).SetUint64(curBlock.Time()), big.NewInt(sigValidForSeconds))
+
+	curTime := new(big.Int).SetUint64(curBlock.Time())
+	signatureExpiry := new(big.Int).Add(curTime, big.NewInt(sigValidForSeconds))
 
 	// params to register operator in delegation manager's operator-avs mapping
 	msgToSign, err := w.elReader.CalculateOperatorAVSRegistrationDigestHash(
 		ctx,
 		operatorAddr,
 		w.serviceManagerAddr,
-		operatorToAvsRegistrationSigSalt,
-		operatorToAvsRegistrationSigExpiry,
+		signatureSalt,
+		signatureExpiry,
 	)
 	if err != nil {
 		return nil, err
@@ -307,8 +307,8 @@ func (w *ChainWriter) RegisterOperator(
 	operatorSignature[64] += 27
 	operatorSignatureWithSaltAndExpiry := regcoord.ISignatureUtilsSignatureWithSaltAndExpiry{
 		Signature: operatorSignature,
-		Salt:      operatorToAvsRegistrationSigSalt,
-		Expiry:    operatorToAvsRegistrationSigExpiry,
+		Salt:      signatureSalt,
+		Expiry:    signatureExpiry,
 	}
 
 	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
