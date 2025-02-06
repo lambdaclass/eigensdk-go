@@ -529,6 +529,10 @@ func (w *ChainWriter) SetRewardsInitiator(
 	return receipt, nil
 }
 
+// This function creates a new Quorum from the old flow (without staking). The operator set params contains
+// the max operator count for that quorum and some churn options, the strategy params contains the specified
+// strategy for that quorum and its corresponding multiplier and the minimum stake is the minimum required
+// to the operator to be in the quorum. Returns the transaction receipt in case of success.
 func (w *ChainWriter) CreateTotalDelegatedStakeQuorum(
 	ctx context.Context,
 	operatorSetParams regcoord.IRegistryCoordinatorOperatorSetParam,
