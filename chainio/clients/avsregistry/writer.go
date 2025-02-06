@@ -528,3 +528,28 @@ func (w *ChainWriter) SetRewardsInitiator(
 	}
 	return receipt, nil
 }
+
+func (w *ChainWriter) CreateTotalDelegatedStakeQuorum(
+	ctx context.Context,
+	operatorSetParams regcoord.IRegistryCoordinatorOperatorSetParam,
+	minimumStakeRequired *big.Int,
+	strategyParams []regcoord.IStakeRegistryStrategyParams,
+	waitForReceipt bool,
+) (*gethtypes.Receipt, error) {
+	w.logger.Info("Creating total delegated stake quorum")
+
+	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
+	if err != nil {
+		return nil, err
+	}
+
+	tx, err := w.registryCoordinator.CreateTotalDelegatedStakeQuorum(noSendTxOpts, operatorSetParams, minimumStakeRequired, strategyParams)
+	if err != nil {
+		return nil, err
+	}
+	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
+	if err != nil {
+		return nil, utils.WrapError("failed to send CreateTotalDelegatedStakeQuorum tx with err", err.Error())
+	}
+	return receipt, nil
+}
