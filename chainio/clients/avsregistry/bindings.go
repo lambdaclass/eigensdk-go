@@ -47,7 +47,6 @@ func NewBindingsFromConfig(
 	var (
 		err error
 
-		serviceManagerAddr    gethcommon.Address
 		stakeRegistryAddr     gethcommon.Address
 		blsApkRegistryAddr    gethcommon.Address
 		indexRegistryAddr     gethcommon.Address
@@ -72,18 +71,6 @@ func NewBindingsFromConfig(
 		)
 		if err != nil {
 			return nil, utils.WrapError("Failed to create BLSRegistryCoordinator contract", err)
-		}
-
-		serviceManagerAddr, err = contractBlsRegistryCoordinator.ServiceManager(&bind.CallOpts{})
-		if err != nil {
-			return nil, utils.WrapError("Failed to fetch ServiceManager address", err)
-		}
-		contractServiceManager, err = servicemanager.NewContractServiceManagerBase(
-			serviceManagerAddr,
-			client,
-		)
-		if err != nil {
-			return nil, utils.WrapError("Failed to create ServiceManager contract", err)
 		}
 
 		stakeRegistryAddr, err = contractBlsRegistryCoordinator.StakeRegistry(&bind.CallOpts{})
@@ -123,10 +110,6 @@ func NewBindingsFromConfig(
 		if err != nil {
 			return nil, utils.WrapError("Failed to get DelegationManager address", err)
 		}
-		avsDirectoryAddr, err = contractServiceManager.AvsDirectory(&bind.CallOpts{})
-		if err != nil {
-			return nil, utils.WrapError("Failed to get AvsDirectory address", err)
-		}
 
 		delegationManager, err := contractDelegationManager.NewContractDelegationManager(
 			delegationManagerAddr,
@@ -137,6 +120,23 @@ func NewBindingsFromConfig(
 		allocationManagerAddr, err = delegationManager.AllocationManager(&bind.CallOpts{})
 		if err != nil {
 			return nil, utils.WrapError("Failed to get AllocationManager address", err)
+		}
+	}
+
+	if isZeroAddress(cfg.ServiceManagerAddress) {
+		logger.Debug("ServiceManager address not provided, the calls to the contract will not work")
+	} else {
+		contractServiceManager, err = servicemanager.NewContractServiceManagerBase(
+			cfg.ServiceManagerAddress,
+			client,
+		)
+		if err != nil {
+			return nil, utils.WrapError("Failed to create ServiceManager contract", err)
+		}
+
+		avsDirectoryAddr, err = contractServiceManager.AvsDirectory(&bind.CallOpts{})
+		if err != nil {
+			return nil, utils.WrapError("Failed to get AvsDirectory address", err)
 		}
 	}
 
@@ -154,7 +154,7 @@ func NewBindingsFromConfig(
 	}
 
 	return &ContractBindings{
-		ServiceManagerAddr:         serviceManagerAddr,
+		ServiceManagerAddr:         cfg.ServiceManagerAddress,
 		RegistryCoordinatorAddr:    cfg.RegistryCoordinatorAddress,
 		StakeRegistryAddr:          stakeRegistryAddr,
 		BlsApkRegistryAddr:         blsApkRegistryAddr,

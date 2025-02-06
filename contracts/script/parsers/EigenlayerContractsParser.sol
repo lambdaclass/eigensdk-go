@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.12;
+pragma solidity ^0.8.27;
 
 import "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 import "eigenlayer-contracts/src/contracts/permissions/PauserRegistry.sol";
@@ -9,6 +9,7 @@ import {IDelegationManager} from "eigenlayer-contracts/src/contracts/interfaces/
 import {IStrategyManager, IStrategy} from "eigenlayer-contracts/src/contracts/interfaces/IStrategyManager.sol";
 import {StrategyBaseTVLLimits} from "eigenlayer-contracts/src/contracts/strategies/StrategyBaseTVLLimits.sol";
 import {IRewardsCoordinator} from "eigenlayer-contracts/src/contracts/interfaces/IRewardsCoordinator.sol";
+import {IPermissionController} from "eigenlayer-contracts/src/contracts/interfaces/IPermissionController.sol";
 import {IAllocationManager} from "eigenlayer-contracts/src/contracts/interfaces/IAllocationManager.sol";
 
 import {ConfigsReadWriter} from "./ConfigsReadWriter.sol";
@@ -24,6 +25,7 @@ struct EigenlayerContracts {
     IAVSDirectory avsDirectory;
     IRewardsCoordinator rewardsCoordinator;
     StrategyBaseTVLLimits baseStrategyImplementation;
+    IPermissionController permissionController;
     IAllocationManager allocationManager;
 }
 
@@ -48,6 +50,9 @@ contract EigenlayerContractsParser is ConfigsReadWriter {
         IRewardsCoordinator rewardsCoordinator =
             IRewardsCoordinator(stdJson.readAddress(eigenlayerDeployedContracts, ".addresses.rewardsCoordinator"));
 
+        IPermissionController permissionController =
+            IPermissionController(stdJson.readAddress(eigenlayerDeployedContracts, ".addresses.permissionController"));
+
         IAllocationManager allocationManager =
             IAllocationManager(stdJson.readAddress(eigenlayerDeployedContracts, ".addresses.allocationManager"));
         return EigenlayerContracts(
@@ -58,6 +63,7 @@ contract EigenlayerContractsParser is ConfigsReadWriter {
             avsDirectory,
             rewardsCoordinator,
             baseStrategyImplementation,
+            permissionController,
             allocationManager
         );
     }

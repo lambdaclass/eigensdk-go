@@ -155,7 +155,7 @@ func (w *ChainWriter) RegisterAsOperator(
 	}
 	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
 	if err != nil {
-		return nil, errors.New("failed to send tx with err: " + err.Error())
+		return nil, utils.WrapError("failed to send tx", err)
 	}
 	w.logger.Info("tx successfully included", "txHash", receipt.TxHash.String())
 
@@ -191,7 +191,7 @@ func (w *ChainWriter) UpdateOperatorDetails(
 	}
 	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
 	if err != nil {
-		return nil, errors.New("failed to send tx with err: " + err.Error())
+		return nil, utils.WrapError("failed to send tx", err)
 	}
 	w.logger.Info(
 		"successfully updated operator details",
@@ -226,7 +226,7 @@ func (w *ChainWriter) UpdateMetadataURI(
 	}
 	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
 	if err != nil {
-		return nil, errors.New("failed to send tx with err: " + err.Error())
+		return nil, utils.WrapError("failed to send tx", err)
 	}
 	w.logger.Info(
 		"successfully updated operator metadata uri",
@@ -268,7 +268,7 @@ func (w *ChainWriter) DepositERC20IntoStrategy(
 	}
 	_, err = w.txMgr.Send(ctx, tx, waitForReceipt)
 	if err != nil {
-		return nil, errors.New("failed to send tx with err: " + err.Error())
+		return nil, utils.WrapError("failed to send tx", err)
 	}
 
 	tx, err = w.strategyManager.DepositIntoStrategy(noSendTxOpts, strategyAddr, underlyingTokenAddr, amount)
@@ -277,7 +277,7 @@ func (w *ChainWriter) DepositERC20IntoStrategy(
 	}
 	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
 	if err != nil {
-		return nil, errors.New("failed to send tx with err: " + err.Error())
+		return nil, utils.WrapError("failed to send tx", err)
 	}
 
 	w.logger.Infof("deposited %s into strategy %s", amount.String(), strategyAddr)
@@ -508,6 +508,39 @@ func (w *ChainWriter) ModifyAllocations(
 	return receipt, nil
 }
 
+// Receives an operator address, and a list of strategies and numsToClear (number of elements to clear from queue),
+// and clears the operators deallocation queue in numbers to clear for the given strategies, by completing the
+// pending deallocations if their effect timestamps have passed. Note that strategies and numsToClear should have
+// equal length, since there should be a number of elements to clear from queue for each strategy queue.
+func (w *ChainWriter) ClearDeallocationQueue(
+	ctx context.Context,
+	operatorAddress gethcommon.Address,
+	strategies []gethcommon.Address,
+	numsToClear []uint16,
+	waitForReceipt bool,
+) (*gethtypes.Receipt, error) {
+	if w.allocationManager == nil {
+		return nil, errors.New("AllocationManager contract not provided")
+	}
+
+	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
+	if err != nil {
+		return nil, utils.WrapError("failed to get no send tx opts", err)
+	}
+
+	tx, err := w.allocationManager.ClearDeallocationQueue(noSendTxOpts, operatorAddress, strategies, numsToClear)
+	if err != nil {
+		return nil, utils.WrapError("failed to create ClearDeallocationQueue tx", err)
+	}
+
+	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
+	if err != nil {
+		return nil, utils.WrapError("failed to send tx", err)
+	}
+
+	return receipt, nil
+}
+
 // Sets the allocation delay for an operator.
 // The allocation delay is the number of blocks between the operator
 // allocating a magnitude to an operator set, and the magnitude becoming
@@ -602,7 +635,7 @@ func (w *ChainWriter) RegisterForOperatorSets(
 		return nil, utils.WrapError("failed to get public key registration params", err)
 	}
 
-	data, err := abiEncodeRegistrationParams(request.Socket, *pubkeyRegParams)
+	data, err := AbiEncodeRegistrationParams(RegistrationTypeNormal, request.Socket, *pubkeyRegParams)
 	if err != nil {
 		return nil, utils.WrapError("failed to encode registration params", err)
 	}
@@ -818,7 +851,7 @@ func getPubkeyRegistrationParams(
 	ethClient bind.ContractBackend,
 	registryCoordinatorAddr, operatorAddress gethcommon.Address,
 	blsKeyPair *bls.KeyPair,
-) (*regcoord.IBLSApkRegistryPubkeyRegistrationParams, error) {
+) (*regcoord.IBLSApkRegistryTypesPubkeyRegistrationParams, error) {
 	registryCoordinator, err := regcoord.NewContractRegistryCoordinator(registryCoordinatorAddr, ethClient)
 	if err != nil {
 		return nil, utils.WrapError("failed to create registry coordinator", err)
@@ -836,7 +869,7 @@ func getPubkeyRegistrationParams(
 	)
 	G1pubkeyBN254 := chainioutils.ConvertToBN254G1Point(blsKeyPair.GetPubKeyG1())
 	G2pubkeyBN254 := chainioutils.ConvertToBN254G2Point(blsKeyPair.GetPubKeyG2())
-	pubkeyRegParams := regcoord.IBLSApkRegistryPubkeyRegistrationParams{
+	pubkeyRegParams := regcoord.IBLSApkRegistryTypesPubkeyRegistrationParams{
 		PubkeyRegistrationSignature: signedMsg,
 		PubkeyG1:                    G1pubkeyBN254,
 		PubkeyG2:                    G2pubkeyBN254,
@@ -845,11 +878,13 @@ func getPubkeyRegistrationParams(
 }
 
 // Returns the ABI encoding of the given registration params.
-func abiEncodeRegistrationParams(
+func AbiEncodeRegistrationParams(
+	registrationType RegistrationType,
 	socket string,
-	pubkeyRegistrationParams regcoord.IBLSApkRegistryPubkeyRegistrationParams,
+	pubkeyRegistrationParams regcoord.IBLSApkRegistryTypesPubkeyRegistrationParams,
 ) ([]byte, error) {
 	registrationParamsType, err := abi.NewType("tuple", "", []abi.ArgumentMarshaling{
+		{Name: "RegistrationType", Type: "uint8"},
 		{Name: "Socket", Type: "string"},
 		{Name: "PubkeyRegParams", Type: "tuple", Components: []abi.ArgumentMarshaling{
 			{Name: "PubkeyRegistrationSignature", Type: "tuple", Components: []abi.ArgumentMarshaling{
@@ -871,9 +906,11 @@ func abiEncodeRegistrationParams(
 	}
 
 	registrationParams := struct {
-		Socket          string
-		PubkeyRegParams regcoord.IBLSApkRegistryPubkeyRegistrationParams
+		RegistrationType RegistrationType
+		Socket           string
+		PubkeyRegParams  regcoord.IBLSApkRegistryTypesPubkeyRegistrationParams
 	}{
+		registrationType,
 		socket,
 		pubkeyRegistrationParams,
 	}

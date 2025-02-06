@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.12;
+pragma solidity ^0.8.27;
 
 import "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
@@ -7,23 +7,24 @@ import "eigenlayer-contracts/src/contracts/permissions/PauserRegistry.sol";
 import {IDelegationManager} from "eigenlayer-contracts/src/contracts/interfaces/IDelegationManager.sol";
 import {IStrategyManager, IStrategy} from "eigenlayer-contracts/src/contracts/interfaces/IStrategyManager.sol";
 import "eigenlayer-contracts/src/test/mocks/EmptyContract.sol";
-import "eigenlayer-middleware/src/RegistryCoordinator.sol" as blsregcoord;
 import {IServiceManager} from "eigenlayer-middleware/src/interfaces/IServiceManager.sol";
 import {
-    IBLSApkRegistry,
-    IIndexRegistry,
-    IStakeRegistry,
-    StakeType
-} from "eigenlayer-middleware/src/RegistryCoordinator.sol";
-import {BLSApkRegistry} from "eigenlayer-middleware/src/BLSApkRegistry.sol";
-import {IndexRegistry} from "eigenlayer-middleware/src/IndexRegistry.sol";
-import {StakeRegistry} from "eigenlayer-middleware/src/StakeRegistry.sol";
+    IRegistryCoordinator,
+    IRegistryCoordinatorTypes
+} from "eigenlayer-middleware/src/interfaces/IRegistryCoordinator.sol";
+import {RegistryCoordinator} from "eigenlayer-middleware/src/RegistryCoordinator.sol";
+import {BLSApkRegistry, IBLSApkRegistry} from "eigenlayer-middleware/src/BLSApkRegistry.sol";
+import {IndexRegistry, IIndexRegistry} from "eigenlayer-middleware/src/IndexRegistry.sol";
+import {StakeRegistry, IStakeRegistry, IStakeRegistryTypes} from "eigenlayer-middleware/src/StakeRegistry.sol";
+import {SocketRegistry, ISocketRegistry, IRegistryCoordinator} from "eigenlayer-middleware/src/SocketRegistry.sol";
 import {OperatorStateRetriever} from "eigenlayer-middleware/src/OperatorStateRetriever.sol";
 import {MockAvsContracts} from "./parsers/MockAvsContractsParser.sol";
 import {EigenlayerContracts, EigenlayerContractsParser} from "./parsers/EigenlayerContractsParser.sol";
 import {ConfigsReadWriter} from "./parsers/ConfigsReadWriter.sol";
 import {MockAvsServiceManager} from "../src/MockAvsServiceManager.sol";
 import {ContractsRegistry} from "../src/ContractsRegistry.sol";
+import {LegacyRegistryCoordinator} from "../src/LegacyRegistryCoordinator.sol";
+
 import "forge-std/Script.sol";
 import "forge-std/console.sol";
 import "forge-std/StdJson.sol";
@@ -36,13 +37,15 @@ contract DeployMockAvsRegistries is Script, ConfigsReadWriter, EigenlayerContrac
         IIndexRegistry indexRegistryImplementation;
         IStakeRegistry stakeRegistry;
         IStakeRegistry stakeRegistryImplementation;
+        ISocketRegistry socketRegistry;
+        ISocketRegistry socketRegistryImplementation;
     }
 
     struct DeployedContracts {
         ProxyAdmin proxyAdmin;
         PauserRegistry pauserReg;
-        blsregcoord.RegistryCoordinator coordinator;
-        blsregcoord.IRegistryCoordinator coordinatorImplementation;
+        RegistryCoordinator coordinator;
+        IRegistryCoordinator coordinatorImplementation;
         OperatorStateRetriever stateRetriever;
         EmptyContract emptyContract;
     }
@@ -75,7 +78,9 @@ contract DeployMockAvsRegistries is Script, ConfigsReadWriter, EigenlayerContrac
         _deployProxies();
         deployed.stateRetriever = new OperatorStateRetriever();
         _deployAndUpgradeImplementations(eigenlayerContracts, manager);
-        _initializeRegistryCoordinator(addressConfig);
+        _initializeRegistryCoordinator(addressConfig, manager);
+
+        _setupPermissions(addressConfig.communityMultisig, eigenlayerContracts);
 
         require(Ownable(address(deployed.coordinator)).owner() != address(0), "Owner uninitialized");
         _writeDeploymentOutput(manager, managerImpl);
@@ -97,10 +102,11 @@ contract DeployMockAvsRegistries is Script, ConfigsReadWriter, EigenlayerContrac
         if (address(deployed.proxyAdmin) == address(0)) {
             deployed.proxyAdmin = new ProxyAdmin();
         }
-        deployed.coordinator = blsregcoord.RegistryCoordinator(_deployProxy());
+        deployed.coordinator = RegistryCoordinator(_deployProxy());
         registries.blsApkRegistry = IBLSApkRegistry(_deployProxy());
         registries.indexRegistry = IIndexRegistry(_deployProxy());
         registries.stakeRegistry = IStakeRegistry(_deployProxy());
+        registries.socketRegistry = ISocketRegistry(_deployProxy());
     }
 
     function _deployProxy() internal returns (address) {
@@ -117,17 +123,25 @@ contract DeployMockAvsRegistries is Script, ConfigsReadWriter, EigenlayerContrac
         registries.indexRegistryImplementation = new IndexRegistry(deployed.coordinator);
         _upgradeProxy(address(registries.indexRegistry), address(registries.indexRegistryImplementation));
 
-        registries.stakeRegistryImplementation =
-            new StakeRegistry(deployed.coordinator, eigen.delegationManager, eigen.avsDirectory, manager);
+        registries.stakeRegistryImplementation = new StakeRegistry(
+            deployed.coordinator, eigen.delegationManager, eigen.avsDirectory, eigen.allocationManager
+        );
         _upgradeProxy(address(registries.stakeRegistry), address(registries.stakeRegistryImplementation));
 
-        deployed.coordinatorImplementation = new blsregcoord.RegistryCoordinator(
-            blsregcoord.IServiceManager(address(manager)),
-            blsregcoord.IStakeRegistry(address(registries.stakeRegistry)),
-            blsregcoord.IBLSApkRegistry(address(registries.blsApkRegistry)),
-            blsregcoord.IIndexRegistry(address(registries.indexRegistry)),
-            eigen.avsDirectory,
-            deployed.pauserReg
+        registries.socketRegistryImplementation =
+            new SocketRegistry(IRegistryCoordinator(address(deployed.coordinator)));
+        _upgradeProxy(address(registries.socketRegistry), address(registries.socketRegistryImplementation));
+
+        deployed.coordinatorImplementation = RegistryCoordinator(
+            new LegacyRegistryCoordinator(
+                IServiceManager(address(manager)),
+                registries.stakeRegistry,
+                registries.blsApkRegistry,
+                registries.indexRegistry,
+                registries.socketRegistry,
+                eigen.allocationManager,
+                deployed.pauserReg
+            )
         );
     }
 
@@ -135,40 +149,44 @@ contract DeployMockAvsRegistries is Script, ConfigsReadWriter, EigenlayerContrac
         deployed.proxyAdmin.upgrade(TransparentUpgradeableProxy(payable(proxy)), implementation);
     }
 
-    function _initializeRegistryCoordinator(MockAvsOpsAddresses memory config) internal {
-        uint32 numQuorums = 0;
-        blsregcoord.RegistryCoordinator.OperatorSetParam[] memory params =
-            new blsregcoord.RegistryCoordinator.OperatorSetParam[](numQuorums);
-
-        for (uint32 i = 0; i < numQuorums; i++) {
-            params[i] = blsregcoord.IRegistryCoordinator.OperatorSetParam({
-                maxOperatorCount: 10000,
-                kickBIPsOfOperatorStake: 15000,
-                kickBIPsOfTotalStake: 100
-            });
-        }
-
-        uint96[] memory minStake = new uint96[](numQuorums);
-        IStakeRegistry.StrategyParams[][] memory strategyParams = new IStakeRegistry.StrategyParams[][](numQuorums);
-        StakeType[] memory stakeTypes = new StakeType[](numQuorums);
-        uint32[] memory lookAheadPeriods = new uint32[](numQuorums);
-
+    function _initializeRegistryCoordinator(MockAvsOpsAddresses memory config, MockAvsServiceManager manager)
+        internal
+    {
         deployed.proxyAdmin.upgradeAndCall(
             TransparentUpgradeableProxy(payable(address(deployed.coordinator))),
             address(deployed.coordinatorImplementation),
-            abi.encodeWithSelector(
-                blsregcoord.RegistryCoordinator.initialize.selector,
-                config.communityMultisig,
-                config.churner,
-                config.ejector,
-                0,
-                params,
-                minStake,
-                strategyParams,
-                stakeTypes,
-                lookAheadPeriods
+            abi.encodeCall(
+                deployed.coordinator.initialize,
+                (config.communityMultisig, config.churner, config.ejector, 0, address(manager))
             )
         );
+        LegacyRegistryCoordinator(address(deployed.coordinator)).enableM2QuorumRegistration();
+        LegacyRegistryCoordinator(address(deployed.coordinator)).disableOperatorSets();
+    }
+
+    function _setupPermissions(address avs, EigenlayerContracts memory elContracts) internal {
+        address coordinator = address(deployed.coordinator);
+        address allocationManager = address(elContracts.allocationManager);
+        elContracts.permissionController.setAppointee(
+            avs, coordinator, allocationManager, elContracts.allocationManager.createOperatorSets.selector
+        );
+        elContracts.permissionController.setAppointee(
+            avs, coordinator, allocationManager, elContracts.allocationManager.deregisterFromOperatorSets.selector
+        );
+        address stakeRegistry = address(deployed.coordinator.stakeRegistry());
+        elContracts.permissionController.setAppointee(
+            avs, stakeRegistry, allocationManager, elContracts.allocationManager.addStrategiesToOperatorSet.selector
+        );
+        elContracts.permissionController.setAppointee(
+            avs,
+            stakeRegistry,
+            allocationManager,
+            elContracts.allocationManager.removeStrategiesFromOperatorSet.selector
+        );
+        // NOTE: we don't set permissions for the slasher, because there isn't one
+        // elContracts.permissionController.setAppointee(
+        //     avs, slasher, allocationManager, elContracts.allocationManager.slashOperator.selector
+        // );
     }
 
     function _writeDeploymentOutput(MockAvsServiceManager manager, MockAvsServiceManager managerImpl) internal {
