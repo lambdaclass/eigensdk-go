@@ -528,3 +528,35 @@ func (w *ChainWriter) SetRewardsInitiator(
 	}
 	return receipt, nil
 }
+
+func (w *ChainWriter) CreateSlashableStakeQuorum(
+	ctx context.Context,
+	operatorSetParams regcoord.ISlashingRegistryCoordinatorTypesOperatorSetParam,
+	minimumStakeRequired *big.Int,
+	strategyParams []regcoord.IStakeRegistryTypesStrategyParams,
+	lookAheadPeriod uint32,
+	waitForReceipt bool,
+) (*gethtypes.Receipt, error) {
+	w.logger.Info("Creating slashable stake quorum")
+
+	noSendTxOpts, err := w.txMgr.GetNoSendTxOpts()
+	if err != nil {
+		return nil, err
+	}
+
+	tx, err := w.registryCoordinator.CreateSlashableStakeQuorum(
+		noSendTxOpts,
+		operatorSetParams,
+		minimumStakeRequired,
+		strategyParams,
+		lookAheadPeriod,
+	)
+	if err != nil {
+		return nil, err
+	}
+	receipt, err := w.txMgr.Send(ctx, tx, waitForReceipt)
+	if err != nil {
+		return nil, utils.WrapError("failed to send CreateSlashableStakeQuorum tx with err", err.Error())
+	}
+	return receipt, nil
+}
